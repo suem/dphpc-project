@@ -18,7 +18,6 @@ int main(int argc, char* argv[]) {
 	// Make convenient labels for the vertices
 	enum { A, B, C, D, E, N };
 	const int num_vertices = N;
-	const char* name = "ABCDE";
 
 	// writing out the edges in the graph
 	typedef std::pair<int, int> Edge;
@@ -52,7 +51,7 @@ int main(int argc, char* argv[]) {
 	// Therefor, this should execute only once
 	printf("Finished!\n");
 
-	std::cout << "Press a key to exit...";
+	std::cout << "Press enter to exit...";
 	while (std::cin.get() != '\n') {} 
 
 	return 0;
