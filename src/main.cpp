@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
 	printf("Finished!\n");
 
 	std::cout << "Press enter to exit...";
-	while (std::cin.get() != '\n') {}
+	while (std::cin.get() != '\n') {} 
 
 	return 0;
 }
