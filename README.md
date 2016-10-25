@@ -10,7 +10,7 @@ Intro goes here
 
 Source: https://en.wikipedia.org/wiki/Hopcroft%E2%80%93Karp_algorithm
 
-![Boost Logo](/docs/media/img/boost_logo.png =250x)
+<img src="/docs/media/img/boost_logo.png" alt="Boost Logo" width="250">
 Source: http://www.boost.org/
 
 
@@ -20,10 +20,10 @@ Source: http://www.boost.org/
 
 ### Architecture
 
-![Xeon Phi Sticker](/docs/media/img/xeon_phi_sticker.png =250x)
+<img src="/docs/media/img/xeon_phi_sticker.png" alt="Xeon Phi Sticker" width="250">
 Source: http://www.intel.com/content/www/us/en/processors/xeon/xeon-phi-detail.html
 
-![OpenMP Logo](/docs/media/img/openmp_logo.gif =250x)
+<img src="/docs/media/img/openmp_logo.gif" alt="OpenMP Logo" width="250">
 Source: http://openmp.org/wp/
 
 
