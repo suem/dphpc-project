@@ -2,37 +2,28 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/graph/bipartite.hpp>
 #include <string>
 
+// TODO: is this the way this is done in C++?
+#include "../include/graphloader.h"
+
 using namespace boost;
+using namespace std;
 
 int main(int argc, char* argv[]) {
 
-	///////////////////////
-	// GRAPH HELLO WORLD //
-	///////////////////////
+	cout << "Reading graph from stdin: " << endl;
 
-	// create a typedef for the Graph type
-	typedef adjacency_list<vecS, vecS, bidirectionalS> Graph;
+	Graph g;
+	loadGraph(g);
 
-	// Make convenient labels for the vertices
-	enum { A, B, C, D, E, N };
-	const int num_vertices = N;
-	const char* name = "ABCDE";
+    int n = num_vertices(g);
+	cout << "Read graph of size: " << n << endl;
 
-	// writing out the edges in the graph
-	typedef std::pair<int, int> Edge;
-	Edge edge_array[] =
-	{ Edge(A,B), Edge(A,D), Edge(C,A), Edge(D,C),
-		Edge(C,E), Edge(B,D), Edge(D,E) };
-	const int num_edges = sizeof(edge_array) / sizeof(edge_array[0]);
+    bool bipartite = is_bipartite(g);
 
-	// declare a graph object
-	Graph g(num_vertices);
-
-	// add the edges to the graph object
-	for (int i = 0; i < num_edges; ++i)
-		add_edge(edge_array[i].first, edge_array[i].second, g);
+	cout << "Graph is bipartite: " << bipartite << endl;
 
 	////////////////////////
 	// OPENMP HELLO WORLD //
@@ -40,6 +31,7 @@ int main(int argc, char* argv[]) {
 
 	// This statement should only print once
 	printf("Starting Program!\n");
+
 
 #pragma omp parallel
 	{
@@ -52,8 +44,8 @@ int main(int argc, char* argv[]) {
 	// Therefor, this should execute only once
 	printf("Finished!\n");
 
-	std::cout << "Press a key to exit...";
-	while (std::cin.get() != '\n') {} 
+	std::cout << "Press enter to exit...";
+	while (std::cin.get() != '\n') {}
 
 	return 0;
 }
