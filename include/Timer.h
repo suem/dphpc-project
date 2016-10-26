@@ -1,5 +1,4 @@
-#ifndef TIMER_H
-#define TIMER_H
+#pragma once
 
 #include <iostream>
 #include <chrono>
@@ -34,4 +33,3 @@ inline float Timer::stop() {
     started = false;    
     return (float) std::chrono::duration_cast<T>(end - begin).count();
 }
-#endif //TIMER_H

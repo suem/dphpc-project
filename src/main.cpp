@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
 	Graph g;
 	loadGraph(g);
 
-    int n = num_vertices(g);
+    size_t n = num_vertices(g);
 	cout << "Read graph of size: " << n << endl;
 
     bool bipartite = is_bipartite(g);

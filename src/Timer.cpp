@@ -18,7 +18,7 @@ void Timer::start() {
 
 std::string Timer::timeStamp() {
     time_t t = time(0);
-    struct tm *now;
+    struct tm* now;
     now = localtime(&t);
 
     int years   = now->tm_year + 1900;
