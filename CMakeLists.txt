@@ -60,4 +60,8 @@ file(GLOB_RECURSE DPHCP_Files
 set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -lpthread -ldl")
 
 add_executable(MaximumMatching ${DPHCP_Files})
+target_include_directories(MaximumMatching PRIVATE
+	"${PROJECT_SOURCE_DIR}/include"
+)
+
 TARGET_LINK_LIBRARIES(MaximumMatching ${Boost_LIBRARIES} )

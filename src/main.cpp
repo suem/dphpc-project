@@ -5,8 +5,7 @@
 #include <boost/graph/bipartite.hpp>
 #include <string>
 
-// TODO: is this the way this is done in C++?
-#include "../include/graphloader.h"
+#include "graphloader.h"
 
 using namespace boost;
 using namespace std;
