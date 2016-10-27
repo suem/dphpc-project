@@ -1,11 +1,11 @@
 #include <iostream>
-#include <boost/graph/graph_traits.hpp>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/dijkstra_shortest_paths.hpp>
-#include <boost/graph/bipartite.hpp>
 #include <string>
+#include "graphtypes.h"
+#include <boost/graph/bipartite.hpp>
+#include <boost/graph/max_cardinality_matching.hpp>
 
 #include "graphloader.h"
+#include "verifier.h"
 
 using namespace boost;
 using namespace std;
@@ -13,16 +13,33 @@ using namespace std;
 int main(int argc, char* argv[]) {
 
 	cout << "Reading graph from stdin: " << endl;
+	try {
 
-	Graph g;
-	loadGraph(g);
+		Graph g;
+		loadGraph(g);
+		verify_bipartite(g);
 
-    size_t n = num_vertices(g);
-	cout << "Read graph of size: " << n << endl;
+		vertex_size_t n = num_vertices(g);
+		MateMap mates(n);
 
-    bool bipartite = is_bipartite(g);
+		boost::edmonds_maximum_cardinality_matching(g, &mates[0]);
+		verify_matching(g, mates);
 
-	cout << "Graph is bipartite: " << bipartite << endl;
+		vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
+
+		cout << "Max Matching has cardinality: " << matchingSize << endl;
+		cout << "Matchings: " << endl;
+		VertexIterator start, end;
+		for (tie(start, end) = vertices(g); start != end; start++) {
+			Vertex u = *start;
+			Vertex v = mates[u];
+			if (v != g.null_vertex() && u < v) cout << "(" << u << " " << v << ")" << endl;
+		}
+
+	} catch (char const* error) {
+		cerr << "Error: " << error << endl;
+		return -1;
+	}
 
 	////////////////////////
 	// OPENMP HELLO WORLD //
@@ -44,7 +61,7 @@ int main(int argc, char* argv[]) {
 	printf("Finished!\n");
 
 	std::cout << "Press enter to exit...";
-	while (std::cin.get() != '\n') {} 
+	while (std::cin.get() != '\n') {}
 
 	return 0;
 }
