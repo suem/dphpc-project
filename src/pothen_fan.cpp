@@ -7,16 +7,6 @@
 #include <iostream>
 #include <stack>
 
-void match_greedy(const Graph& g, VertexVector& mate);
-bool find_path(const Vertex& x0, const Graph& g, VertexVector& mate, bool* visited);
-
-inline bool is_right(const Vertex& v) {
-    return v % 2 == 1;
-}
-
-inline bool is_left(const Vertex& v) {
-    return v % 2 == 0;
-}
 
 void pothen_fan(const Graph& g, VertexVector& mate) {
 
@@ -24,8 +14,6 @@ void pothen_fan(const Graph& g, VertexVector& mate) {
 
     // create initial greedy matching
     match_greedy(g, mate);
-
-    std::cout << "Starting PF" << std::endl;
 
     Vertex null_vertex = g.null_vertex();
 
@@ -80,10 +68,7 @@ bool find_path(const Vertex& x0, const Graph& g, VertexVector& mate, bool* visit
         }
 
         mate[y] = x0;
-
-        std::cout << "check x0 " << std::endl;
         mate[x0] = y;
-        std::cout << "check x0 done" << std::endl;
 
         return true;
     }

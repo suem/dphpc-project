@@ -32,6 +32,8 @@ int main(int argc, char* argv[]) {
         testGraphIO();
         //testGraphGeneration();    
 
+    std::ios::sync_with_stdio(false);
+
 	cout << "Reading graph from stdin: " << endl;
 	try {
 
