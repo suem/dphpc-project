@@ -6,7 +6,7 @@
 
 #include "graphtypes.h"
 
-void pothen_fan(const Graph& g, MateMap& mate) {
+void pothen_fan(const Graph& g, VertexVector& mate) {
 
     for (auto& m : mate) {
         m = g.null_vertex();

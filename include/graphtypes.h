@@ -12,4 +12,4 @@ typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
 typedef boost::graph_traits<Graph>::vertices_size_type vertex_size_t;
 typedef boost::graph_traits<Graph>::vertex_iterator VertexIterator;
 typedef boost::graph_traits<Graph>::edge_iterator EdgeIterator;
-typedef std::vector<Vertex> MateMap;
+typedef std::vector<Vertex> VertexVector;

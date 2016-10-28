@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 		verify_bipartite(g);
 
 		vertex_size_t n = num_vertices(g);
-		MateMap mates(n);
+		VertexVector mates(n);
 
 		boost::edmonds_maximum_cardinality_matching(g, &mates[0]);
 		verify_matching(g, mates);
