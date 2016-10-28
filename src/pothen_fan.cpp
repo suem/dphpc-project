@@ -32,7 +32,7 @@ void pothen_fan(const Graph& g, VertexVector& mate) {
                 continue;
             }
             // assert: v is on the left and unmatched
-            path_found = find_path(v, g, mate, visited);
+            path_found = find_path(v, g, mate, visited) || path_found;
         }
     } while (path_found);
 
@@ -74,7 +74,6 @@ bool find_path(const Vertex& x0, const Graph& g, VertexVector& mate, bool* visit
     }
 
     return false;
-
 }
 
 
