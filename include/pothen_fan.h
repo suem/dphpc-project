@@ -6,7 +6,14 @@
 
 #include "graphtypes.h"
 
+struct FindPathElement {
+	Vertex x0;
+	Vertex x1;
+	Vertex y;
+};
+
 void pothen_fan(const Graph& g, VertexVector& mate);
+void match_one(const Graph& g, VertexVector& mate);
 void match_greedy(const Graph& g, VertexVector& mate);
 bool find_path(const Vertex& x0, const Graph& g, VertexVector& mate, bool* visited);
 
