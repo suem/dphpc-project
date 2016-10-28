@@ -6,11 +6,22 @@
 
 #include "graphloader.h"
 #include "verifier.h"
+#include "GraphHelper.h"
 
 using namespace boost;
-using namespace std;
+using namespace std; 
+
+void testGraphIO() {
+    std::string inFile = "../test/small_graph.txt";
+    std::string outFile = "../test/out.txt";
+
+    Graph g = GraphHelper::readGraphFromFile(inFile);
+    GraphHelper::writeGraphToFile(outFile);
+}
+
 
 int main(int argc, char* argv[]) {
+        testGraphIO();
 
 	cout << "Reading graph from stdin: " << endl;
 	try {
