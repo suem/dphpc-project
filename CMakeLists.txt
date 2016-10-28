@@ -16,7 +16,7 @@ endif()
 #	set (BOOST_LIBARYDIR "${BOOST_ROOT}/lib")
 #endif()
 
-find_package(Boost 1.62 REQUIRED)
+find_package(Boost 1.61 REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # OpenMP
