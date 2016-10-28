@@ -20,11 +20,15 @@ Graph GraphHelper::generateRandomGraph(int numNodes, float density) {
             }
         }      
     }
+    
     return g;
 }
 
 Graph GraphHelper::readGraphFromFile(const std::string& filePath) {
     std::ifstream inFile(filePath);
+    if (inFile.fail())
+        std::cerr << "Error while reading from file" << std::endl;
+    
     int numNodes, u, v;
 
     inFile >> numNodes;
@@ -32,21 +36,18 @@ Graph GraphHelper::readGraphFromFile(const std::string& filePath) {
 
     while (inFile >> u >> v) 
         boost::add_edge(u, v, g);
-    
-    if (inFile.fail())
-        std::cerr << "Error while reading from file" << std::endl;
-
+       
     return g;
 }
 
 void GraphHelper::writeGraphToFile(const std::string& filePath, const Graph& g) {
-    std::ofstream outFile(filePath);
+    std::ofstream outFile(filePath);    
     outFile << num_vertices(g) << std::endl;
-    
+
     for (EdgeIterator e = boost::edges(g).first; e != boost::edges(g).second; e++)
-        outFile << source((*e), g) << " " << target((*e), g) << std::endl;
+        outFile << source(*e, g) << " " << target(*e, g) << std::endl;
     
-    outFile.flush();
+    outFile.flush();    
     if (outFile.fail())
-        std::cerr << "Error while writing to file." << std::endl;        
+        std::cerr << "Error while writing to file." << std::endl;
 }

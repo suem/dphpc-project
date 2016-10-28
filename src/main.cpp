@@ -21,9 +21,16 @@ void testGraphIO() {
     GraphHelper::writeGraphToFile(outFile, g);
 }
 
+void testGraphGeneration() {
+    Graph g = GraphHelper::generateRandomGraph(50, 1);
+    for (EdgeIterator e = boost::edges(g).first; e != boost::edges(g).second; e++)
+        std::cout << source(*e, g) << " " << target(*e, g) << std::endl;
+    GraphHelper::writeGraphToFile("../test/out1.txt", g);
+}
 
 int main(int argc, char* argv[]) {
         testGraphIO();
+        //testGraphGeneration();    
 
 	cout << "Reading graph from stdin: " << endl;
 	try {
