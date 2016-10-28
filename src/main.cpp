@@ -12,6 +12,7 @@ using namespace boost;
 using namespace std;
 
 int main(int argc, char* argv[]) {
+    std::ios::sync_with_stdio(false);
 
 	cout << "Reading graph from stdin: " << endl;
 	try {
@@ -23,8 +24,8 @@ int main(int argc, char* argv[]) {
 		vertex_size_t n = num_vertices(g);
 		VertexVector mates(n);
 
-//		boost::edmonds_maximum_cardinality_matching(g, &mates[0]);
-		pothen_fan(g, mates);
+		boost::edmonds_maximum_cardinality_matching(g, &mates[0]);
+//		pothen_fan(g, mates);
 
 		verify_matching(g, mates);
 
