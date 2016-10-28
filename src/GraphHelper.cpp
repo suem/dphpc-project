@@ -43,8 +43,8 @@ void GraphHelper::writeGraphToFile(const std::string& filePath, const Graph& g) 
     std::ofstream outFile(filePath);
     outFile << num_vertices(g) << std::endl;
     
-    for (auto e = edges(g).first; e != edges(g).second; e++)
-        outFile << source((*e).first, g) << " " << target((*e).first, g) << std::endl;
+    for (EdgeIterator e = boost::edges(g).first; e != boost::edges(g).second; e++)
+        outFile << source((*e), g) << " " << target((*e), g) << std::endl;
     
     outFile.flush();
     if (outFile.fail())

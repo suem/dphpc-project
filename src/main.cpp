@@ -18,7 +18,7 @@ void testGraphIO() {
     std::string outFile = "../test/out.txt";
 
     Graph g = GraphHelper::readGraphFromFile(inFile);
-    GraphHelper::writeGraphToFile(outFile);
+    GraphHelper::writeGraphToFile(outFile, g);
 }
 
 
