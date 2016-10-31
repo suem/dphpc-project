@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <atomic>
+
 #include "graphtypes.h"
 
 struct FindPathElement {
@@ -14,10 +16,11 @@ struct FindPathElement {
 	bool found = false;
 };
 
+void parallel_pothen_fan(const Graph& g, VertexVector& mate);
 void pothen_fan(const Graph& g, VertexVector& mate);
-void match_one(const Graph& g, VertexVector& mate);
 void match_greedy(const Graph& g, VertexVector& mate);
 bool find_path(const Vertex x0, const Graph& g, VertexVector& mate, bool* visited);
+bool find_path_atomic(const Vertex x0, const Graph& g, VertexVector& mate, std::atomic_bool* visited);
 bool find_path_recursive(const Vertex x0, const Graph& g, VertexVector& mate, bool* visited);
 
 inline bool is_right(const Vertex& v) {

@@ -1,14 +1,15 @@
 #include "GraphHelper.h"
+#include "verifier.h"
 
 Graph GraphHelper::generateRandomGraph(int numNodes, float density) { 
     Graph g(numNodes);
     int randNodes = rand() % numNodes + 1;
-    int numEdges = randNodes * (numNodes - randNodes) * density;
+    int numEdges = static_cast<int>(randNodes * (numNodes - randNodes) * density);
     
     if (numEdges == 0)
         std::cerr << "Warning! Graph has no edges." << std::endl;
     
-    for (int i = 0; i < numEdges; i++) {
+    for (int i = 0; i < numEdges; ++i) {
         bool inserted = false;
         while (!inserted) {
             int randLeft = rand() % randNodes;
@@ -50,4 +51,15 @@ void GraphHelper::writeGraphToFile(const std::string& filePath, const Graph& g) 
     outFile.flush();    
     if (outFile.fail())
         std::cerr << "Error while writing to file." << std::endl;
+}
+
+bool GraphHelper::isMaximumMatching(const VertexVector& matching, const Graph& g) {
+	try {
+		verify_matching(g, matching);
+	}
+	catch(std::string error) {
+		std::cout << error << std::endl;
+		return false;
+	}
+	return true;
 }
