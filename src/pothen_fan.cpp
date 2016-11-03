@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stack>
 #include <omp.h>
+#include <atomic>
 
 #include "graphtypes.h"
 #include "pothen_fan.h"
@@ -18,12 +19,14 @@ void parallel_pothen_fan(const Graph& g, VertexVector& mate) {
 
 	Vertex null_vertex = g.null_vertex();
 
-	std::atomic_bool path_found = true;
-	std::atomic_bool* visited = new std::atomic_bool[n];
+//	std::atomic_bool path_found(true);
+//	std::atomic_bool* visited = new std::atomic_bool[n];
+	std::vector<std::atomic_flag> visited(n);
+	std::atomic_flag path_found;
 
-	while (path_found) {
-		path_found = false;
-		std::fill_n(visited, n, false);
+	do {
+		path_found.clear();
+        for (auto& flag : visited) flag.clear();
 
 		std::tie(start, end) = boost::vertices(g);
 
@@ -31,12 +34,13 @@ void parallel_pothen_fan(const Graph& g, VertexVector& mate) {
 		if (n > omp_get_num_threads()) {
 #pragma omp parallel 
 			{
-				int nthreads = omp_get_num_threads();
-				int ithread = omp_get_thread_num();
+				size_t nthreads = omp_get_num_threads();
+				size_t ithread = omp_get_thread_num();
 
-				int numberOfNodes = static_cast<int>(std::floor(n / nthreads));
+				int numberOfNodes = static_cast<int>(std::round(n / nthreads));
 				VertexIterator startIt = start + ithread * numberOfNodes;
-				VertexIterator endIt = std::min(end, startIt + numberOfNodes);
+//				VertexIterator endIt = std::min(end, startIt + numberOfNodes);
+				VertexIterator endIt = ithread == nthreads - 1 ? end :  startIt + numberOfNodes;
 
 				for (; startIt != endIt; ++startIt) {
 					const Vertex v = *startIt;
@@ -45,28 +49,30 @@ void parallel_pothen_fan(const Graph& g, VertexVector& mate) {
 						continue;
 					}
 					// assert: v is on the left and unmatched
-					path_found = find_path_atomic(v, g, mate, visited) || path_found;
+                    bool path_found_v = find_path_atomic(v, g, mate, visited);
+                    if (path_found_v) path_found.test_and_set();
 				}
 			}
 		}
 		else {
 			// do it sequential
-			for (int bla = 0; start != end; ++start) {
+			for (; start != end; ++start) {
 				const Vertex v = *start;
 				if (is_right(v) || mate[v] != null_vertex) {
 					// skip if vertex is on the right or if vertex is already matched
 					continue;
 				}
 				// assert: v is on the left and unmatched
-				path_found = find_path_atomic(v, g, mate, visited) || path_found;
+				bool path_found_v = find_path_atomic(v, g, mate, visited);
+				if (path_found_v) path_found.test_and_set();
 			}
 		}
-	}
+	} while(path_found.test_and_set());
 
-	delete[] visited;
+//	delete[] visited;
 }
 
-bool find_path_atomic(const Vertex x0, const Graph& g, VertexVector& mate, std::atomic_bool* visited) {
+bool find_path_atomic(const Vertex x0, const Graph& g, VertexVector& mate, std::vector<std::atomic_flag>& visited) {
 
 	std::stack<FindPathElement> stack;
 	FindPathElement e1;
@@ -95,8 +101,9 @@ bool find_path_atomic(const Vertex x0, const Graph& g, VertexVector& mate, std::
 		for (; vars.start != vars.end; ++vars.start) {
 			vars.y = *vars.start;
 
-			if (visited[vars.y]) continue;
-			visited[vars.y] = true;
+			if (visited[vars.y].test_and_set()) {
+				continue;
+			}
 
 			leaveWhile = true;
 
