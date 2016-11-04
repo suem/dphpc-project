@@ -1,5 +1,6 @@
 #include <string>
 
+#include <chrono>
 #include "Timer.h"
 
 Timer::Timer() {
@@ -27,11 +28,11 @@ std::string Timer::timeStamp() {
     int hours   = now->tm_hour;
     int minutes = now->tm_min;
 
-    std::string str_years   = std::to_string(years);
-    std::string str_months  = std::to_string(months);
-    std::string str_days    = std::to_string(days);
-    std::string str_hours   = std::to_string(hours);
-    std::string str_minutes = std::to_string(minutes);
+    std::string str_years   = std::to_string(static_cast<int>(years));
+    std::string str_months  = std::to_string(static_cast<int>(months));
+    std::string str_days    = std::to_string(static_cast<int>(days));
+    std::string str_hours   = std::to_string(static_cast<int>(hours));
+    std::string str_minutes = std::to_string(static_cast<int>(minutes));
 
     if (months < 10)
        str_months.insert(0, 1, '0');
