@@ -28,11 +28,11 @@ std::string Timer::timeStamp() {
     int hours   = now->tm_hour;
     int minutes = now->tm_min;
 
-    std::string str_years   = std::to_string(static_cast<int>(years));
-    std::string str_months  = std::to_string(static_cast<int>(months));
-    std::string str_days    = std::to_string(static_cast<int>(days));
-    std::string str_hours   = std::to_string(static_cast<int>(hours));
-    std::string str_minutes = std::to_string(static_cast<int>(minutes));
+    std::string str_years   = std::to_string(static_cast<long long>(years));
+    std::string str_months  = std::to_string(static_cast<long long>(months));
+    std::string str_days    = std::to_string(static_cast<long long>(days));
+    std::string str_hours   = std::to_string(static_cast<long long>(hours));
+    std::string str_minutes = std::to_string(static_cast<long long>(minutes));
 
     if (months < 10)
        str_months.insert(0, 1, '0');
