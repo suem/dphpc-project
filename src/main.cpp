@@ -8,7 +8,7 @@
 #include "verifier.h"
 #include "GraphHelper.h"
 #include "pothen_fan.h"
-
+#include "Timer.h" 
 
 using namespace boost;
 using namespace std; 
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
 
     std::ios::sync_with_stdio(false);
 
-	cout << "Reading graph from stdin: " << endl;
+//	cout << "Reading graph from stdin: " << endl;
 	try {
 
 		Graph g;
@@ -45,20 +45,26 @@ int main(int argc, char* argv[]) {
 		VertexVector mates(n);
 
 //		boost::edmonds_maximum_cardinality_matching(g, &mates[0]);
-		parallel_pothen_fan_opt(g, mates);
+
+        Timer t = Timer();
+		parallel_pothen_fan(g, mates);
+		double elapsed = t.elapsed();
+		cout << elapsed << endl;
 
 		verify_matching(g, mates);
 
-		vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
+		volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
 
-		cout << "Max Matching has cardinality: " << matchingSize << endl;
-		cout << "Matchings: " << endl;
-		VertexIterator start, end;
-		for (tie(start, end) = vertices(g); start != end; start++) {
-			Vertex u = *start;
-			Vertex v = mates[u];
-			if (v != g.null_vertex() && u < v) cout << "(" << u << " " << v << ")" << endl;
-		}
+//        cout << matchingSize << endl;
+//
+//		cout << "Max Matching has cardinality: " << matchingSize << endl;
+//		cout << "Matchings: " << endl;
+//		VertexIterator start, end;
+//		for (tie(start, end) = vertices(g); start != end; start++) {
+//			Vertex u = *start;
+//			Vertex v = mates[u];
+//			if (v != g.null_vertex() && u < v) cout << "(" << u << " " << v << ")" << endl;
+//		}
 
 	} catch (char const* error) {
 		cerr << "Error: " << error << endl;
