@@ -19,14 +19,15 @@ void parallel_pothen_fan(const Graph& g, VertexVector& mate) {
 
 	Vertex null_vertex = g.null_vertex();
 
-//	std::atomic_bool path_found(true);
-//	std::atomic_bool* visited = new std::atomic_bool[n];
-	std::vector<std::atomic_flag> visited(n);
-	std::atomic_flag path_found;
+	std::atomic_flag* visited = new std::atomic_flag[n];
+
+//	std::vector<std::atomic_flag> visited(n);
+	std::atomic_flag path_found = ATOMIC_FLAG_INIT;
 
 	do {
 		path_found.clear();
-        for (auto& flag : visited) flag.clear();
+		for (vertex_size_t i = 0; i < n ; i++) visited[i].clear();
+//        for (auto& flag : visited) flag.clear();
 
 		std::tie(start, end) = boost::vertices(g);
 
@@ -39,7 +40,6 @@ void parallel_pothen_fan(const Graph& g, VertexVector& mate) {
 
 				int numberOfNodes = static_cast<int>(std::round(n / nthreads));
 				VertexIterator startIt = start + ithread * numberOfNodes;
-//				VertexIterator endIt = std::min(end, startIt + numberOfNodes);
 				VertexIterator endIt = ithread == nthreads - 1 ? end :  startIt + numberOfNodes;
 
 				for (; startIt != endIt; ++startIt) {
@@ -69,10 +69,10 @@ void parallel_pothen_fan(const Graph& g, VertexVector& mate) {
 		}
 	} while(path_found.test_and_set());
 
-//	delete[] visited;
+	delete[] visited;
 }
 
-bool find_path_atomic(const Vertex x0, const Graph& g, VertexVector& mate, std::vector<std::atomic_flag>& visited) {
+bool find_path_atomic(const Vertex x0, const Graph& g, VertexVector& mate, std::atomic_flag* visited) {
 
 	std::stack<FindPathElement> stack;
 	FindPathElement e1;
