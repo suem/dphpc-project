@@ -32,3 +32,6 @@ build
 
 # IDE Project files
 .idea/**
+
+# boost
+boost_1_62_0/**

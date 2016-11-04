@@ -33,10 +33,10 @@ inline void verify_matching(const Graph& g, const VertexVector& mate) {
     }
 
     if (matching_size < matching_size_solution) {
-		std::cout << std::to_string(matching_size) + " < " + std::to_string(matching_size_solution) << std::endl;
+		std::cout << matching_size << " < " << matching_size_solution << std::endl;
 		throw "matching not maximal";
     } else if (matching_size > matching_size_solution) {
-		std::cout << std::to_string(matching_size) + " > " + std::to_string(matching_size_solution) << std::endl;
+		std::cout << matching_size << " > " << matching_size_solution << std::endl;
         throw "matching incorrect, too large";
     }
 }

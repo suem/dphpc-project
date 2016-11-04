@@ -9,6 +9,8 @@ set(Boost_USE_MULTITHREADED ON)
 
 if (WIN32)
 	set (BOOST_ROOT "C:/Program Files/boost/boost_1_62_0")
+else()
+	set (BOOST_ROOT "boost_1_62_0")
 endif()
 
 # if we ever need to use the precompiled libraries, precompile them, put into the lib folder and use:
@@ -16,7 +18,7 @@ endif()
 #	set (BOOST_LIBARYDIR "${BOOST_ROOT}/lib")
 #endif()
 
-find_package(Boost 1.61 REQUIRED)
+find_package(Boost 1.62 REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # OpenMP
