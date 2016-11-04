@@ -54,6 +54,11 @@ if (MSVC)
   add_definitions (/D "_CRT_SECURE_NO_WARNINGS")
 endif()
 
+IF (${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
+  MESSAGE(STATUS "** Compiling with Intel settings **")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmic")
+ENDIF ()
+
 file(GLOB_RECURSE DPHCP_Files
 	"${PROJECT_SOURCE_DIR}/include/*.h"
 	"${PROJECT_SOURCE_DIR}/src/*.cpp"

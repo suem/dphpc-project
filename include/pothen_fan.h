@@ -17,6 +17,7 @@ struct FindPathElement {
 };
 
 void parallel_pothen_fan(const Graph& g, VertexVector& mate);
+void parallel_pothen_fan_opt(const Graph& g, VertexVector& mate);
 void pothen_fan(const Graph& g, VertexVector& mate);
 void match_greedy(const Graph& g, VertexVector& mate);
 bool find_path(const Vertex x0, const Graph& g, VertexVector& mate, bool* visited);

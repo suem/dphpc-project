@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
 		VertexVector mates(n);
 
 //		boost::edmonds_maximum_cardinality_matching(g, &mates[0]);
-		parallel_pothen_fan(g, mates);
+		parallel_pothen_fan_opt(g, mates);
 
 		verify_matching(g, mates);
 
