@@ -4,7 +4,6 @@
 #include <boost/graph/bipartite.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
 
-#include "graphloader.h"
 #include "verifier.h"
 #include "GraphHelper.h"
 #include "pothen_fan.h"
@@ -29,34 +28,35 @@ void testGraphGeneration() {
 }
 
 int main(int argc, char* argv[]) {
-        testGraphIO();
-        //testGraphGeneration();    
-
     std::ios::sync_with_stdio(false);
+	if (argc < 2) {
+		cerr << "invalid input, no file to read from" << endl;
+		return -1;
+	}
 
-//	cout << "Reading graph from stdin: " << endl;
 	try {
 
-		Graph g;
-		loadGraph(g);
+		Graph g = GraphHelper::readGraphFromFile(argv[1]);
 		verify_bipartite(g);
 
 		vertex_size_t n = num_vertices(g);
 		VertexVector mates(n);
 
-//		boost::edmonds_maximum_cardinality_matching(g, &mates[0]);
 
         Timer t = Timer();
+
+//		boost::edmonds_maximum_cardinality_matching(g, &mates[0]);
+//		pothen_fan(g, mates);
 		parallel_pothen_fan(g, mates);
+
 		double elapsed = t.elapsed();
-		cout << elapsed << endl;
 
 		verify_matching(g, mates);
-
 		volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
 
-//        cout << matchingSize << endl;
-//
+		cout << matchingSize << "\t" <<  elapsed << endl;
+
+
 //		cout << "Max Matching has cardinality: " << matchingSize << endl;
 //		cout << "Matchings: " << endl;
 //		VertexIterator start, end;
