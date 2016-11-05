@@ -40,21 +40,56 @@ int main(int argc, char* argv[]) {
 		verify_bipartite(g);
 
 		vertex_size_t n = num_vertices(g);
-		VertexVector mates(n);
+
+		std::cout << "pothen fan" << std::endl;
+		for (int i=0; i<50;i++) {
+
+			VertexVector mates(n);
+
+			Timer t = Timer();
+			pothen_fan(g, mates);
+			double elapsed = t.elapsed();
+
+			verify_matching(g, mates);
+			volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
+
+			cout << matchingSize << "\t" <<  elapsed << endl;
+		}
 
 
-        Timer t = Timer();
+		std::cout << "parallel pothen fan" << std::endl;
+		for (int i=0; i<50;i++) {
 
-//		boost::edmonds_maximum_cardinality_matching(g, &mates[0]);
-//		pothen_fan(g, mates);
-		parallel_pothen_fan(g, mates);
+			VertexVector mates(n);
 
-		double elapsed = t.elapsed();
+			Timer t = Timer();
+			parallel_pothen_fan(g, mates);
+			double elapsed = t.elapsed();
 
-		verify_matching(g, mates);
-		volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
+			verify_matching(g, mates);
+			volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
 
-		cout << matchingSize << "\t" <<  elapsed << endl;
+			cout << matchingSize << "\t" <<  elapsed << endl;
+		}
+
+
+		std::cout << "boost edmonds" << std::endl;
+		for (int i=0; i<50;i++) {
+
+			VertexVector mates(n);
+
+			Timer t = Timer();
+			boost::edmonds_maximum_cardinality_matching(g, &mates[0]);
+			double elapsed = t.elapsed();
+
+			verify_matching(g, mates);
+			volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
+
+			cout << matchingSize << "\t" <<  elapsed << endl;
+		}
+
+
+
 
 
 //		cout << "Max Matching has cardinality: " << matchingSize << endl;
