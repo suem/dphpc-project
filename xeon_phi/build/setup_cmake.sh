@@ -1,1 +1,1 @@
-CXX=icpc cmake ../
+CXX=icpc cmake ../../
