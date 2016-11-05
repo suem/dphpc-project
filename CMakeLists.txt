@@ -56,7 +56,7 @@ endif()
 
 IF (${CMAKE_CXX_COMPILER_ID} MATCHES "Intel")
   MESSAGE(STATUS "** Compiling with Intel settings **")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmic")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mmic -lrt")
 ENDIF ()
 
 file(GLOB_RECURSE DPHCP_Files
