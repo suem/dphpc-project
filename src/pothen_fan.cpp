@@ -12,7 +12,7 @@
 void parallel_pothen_fan(const Graph& g, VertexVector& mate) {
 	
 	const int NO_THREADS = omp_get_max_threads();
-	std::cout() << "Threads: " << NO_THREADS << std::endl();
+	std::cout << "Threads: " << NO_THREADS << std::endl;
 
 	size_t n = boost::num_vertices(g);
 	VertexIterator start, end;
