@@ -11,69 +11,6 @@
 
 void parallel_pothen_fan(const Graph& g, VertexVector& mate) {
 
-	vertex_size_t  n = boost::num_vertices(g);
-	VertexIterator start, end;
-
-	// create initial greedy matching
-	match_greedy(g, mate);
-
-	Vertex null_vertex = g.null_vertex();
-
-	std::atomic_flag* visited = new std::atomic_flag[n];
-
-	//	std::vector<std::atomic_flag> visited(n);
-	std::atomic_flag path_found = ATOMIC_FLAG_INIT;
-
-	do {
-		path_found.clear();
-		for (vertex_size_t i = 0; i < n; i++) visited[i].clear();
-		//        for (auto& flag : visited) flag.clear();
-
-		std::tie(start, end) = boost::vertices(g);
-
-		// we only do it in parallel if each thread has at least one vertex assigned.
-		if (n > omp_get_num_threads()) {
-#pragma omp parallel 
-			{
-				size_t nthreads = omp_get_num_threads();
-				size_t ithread = omp_get_thread_num();
-
-				int numberOfNodes = static_cast<int>(std::round(n / nthreads));
-				VertexIterator startIt = start + ithread * numberOfNodes;
-				VertexIterator endIt = ithread == nthreads - 1 ? end : startIt + numberOfNodes;
-
-				for (; startIt != endIt; ++startIt) {
-					const Vertex v = *startIt;
-					if (is_right(v) || mate[v] != null_vertex) {
-						// skip if vertex is on the right or if vertex is already matched
-						continue;
-					}
-					// assert: v is on the left and unmatched
-					bool path_found_v = find_path_atomic(v, g, mate, visited);
-					if (path_found_v) path_found.test_and_set();
-				}
-			}
-		}
-		else {
-			// do it sequential
-			for (; start != end; ++start) {
-				const Vertex v = *start;
-				if (is_right(v) || mate[v] != null_vertex) {
-					// skip if vertex is on the right or if vertex is already matched
-					continue;
-				}
-				// assert: v is on the left and unmatched
-				bool path_found_v = find_path_atomic(v, g, mate, visited);
-				if (path_found_v) path_found.test_and_set();
-			}
-		}
-	} while (path_found.test_and_set());
-
-	delete[] visited;
-}
-
-void parallel_pothen_fan_opt(const Graph& g, VertexVector& mate) {
-
 	size_t n = boost::num_vertices(g);
 	VertexIterator start, end;
 
