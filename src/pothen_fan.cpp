@@ -21,12 +21,10 @@ void parallel_pothen_fan(const Graph& g, VertexVector& mate) {
 
 	std::atomic_flag* visited = new std::atomic_flag[n];
 	std::atomic_flag path_found = ATOMIC_FLAG_INIT;
-	std::atomic<bool> path_found_check;
-
+	
 	do {
-		path_found_check = false;
 		path_found.clear();
-//#pragma omp parallel for
+
 		for (int i = 0; i < n; ++i) {
 			visited[i].clear();
 		}
@@ -50,13 +48,10 @@ void parallel_pothen_fan(const Graph& g, VertexVector& mate) {
 					continue;
 				}
 				// assert: v is on the left and unmatched
-				if (!path_found_check) {
-					bool path_found_v = find_path_atomic(v, g, mate, visited);
-					if (path_found_v) {
-						path_found.test_and_set();
-						path_found_check = true;
-					}
-				}
+				bool path_found_v = find_path_atomic(v, g, mate, visited);
+				if (path_found_v) {
+					path_found.test_and_set();
+				}				
 			}
 		}
 
