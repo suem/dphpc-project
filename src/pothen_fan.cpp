@@ -31,7 +31,7 @@ void parallel_pothen_fan(const Graph& g, VertexVector& mate) {
 
 		std::tie(start, end) = boost::vertices(g);
 
-		const int nt = std::min(static_cast<int>(n), omp_get_num_threads());
+		const int nt = std::min(static_cast<int>(n), omp_get_max_threads());
 #pragma omp parallel num_threads(nt)
 		{
 			size_t nthreads = omp_get_num_threads();
