@@ -12,7 +12,7 @@
 using namespace boost;
 using namespace std; 
 
-static const int NO_RUNS = 5;
+static const int NO_RUNS = 10;
 
 void testGraphIO() {
     std::string inFile = "../test/small_graph.txt";
@@ -29,6 +29,23 @@ void testGraphGeneration() {
     GraphHelper::writeGraphToFile("../test/out1.txt", g);
 }
 
+void runParallelPothenFan(const Graph& g, int n, int numThreads) {
+	std::cout << "parallel pothen fan with " << numThreads << std::endl;
+	for (int i = 0; i < NO_RUNS; ++i) {
+
+		VertexVector mates(n);
+
+		Timer t = Timer();
+		parallel_pothen_fan(g, mates, 60);
+		double elapsed = t.elapsed();
+
+		verify_matching(g, mates);
+		volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
+
+		cout << matchingSize << "\t" <<  elapsed << endl;
+	}
+}
+
 int main(int argc, char* argv[]) {
     std::ios::sync_with_stdio(false);
 	if (argc < 2) {
@@ -43,7 +60,7 @@ int main(int argc, char* argv[]) {
 
 		vertex_size_t n = num_vertices(g);
 
-		std::cout << "pothen fan" << std::endl;
+		/*std::cout << "pothen fan" << std::endl;
 		for (int i = 0; i < NO_RUNS; ++i) {
 
 			VertexVector mates(n);
@@ -56,24 +73,12 @@ int main(int argc, char* argv[]) {
 			volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
 
 			cout << matchingSize << "\t" <<  elapsed << endl;
+		}*/
+
+
+		for (int i = 10; i < 251; i = i+10) {
+			runParallelPothenFan(g, n, i);
 		}
-
-
-		std::cout << "parallel pothen fan" << std::endl;
-		for (int i = 0; i < NO_RUNS; ++i) {
-
-			VertexVector mates(n);
-
-			Timer t = Timer();
-			parallel_pothen_fan(g, mates);
-			double elapsed = t.elapsed();
-
-			verify_matching(g, mates);
-			volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
-
-			cout << matchingSize << "\t" <<  elapsed << endl;
-		}
-
 
 		std::cout << "boost edmonds" << std::endl;
 		for (int i = 0; i < NO_RUNS; ++i) {
