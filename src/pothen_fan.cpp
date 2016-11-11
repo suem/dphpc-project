@@ -26,7 +26,7 @@ void parallel_pothen_fan(const Graph& g, VertexVector& mate) {
 	do {
 		path_found_check = false;
 		path_found.clear();
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int i = 0; i < n; ++i) {
 			visited[i].clear();
 		}

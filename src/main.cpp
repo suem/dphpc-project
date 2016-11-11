@@ -12,6 +12,8 @@
 using namespace boost;
 using namespace std; 
 
+static const int NO_RUNS = 5;
+
 void testGraphIO() {
     std::string inFile = "../test/small_graph.txt";
     std::string outFile = "../test/out.txt";
@@ -42,7 +44,7 @@ int main(int argc, char* argv[]) {
 		vertex_size_t n = num_vertices(g);
 
 		std::cout << "pothen fan" << std::endl;
-		for (int i=0; i<50;i++) {
+		for (int i = 0; i < NO_RUNS; ++i) {
 
 			VertexVector mates(n);
 
@@ -58,7 +60,7 @@ int main(int argc, char* argv[]) {
 
 
 		std::cout << "parallel pothen fan" << std::endl;
-		for (int i=0; i<50;i++) {
+		for (int i = 0; i < NO_RUNS; ++i) {
 
 			VertexVector mates(n);
 
@@ -74,7 +76,7 @@ int main(int argc, char* argv[]) {
 
 
 		std::cout << "boost edmonds" << std::endl;
-		for (int i=0; i<50;i++) {
+		for (int i = 0; i < NO_RUNS; ++i) {
 
 			VertexVector mates(n);
 
