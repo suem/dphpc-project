@@ -13,12 +13,15 @@ using namespace boost;
 using namespace std; 
 
 static const int NO_RUNS = 10;
+//static const int NO_RUNS = 1;
 
 void testGraphIO() {
-    std::string inFile = "../test/small_graph.txt";
+    std::string inFile = "../test/graphs/small_graph_bi.txt";
     std::string outFile = "../test/out.txt";
 
-    Graph g = GraphHelper::readGraphFromFile(inFile);
+    Graph g;
+	Vertex first_right;
+    GraphHelper::readGraphFromFile(g, first_right, inFile);
     GraphHelper::writeGraphToFile(outFile, g);
 }
 
@@ -29,14 +32,14 @@ void testGraphGeneration() {
     GraphHelper::writeGraphToFile("../test/out1.txt", g);
 }
 
-void runParallelPothenFan(const Graph& g, int n, int numThreads) {
+void runParallelPothenFan(const Graph& g, Vertex first_right, int n, int numThreads) {
 	std::cout << "parallel pothen fan with " << numThreads << std::endl;
 	for (int i = 0; i < NO_RUNS; ++i) {
 
 		VertexVector mates(n);
 
 		Timer t = Timer();
-		parallel_pothen_fan(g, mates, 60);
+		parallel_pothen_fan(g, first_right, mates, numThreads);
 		double elapsed = t.elapsed();
 
 		verify_matching(g, mates);
@@ -55,29 +58,36 @@ int main(int argc, char* argv[]) {
 
 	try {
 
-		Graph g = GraphHelper::readGraphFromFile(argv[1]);
+        Vertex first_right;
+		Graph g;
+		GraphHelper::readGraphFromFile(g, first_right, argv[1]);
+
 		verify_bipartite(g);
 
 		vertex_size_t n = num_vertices(g);
 
-		/*std::cout << "pothen fan" << std::endl;
+		std::cout << "pothen fan" << std::endl;
 		for (int i = 0; i < NO_RUNS; ++i) {
 
 			VertexVector mates(n);
 
+			// run pf and measure time -------------
 			Timer t = Timer();
-			pothen_fan(g, mates);
+			pothen_fan(g, first_right, mates);
 			double elapsed = t.elapsed();
+			// -------------------------------------
 
 			verify_matching(g, mates);
+
 			volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
 
 			cout << matchingSize << "\t" <<  elapsed << endl;
-		}*/
+		}
 
+//		runParallelPothenFan(g, first_right, n, 64);
 
-		for (int i = 10; i < 251; i = i+10) {
-			runParallelPothenFan(g, n, i);
+		for (int i = 10; i < 251; i = i+30) {
+			runParallelPothenFan(g, first_right, n, i);
 		}
 
 		std::cout << "boost edmonds" << std::endl;

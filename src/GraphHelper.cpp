@@ -25,20 +25,17 @@ Graph GraphHelper::generateRandomGraph(int numNodes, float density) {
     return g;
 }
 
-Graph GraphHelper::readGraphFromFile(const std::string& filePath) {
+void GraphHelper::readGraphFromFile(Graph& g, Vertex& first_right, const std::string& filePath) {
     std::ifstream inFile(filePath);
-    if (inFile.fail())
-        std::cerr << "Error while reading from file" << std::endl;
+    if (inFile.fail()) std::cerr << "Error while reading from file" << std::endl;
     
     int numNodes, u, v;
 
     inFile >> numNodes;
-    Graph g(numNodes);
+    inFile >> first_right;
+    g = Graph(numNodes);
 
-    while (inFile >> u >> v) 
-        boost::add_edge(u, v, g);
-       
-    return g;
+    while (inFile >> u >> v) boost::add_edge(u, v, g);
 }
 
 void GraphHelper::writeGraphToFile(const std::string& filePath, const Graph& g) {
