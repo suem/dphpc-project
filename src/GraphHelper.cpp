@@ -52,7 +52,11 @@ void GraphHelper::writeGraphToFile(const std::string& filePath, const Graph& g) 
 
 bool GraphHelper::isMaximumMatching(const VertexVector& matching, const Graph& g) {
 	try {
-		verify_matching(g, matching);
+        vertex_size_t n = num_vertices(g);
+        VertexVector solution_mates(n);
+        boost::edmonds_maximum_cardinality_matching(g, &solution_mates[0]);
+        vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
+		verify_matching(g, matching, matching_size_solution);
 	}
 	catch(std::string error) {
 		std::cout << error << std::endl;
