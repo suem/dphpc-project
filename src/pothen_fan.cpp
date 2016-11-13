@@ -49,7 +49,10 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 			}
 
 			for (; v < end; ++v) {
-
+				// if any thread  has found a path (including us) stop.
+				if  (path_found) {
+					break;
+				}
 				// skip if vertex is already matched
 				if (is_matched(v, g, mate))  continue;
 
@@ -58,10 +61,6 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 				bool path_found_v = find_path_recursive_atomic(v, g, first_right, mate, visited);
 				if (path_found_v && !path_found) {
 					path_found = true;
-				}
-				if (path_found) {
-					// if any thread has set this variable, we're done
-					break;
 				}
 			}
 		}
