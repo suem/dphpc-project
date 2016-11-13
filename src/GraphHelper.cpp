@@ -65,7 +65,7 @@ bool GraphHelper::isMaximumMatching(const VertexVector& matching, const Graph& g
     return true;
 }
 
-VertexVector GraphHelper karpSipser(Graph g) {
+VertexVector GraphHelper::karpSipser(Graph g) {
     VertexVector matching(num_vertices(g));
 
     while (num_edges(g) > 0) {
@@ -74,10 +74,10 @@ VertexVector GraphHelper karpSipser(Graph g) {
 
         auto startEdges = boost::edges(g).first;
         auto endEdges = boost::edges(g).second;
-        for (auto e = startEdges, e != endEdges; ++e) {
+        for (auto e = startEdges; e != endEdges; ++e) {
             if(boost::degree(source(*e, g), g) == 1 || boost::degree(target(*e, g), g) == 1) {
                 matching[source(*e, g)] = target(*e, g);
-                matchint[target(*e, g)] = source(*e, g);
+                matching[target(*e, g)] = source(*e, g);
 
                 // Remove out_edges from u,v
                 auto startOutEdges = boost::out_edges(source(*e, g), g).first;
