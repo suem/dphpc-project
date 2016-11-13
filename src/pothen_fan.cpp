@@ -6,8 +6,6 @@
 #include <omp.h>
 #include <atomic>
 
-#include <boost/lockfree/queue.hpp>
-
 #include "graphtypes.h"
 #include "pothen_fan.h"
 

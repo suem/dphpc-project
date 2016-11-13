@@ -15,11 +15,6 @@ inline void verify_bipartite(const Graph& g) {
 }
 
 inline void verify_matching(const Graph& g, const VertexVector& mate, size_t max_matching_size) {
-    vertex_size_t n = num_vertices(g);
-    VertexVector solution(n);
-    bool success = boost::checked_edmonds_maximum_cardinality_matching(g, &solution[0]);
-    if (!success) throw "Graph not bipartite";
-
     vertex_size_t matching_size = boost::matching_size(g, &mate[0]);
 
     VertexIterator start, end;
