@@ -11,11 +11,11 @@
 
 void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads) {
 
-	const int NO_THREADS = numThreads; //omp_get_max_threads();
+	const int NO_THREADS = numThreads; 
 //	const int NO_THREADS = omp_get_max_threads();
 
 	const vertex_size_t n = boost::num_vertices(g);
-	const vertex_size_t  n_right = n - first_right;
+	const vertex_size_t n_right = n - first_right;
 
 	const int nt = std::min(static_cast<int>(n), NO_THREADS);
 
@@ -48,7 +48,7 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 				end = ithread * numberOfNodes + numberOfNodes;
 			}
 
-			for (; v < end; v++) {
+			for (; v < end; ++v) {
 
 				// skip if vertex is already matched
 				if (is_matched(v, g, mate))  continue;
@@ -58,6 +58,10 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 				bool path_found_v = find_path_recursive_atomic(v, g, first_right, mate, visited);
 				if (path_found_v && !path_found) {
 					path_found = true;
+				}
+				if (path_found) {
+					// if any thread has set this variable, we're done
+					break;
 				}
 			}
 		}
