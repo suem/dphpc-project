@@ -66,7 +66,10 @@ bool GraphHelper::isMaximumMatching(const VertexVector& matching, const Graph& g
 }
 
 VertexVector GraphHelper::karpSipser(Graph g) {
+    // Initialize matching with null
     VertexVector matching(num_vertices(g));
+    for (unsigned int i = 0; i < num_vertices(g); i++)
+        matching[i] = g.null_vertex();
 
     while (num_edges(g) > 0) {
         // Search for edge with a vertex of degree 1
@@ -76,19 +79,29 @@ VertexVector GraphHelper::karpSipser(Graph g) {
         auto endEdges = boost::edges(g).second;
         for (auto e = startEdges; e != endEdges; ++e) {
             if(boost::degree(source(*e, g), g) == 1 || boost::degree(target(*e, g), g) == 1) {
-                matching[source(*e, g)] = target(*e, g);
-                matching[target(*e, g)] = source(*e, g);
+                Vertex u = source(*e, g);
+                Vertex v = target(*e, g);
+                matching[u] = v;
+                matching[v] = u;
 
                 // Remove out_edges from u,v
-                auto startOutEdges = boost::out_edges(source(*e, g), g).first;
-                auto endOutEdges = boost::out_edges(source(*e, g), g).second;
-                for (auto o = startOutEdges; o != endOutEdges; ++o) 
-                    boost::remove_edge(*o, g);                
+                auto startOutEdges = boost::out_edges(u, g).first;
+                auto endOutEdges = boost::out_edges(u, g).second;
+                for (auto o = startOutEdges; o != endOutEdges; ++o) {
+                    Vertex uu = source(*o, g);
+                    Vertex vv = target(*o, g);
+                    if (boost::edge(uu, vv, g).second)
+                        boost::remove_edge(*o, g);                
+                }
 
-                startOutEdges = boost::out_edges(target(*e, g), g).first;
-                endOutEdges = boost::out_edges(target(*e, g), g).second;
-                for (auto o = startOutEdges; o != endOutEdges; ++o) 
-                    boost::remove_edge(*o, g);
+                startOutEdges = boost::out_edges(v, g).first;
+                endOutEdges = boost::out_edges(v, g).second;
+                for (auto o = startOutEdges; o != endOutEdges; ++o) {
+                    Vertex uu = source(*o, g);
+                    Vertex vv = target(*o, g);
+                    if (boost::edge(uu, vv, g).second)
+                        boost::remove_edge(*o, g);                
+                }
 
                 foundEdge = true;
                 break;
@@ -99,13 +112,28 @@ VertexVector GraphHelper::karpSipser(Graph g) {
 
         // If no edge found, select the first one
         auto e = boost::edges(g).first;
-        matching[source(*e, g)] = target(*e, g);
-        matching[target(*e, g)] = source(*e, g);
+        Vertex u = source(*e, g);
+        Vertex v = target(*e, g);
+        matching[u] = v;
+        matching[v] = u;
 
-        auto startOutEdges = boost::out_edges(source(*e, g), g).first;
-        auto endOutEdges = boost::out_edges(source(*e, g), g).second;
-        for (auto o = startOutEdges; o != endOutEdges; ++o) 
-            boost::remove_edge(*o, g);                
+        auto startOutEdges = boost::out_edges(u, g).first;
+        auto endOutEdges = boost::out_edges(u, g).second;
+        for (auto o = startOutEdges; o != endOutEdges; ++o) {
+            Vertex uu = source(*o, g);
+            Vertex vv = target(*o, g);
+            if (boost::edge(uu, vv, g).second)
+                boost::remove_edge(*o, g);                
+        }
+
+        startOutEdges = boost::out_edges(v, g).first;
+        endOutEdges = boost::out_edges(v, g).second;
+        for (auto o = startOutEdges; o != endOutEdges; ++o) {
+            Vertex uu = source(*o, g);
+            Vertex vv = target(*o, g);
+            if (boost::edge(uu, vv, g).second)
+                boost::remove_edge(*o, g);                
+        }
     }
     return matching;
 }

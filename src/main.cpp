@@ -49,6 +49,13 @@ void runParallelPothenFan(const Graph& g, Vertex first_right, int n, vertex_size
 	}
 }
 
+void testKarpSipser() {
+    Graph g = GraphHelper::generateRandomGraph(10, 0.5);
+    VertexVector matching = GraphHelper::karpSipser(g);
+    
+    std::cout << "Finished" << std::endl;
+}
+
 int main(int argc, char* argv[]) {
     std::ios::sync_with_stdio(false);
 	if (argc < 2) {
