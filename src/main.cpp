@@ -88,10 +88,10 @@ int main(int argc, char* argv[]) {
 			cout << matchingSize << "\t" <<  elapsed << endl;
 		}
 
-        runParallelPothenFan(g, first_right, n, matching_size_solution, 10);
-//		for (int i = 10; i < 251; i = i+30) {
-//			runParallelPothenFan(g, first_right, n, matching_size_solution, i);
-//		}
+//        runParallelPothenFan(g, first_right, n, matching_size_solution, 30);
+		for (int i = 10; i < 251; i = i+30) {
+			runParallelPothenFan(g, first_right, n, matching_size_solution, i);
+		}
 
 //		std::cout << "boost edmonds" << std::endl;
 //		for (int i = 0; i < NO_RUNS; ++i) {

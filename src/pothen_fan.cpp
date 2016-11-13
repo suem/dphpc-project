@@ -6,6 +6,8 @@
 #include <omp.h>
 #include <atomic>
 
+#include <boost/lockfree/queue.hpp>
+
 #include "graphtypes.h"
 #include "pothen_fan.h"
 
@@ -22,9 +24,9 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 	// create initial greedy matching
 	match_greedy(g, mate);
 
-	std::atomic_flag* visited = new std::atomic_flag[n_right];
-
 	volatile bool path_found;
+
+	std::atomic_flag* visited = new std::atomic_flag[n_right];
 
 	do {
 		path_found = false;
@@ -33,39 +35,18 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
         memset(visited, 0, sizeof(std::atomic_flag) * n_right);
 
 #pragma omp parallel num_threads(nt)
-		{
-			size_t nthreads = omp_get_num_threads();
-			size_t ithread = omp_get_thread_num();
+#pragma omp for
+		for (Vertex v = 0; v < first_right; v++) {
+			// if any thread  has found a path (including us) stop.
+//				if  (path_found) v = first_right; // simulate break (not supported in omp for
 
-			int numberOfNodes = static_cast<int>(std::round(first_right / nthreads));
+			// skip if vertex is already matched
+			if (is_matched(v, g, mate))  continue;
 
-			Vertex v = ithread * numberOfNodes;
-			Vertex end;
-			if (ithread == nthreads - 1) {
-                // last thread, go to end
-				end = first_right;
-			} else {
-				end = ithread * numberOfNodes + numberOfNodes;
-			}
-
-			for (; v < end; ++v) {
-				// if any thread  has found a path (including us) stop.
-				if  (path_found) {
-					break;
-				}
-				// skip if vertex is already matched
-				if (is_matched(v, g, mate))  continue;
-
-				// assert: v is on the left and unmatched
 //				bool path_found_v = find_path_atomic(v, g, first_right, mate, visited);
-				bool path_found_v = find_path_recursive_atomic(v, g, first_right, mate, visited);
-				if (path_found_v && !path_found) {
-					path_found = true;
-				}
-			}
+			bool path_found_v = find_path_recursive_atomic(v, g, first_right, mate, visited);
+			if (path_found_v && !path_found) path_found = true;
 		}
-
-		// here we get an mfence so the correct value of 'path_found' is stored in memory
 
 	} while (path_found);
 
