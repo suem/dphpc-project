@@ -173,15 +173,18 @@ bool find_path_la_recursive_atomic(const Vertex x0, const Graph& g, const Vertex
     // lookahead phase
     AdjVertexIterator laStart, laEnd;
     for (std::tie(laStart, laEnd) = lookahead[x0]; laStart != laEnd; ++laStart) {
-        lookahead[x0].first = laStart;
         Vertex y = *laStart;
         if (is_unmatched(y, g, mate) && !visited[y - first_right].test_and_set()) {
             // update matching
             mate[y] = x0;
             mate[x0] = y;
+
+            lookahead[x0].first = laStart;
             return true;
         }
     }
+
+    if (lookahead[x0].first != laStart) lookahead[x0].first = laStart;
 
     // DFS phase
     AdjVertexIterator start, end;
