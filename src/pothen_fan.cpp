@@ -19,9 +19,6 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 
 	const int nt = std::min(static_cast<int>(n), NO_THREADS);
 
-	// create initial greedy matching
-	match_greedy(g, mate);
-
 	volatile bool path_found;
 
 	std::atomic_flag* visited = new std::atomic_flag[n_right];
@@ -218,9 +215,6 @@ void pothen_fan(const Graph& g, const Vertex first_right, VertexVector& mate) {
 	const vertex_size_t  n = boost::num_vertices(g);
 	const vertex_size_t  n_right = n - first_right;
 
-	// create initial greedy matching
-	match_greedy(g, mate);
-
 	bool path_found = true;
 	bool* visited = new bool[n_right];
 
@@ -230,12 +224,13 @@ void pothen_fan(const Graph& g, const Vertex first_right, VertexVector& mate) {
 
 	while (path_found) {
 		path_found = false; // reset path_found
-        memset(visited, 0, sizeof(bool) * n_right); // set all visited flags to 0
 
+		memset(visited, 0, sizeof(bool) * n_right); // set all visited flags to 0
         // iterate over all left vertices
 		for (Vertex v = 0; v < first_right; v++) {
 			// skip if vertex is already matched
 			if (is_matched(v, g, mate)) continue;
+
 
 			// assert: v is on the left and unmatched
 //			path_found = find_path(v, g, first_right, mate, visited) || path_found;
@@ -362,7 +357,6 @@ bool find_path_la_recursive(const Vertex x0, const Graph& g, const Vertex first_
     // lookahead phase
     AdjVertexIterator laStart, laEnd;
     for (std::tie(laStart, laEnd) = lookahead[x0]; laStart != laEnd; ++laStart) {
-        lookahead[x0].first = laStart;
         Vertex y = *laStart;
         if (is_unmatched(y, g, mate) && !visited[y - first_right]) {
             visited[y - first_right] = true;
@@ -371,10 +365,13 @@ bool find_path_la_recursive(const Vertex x0, const Graph& g, const Vertex first_
             mate[y] = x0;
             mate[x0] = y;
 
-            return true;
+			lookahead[x0].first = laStart;
+			return true;
+		}
+	}
 
-        }
-    }
+	if (lookahead[x0].first != laStart) lookahead[x0].first = laStart;
+
 
     // DFS phase
     AdjVertexIterator start, end;
@@ -405,22 +402,3 @@ bool find_path_la_recursive(const Vertex x0, const Graph& g, const Vertex first_
 }
 
 
-void match_greedy(const Graph& g, VertexVector& mate) {
-
-	Vertex null_vertex = g.null_vertex();
-
-	// set all mates to null vector
-	std::fill(mate.begin(), mate.end(), null_vertex);
-
-	// do greedy matching over all edges
-	EdgeIterator start, end;
-	for (std::tie(start, end) = boost::edges(g); start != end; start++) {
-		Edge e = *start;
-		Vertex u = boost::source(e, g);
-		Vertex v = boost::target(e, g);
-		if (mate[u] == null_vertex && mate[v] == null_vertex) {
-			mate[u] = v;
-			mate[v] = u;
-		}
-	}
-}

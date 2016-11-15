@@ -32,11 +32,11 @@ void testGraphGeneration() {
     GraphHelper::writeGraphToFile("../test/out1.txt", g);
 }
 
-void runParallelPothenFan(const Graph& g, Vertex first_right, int n, vertex_size_t matching_size_solution, int numThreads) {
+void runParallelPothenFan(const Graph& g, Vertex first_right, int n, vertex_size_t matching_size_solution, VertexVector& initialMatching, int numThreads) {
 	std::cout << "parallel pothen fan with " << numThreads << std::endl;
 	for (int i = 0; i < NO_RUNS; ++i) {
 
-		VertexVector mates(n);
+		VertexVector mates = initialMatching;
 
 		Timer t = Timer();
 		parallel_pothen_fan(g, first_right, mates, numThreads);
@@ -50,13 +50,22 @@ void runParallelPothenFan(const Graph& g, Vertex first_right, int n, vertex_size
 }
 
 void testKarpSipser() {
-    Graph g = GraphHelper::generateRandomGraph(10, 0.5);
+    Graph g = GraphHelper::generateRandomGraph(100, 0.5);
     VertexVector matching = GraphHelper::karpSipser(g);
-    
+	vertex_size_t matching_size = boost::matching_size(g, &matching[0]);
+
+	VertexVector max_matching(boost::num_vertices(g));
+	boost::edmonds_maximum_cardinality_matching(g, &max_matching[0]);
+
+	vertex_size_t max_matching_size = boost::matching_size(g, &max_matching[0]);
+
+	if (matching_size > max_matching_size) throw "Invalid Matching";
+
     std::cout << "Finished" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
+
     std::ios::sync_with_stdio(false);
 	if (argc < 2) {
 		cerr << "invalid input, no file to read from" << endl;
@@ -77,10 +86,16 @@ int main(int argc, char* argv[]) {
 		vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
 
 
+		// Compute initial matching using karp-sister
+//		VertexVector initialMatching = GraphHelper::karpSipser(g);
+		VertexVector initialMatching = GraphHelper::greedyMatching(g);
+
+
 		std::cout << "pothen fan" << std::endl;
 		for (int i = 0; i < NO_RUNS; ++i) {
 
-			VertexVector mates(n);
+			// copy initial matching
+			VertexVector mates = initialMatching;
 
 			// run pf and measure time -------------
 			Timer t = Timer();
@@ -95,9 +110,8 @@ int main(int argc, char* argv[]) {
 			cout << matchingSize << "\t" <<  elapsed << endl;
 		}
 
-//        runParallelPothenFan(g, first_right, n, matching_size_solution, 30);
 		for (int i = 10; i < 251; i = i+30) {
-			runParallelPothenFan(g, first_right, n, matching_size_solution, i);
+			runParallelPothenFan(g, first_right, n, matching_size_solution, initialMatching, i);
 		}
 
 //		std::cout << "boost edmonds" << std::endl;

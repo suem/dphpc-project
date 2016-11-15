@@ -13,4 +13,5 @@ class GraphHelper {
         static void writeGraphToFile(const std::string& filePath, const Graph& g);
         static bool isMaximumMatching(const VertexVector& matching, const Graph& g); 
         static VertexVector karpSipser(Graph g);
+        static VertexVector greedyMatching(Graph g);
 };

@@ -65,6 +65,30 @@ bool GraphHelper::isMaximumMatching(const VertexVector& matching, const Graph& g
     return true;
 }
 
+VertexVector GraphHelper::greedyMatching(Graph g) {
+
+    VertexVector matching(num_vertices(g));
+
+    Vertex null_vertex = g.null_vertex();
+
+    // set all mates to null vector
+    std::fill(matching.begin(), matching.end(), null_vertex);
+
+    // do greedy matching over all edges
+    EdgeIterator start, end;
+    for (std::tie(start, end) = boost::edges(g); start != end; start++) {
+        Edge e = *start;
+        Vertex u = boost::source(e, g);
+        Vertex v = boost::target(e, g);
+        if (matching[u] == null_vertex && matching[v] == null_vertex) {
+            matching[u] = v;
+            matching[v] = u;
+        }
+    }
+
+    return matching;
+}
+
 VertexVector GraphHelper::karpSipser(Graph g) {
     // Initialize matching with null
     VertexVector matching(num_vertices(g));
