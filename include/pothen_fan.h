@@ -27,6 +27,18 @@ bool find_path_la_recursive_atomic(
 
 void pothen_fan(const Graph& g, const Vertex first_right, VertexVector& mate);
 bool find_path(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited);
+
+bool find_path_la(
+		const Vertex x0,
+		const Graph& g, Vertex first_right,
+		VertexVector& mate,
+		vertex_size_t* visited, vertex_size_t iteration,
+		Vertex* parent,
+		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead,
+		Vertex* stack
+);
+
+
 bool find_path_recursive(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited);
 bool find_path_la_recursive(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited, std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead);
 
@@ -45,3 +57,4 @@ inline bool is_matched(const Vertex& v, const Graph& g, const VertexVector& mate
 inline bool is_unmatched(const Vertex& v, const Graph& g, const VertexVector& mate) {
 	return mate[v] == g.null_vertex();
 }
+
