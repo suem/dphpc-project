@@ -1,8 +1,10 @@
 #include "GraphHelper.h"
 #include "verifier.h"
+#include <iomanip> // Pretty debug output
 
 Graph GraphHelper::generateRandomGraph(int numNodes, float density) { 
     Graph g(numNodes);
+    srand(time(0));
     int randNodes = rand() % numNodes + 1;
     int numEdges = static_cast<int>(randNodes * (numNodes - randNodes) * density);
 
@@ -89,6 +91,20 @@ VertexVector GraphHelper::greedyMatching(Graph g) {
     return matching;
 }
 
+void removeAdjacentEdges(Vertex v, Graph& g) {
+    while (boost::degree(v, g) > 0) {
+        auto startOutEdges = boost::out_edges(v, g).first;
+        auto endOutEdges = boost::out_edges(v, g).second;
+        for (auto o = startOutEdges; o != endOutEdges; ++o) {
+            Vertex a = source(*o, g);
+            Vertex b = target(*o, g);
+            if (boost::edge(a, b, g).second) {
+                boost::remove_edge(*o, g);
+            }          
+        }
+    }
+}
+
 VertexVector GraphHelper::karpSipser(Graph g) {
     // Initialize matching with null
     VertexVector matching(num_vertices(g));
@@ -98,33 +114,18 @@ VertexVector GraphHelper::karpSipser(Graph g) {
         // Search for edge with a vertex of degree 1
         bool foundEdge = false;
 
-        auto startEdges = boost::edges(g).first;
-        auto endEdges = boost::edges(g).second;
-        for (auto e = startEdges; e != endEdges; ++e) {
-            if(boost::degree(source(*e, g), g) == 1 || boost::degree(target(*e, g), g) == 1) {
-                Vertex u = source(*e, g);
-                Vertex v = target(*e, g);
+        for (auto e = boost::edges(g).first; e != boost::edges(g).second; ++e) {
+            Vertex u = source(*e, g);
+            Vertex v = target(*e, g);
+            
+            if(boost::degree(u, g) == 1 || boost::degree(v, g) == 1) {
+                // Add vertices to matching
                 matching[u] = v;
                 matching[v] = u;
-
+                
                 // Remove out_edges from u,v
-                auto startOutEdges = boost::out_edges(u, g).first;
-                auto endOutEdges = boost::out_edges(u, g).second;
-                for (auto o = startOutEdges; o != endOutEdges; ++o) {
-                    Vertex uu = source(*o, g);
-                    Vertex vv = target(*o, g);
-                    if (boost::edge(uu, vv, g).second)
-                        boost::remove_edge(*o, g);                
-                }
-
-                startOutEdges = boost::out_edges(v, g).first;
-                endOutEdges = boost::out_edges(v, g).second;
-                for (auto o = startOutEdges; o != endOutEdges; ++o) {
-                    Vertex uu = source(*o, g);
-                    Vertex vv = target(*o, g);
-                    if (boost::edge(uu, vv, g).second)
-                        boost::remove_edge(*o, g);                
-                }
+                removeAdjacentEdges(u, g);
+                removeAdjacentEdges(v, g);
 
                 foundEdge = true;
                 break;
@@ -133,36 +134,22 @@ VertexVector GraphHelper::karpSipser(Graph g) {
 
         if (foundEdge) continue;
 
-        // Debug output
-        std::cout << "found edge:\t\t" << foundEdge << std::endl;
-        std::cout << "num_edges before:\t" << num_edges(g) << std::endl;
-
-        // If no edge found, select the first one
+        // If no edge found, select a random one
+        int randEdge = rand() % num_edges(g);
         auto e = boost::edges(g).first;
+        for (int i = 0; i < randEdge; i++)
+            ++e;
+
         Vertex u = source(*e, g);
         Vertex v = target(*e, g);
+
+        // Add vertices to matching
         matching[u] = v;
         matching[v] = u;
-
-        auto startOutEdges = boost::out_edges(u, g).first;
-        auto endOutEdges = boost::out_edges(u, g).second;
-        for (auto o = startOutEdges; o != endOutEdges; ++o) {
-            Vertex uu = source(*o, g);
-            Vertex vv = target(*o, g);
-            if (boost::edge(uu, vv, g).second)
-                boost::remove_edge(*o, g);                
-        }
-
-        startOutEdges = boost::out_edges(v, g).first;
-        endOutEdges = boost::out_edges(v, g).second;
-        for (auto o = startOutEdges; o != endOutEdges; ++o) {
-            Vertex uu = source(*o, g);
-            Vertex vv = target(*o, g);
-            if (boost::edge(uu, vv, g).second)
-                boost::remove_edge(*o, g);                
-        }
-        // Debug output
-        std::cout << "num_edges after:\t" << num_edges(g) << std::endl << std::endl;
+        
+        // Remove out_edges from u,v
+        removeAdjacentEdges(u, g);
+        removeAdjacentEdges(v, g);
     }
     return matching;
 }

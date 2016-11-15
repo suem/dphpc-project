@@ -50,7 +50,7 @@ void runParallelPothenFan(const Graph& g, Vertex first_right, int n, vertex_size
 }
 
 void testKarpSipser() {
-    Graph g = GraphHelper::generateRandomGraph(40, 0.6);
+    Graph g = GraphHelper::generateRandomGraph(5000, 0.5);
     VertexVector matching = GraphHelper::karpSipser(g);
     vertex_size_t matching_size = boost::matching_size(g, &matching[0]);
 
@@ -60,11 +60,14 @@ void testKarpSipser() {
 
     std::cout << "Matching Size:\t\t" << matching_size << std::endl;
     std::cout << "Max Matching Size:\t" << max_matching_size << std::endl;
+    if(GraphHelper::isMaximumMatching(matching, g)) {
+            std::cout << "Maximum matching found!" << std::endl;
+    }
     std::cout << "Finished" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
-    testKarpSipser();
+//    testKarpSipser();
     std::ios::sync_with_stdio(false);
 	if (argc < 2) {
 		cerr << "invalid input, no file to read from" << endl;
