@@ -92,8 +92,7 @@ VertexVector GraphHelper::greedyMatching(Graph g) {
 VertexVector GraphHelper::karpSipser(Graph g) {
     // Initialize matching with null
     VertexVector matching(num_vertices(g));
-    for (unsigned int i = 0; i < num_vertices(g); i++)
-        matching[i] = g.null_vertex();
+    std::fill(matching.begin(), matching.end(), g.null_vertex());
 
     while (num_edges(g) > 0) {
         // Search for edge with a vertex of degree 1
@@ -134,6 +133,10 @@ VertexVector GraphHelper::karpSipser(Graph g) {
 
         if (foundEdge) continue;
 
+        // Debug output
+        std::cout << "found edge:\t\t" << foundEdge << std::endl;
+        std::cout << "num_edges before:\t" << num_edges(g) << std::endl;
+
         // If no edge found, select the first one
         auto e = boost::edges(g).first;
         Vertex u = source(*e, g);
@@ -158,6 +161,8 @@ VertexVector GraphHelper::karpSipser(Graph g) {
             if (boost::edge(uu, vv, g).second)
                 boost::remove_edge(*o, g);                
         }
+        // Debug output
+        std::cout << "num_edges after:\t" << num_edges(g) << std::endl << std::endl;
     }
     return matching;
 }
