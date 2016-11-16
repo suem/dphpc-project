@@ -13,7 +13,6 @@ using namespace boost;
 using namespace std; 
 
 static const int NO_RUNS = 5;
-//static const int NO_RUNS = 1;
 
 void testGraphIO() {
     std::string inFile = "../test/graphs/small_graph_bi.txt";
@@ -32,7 +31,7 @@ void testGraphGeneration() {
     GraphHelper::writeGraphToFile("../test/out1.txt", g);
 }
 
-void runParallelPothenFan(const Graph& g, Vertex first_right, int n, vertex_size_t matching_size_solution, VertexVector& initialMatching, int numThreads) {
+void runParallelPothenFan(const Graph& g, Vertex first_right, size_t n, vertex_size_t matching_size_solution, VertexVector& initialMatching, int numThreads) {
 	std::cout << "parallel pothen fan with " << numThreads << std::endl;
 	for (int i = 0; i < NO_RUNS; ++i) {
 
@@ -112,7 +111,7 @@ int main(int argc, char* argv[]) {
 			cout << matchingSize << "\t" <<  elapsed << endl;
 		}
 
-		for (int i = 10; i < 251; i = i+30) runParallelPothenFan(g, first_right, n, matching_size_solution, initialMatching, i);
+		for (int i = 10; i < 251; i = i + 30) runParallelPothenFan(g, first_right, n, matching_size_solution, initialMatching, i);
 
 
 //		std::cout << "boost edmonds" << std::endl;

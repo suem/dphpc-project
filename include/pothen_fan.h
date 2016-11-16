@@ -16,9 +16,6 @@ struct FindPathElement {
 	bool found = false;
 };
 
-
-void match_greedy(const Graph& g, VertexVector& mate);
-
 void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads);
 bool find_path_atomic(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, std::atomic_flag* visited);
 bool find_path_recursive_atomic(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, std::atomic_flag* visited);

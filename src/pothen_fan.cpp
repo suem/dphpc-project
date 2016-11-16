@@ -35,7 +35,7 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 
 #pragma omp parallel num_threads(nt)
 #pragma omp for
-		for (Vertex v = 0; v < first_right; v++) {
+		for (int v = 0; v < first_right; v++) {
 			// if any thread  has found a path (including us) stop.
 //				if  (path_found) v = first_right; // simulate break (not supported in omp for
 
