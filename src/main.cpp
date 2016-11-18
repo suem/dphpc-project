@@ -117,26 +117,6 @@ int main(int argc, char* argv[]) {
 				  << " of " << matching_size_solution << " (" << (((float) matching_size_initial / (float) matching_size_solution)) * 100 << "%)"
 				  << " (" << initial_matching_elapsed << " s)" <<std::endl;
 
-
-		std::cout << "pothen fan" << std::endl;
-		for (int i = 0; i < NO_RUNS; ++i) {
-
-			// copy initial matching
-			VertexVector mates = initialMatching;
-
-			// run pf and measure time -------------
-			Timer t = Timer();
-			pothen_fan(g, first_right, mates);
-			double elapsed = t.elapsed();
-			// -------------------------------------
-
-			verify_matching(g, mates, matching_size_solution);
-
-			volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
-
-			cout << matchingSize << "\t" <<  elapsed << endl;
-		}
-
 		runPothenFan(g, first_right, n, matching_size_solution, initialMatching);
 
 		for (int i = 10; i < 251; i = i+30) runParallelPothenFan(g, first_right, n, matching_size_solution, initialMatching, i);
