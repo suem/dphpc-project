@@ -6,6 +6,19 @@
 #include <stdlib.h>
 #include <fstream>
 
+struct BenchmarkResult {
+    // Graph information
+    std::string graphName;
+    int numEdges;
+    int numVertices;
+
+    // Benchmark information
+    std::string timeStamp;
+    std::string algorithm;
+    std::vector<double> durations;
+    int numThreads;
+};
+
 class GraphHelper {
     public:
         static Graph generateRandomGraph(int numNodes, float density);
@@ -14,5 +27,5 @@ class GraphHelper {
         static bool isMaximumMatching(const VertexVector& matching, const Graph& g); 
         static VertexVector karpSipser(const Graph& g);
         static VertexVector greedyMatching(const Graph& g);
-        static void printOutput(const std::string& algorithm, int numThreads, const std::vector<double>& durations);
+        static void printOutput(const BenchmarkResult& result);
 };

@@ -37,7 +37,8 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 
         // go to next iteration, equivalent to clearing all visited flags
         iteration++;
-		// here we don't need atomic clears to reset the flags
+
+//		 // here we don't need atomic clears to reset the flags
 //        memset(visited, 0, sizeof(std::atomic_flag) * n_right);
 
 		std::vector<PathElement> stack;

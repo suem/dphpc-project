@@ -172,10 +172,10 @@ VertexVector GraphHelper::karpSipser(const Graph& g) {
 	return matching;
 }
 
-void GraphHelper::printOutput(const std::string& algorithm, int numThreads, const std::vector<double>& durations) {
-    std::cout << algorithm << "," << numThreads;
-    for (double d : durations) 
-        std::cout << "," << d;
-    
-    std::cout << std::endl;
+void GraphHelper::printOutput(const BenchmarkResult& result) {
+//    std::cout << algorithm << "," << numThreads;
+//    for (double d : durations) 
+//        std::cout << "," << d;
+//    
+//    std::cout << std::endl;
 }

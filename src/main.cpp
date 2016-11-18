@@ -116,9 +116,6 @@ int main(int argc, char* argv[]) {
 	//testKarpSipser();
 	//return 0;
 	
-	std::vector<double> durations = { 0.1, 0.2, 0.3 };
-	GraphHelper::printOutput("ppf", 10, durations);
-	
 	if (argc < 2) {
 		cerr << "invalid input, no file to read from" << endl;
 		return -1;
