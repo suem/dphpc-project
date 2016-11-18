@@ -14,4 +14,5 @@ class GraphHelper {
         static bool isMaximumMatching(const VertexVector& matching, const Graph& g); 
         static VertexVector karpSipser(const Graph& g);
         static VertexVector greedyMatching(const Graph& g);
+        static void printOutput(const std::string& algorithm, int numThreads, const std::vector<double>& durations);
 };
