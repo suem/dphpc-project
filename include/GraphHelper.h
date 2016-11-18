@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <fstream>
 
-typedef struct benchmarkResult {
+struct BenchmarkResult {
     // Graph information
     std::string graphName;
     int numEdges;
@@ -17,7 +17,7 @@ typedef struct benchmarkResult {
     std::string algorithm;
     std::vector<double> durations;
     int numThreads;
-} benchmarkResult;
+};
 
 class GraphHelper {
     public:
@@ -25,7 +25,7 @@ class GraphHelper {
         static void readGraphFromFile(Graph& g, Vertex& first_right, const std::string& filePath);
         static void writeGraphToFile(const std::string& filePath, const Graph& g);
         static bool isMaximumMatching(const VertexVector& matching, const Graph& g); 
-        static VertexVector karpSipser(Graph g);
-        static VertexVector greedyMatching(Graph g);
-        static void printOutput(const benchmarkResult& result);
+        static VertexVector karpSipser(const Graph& g);
+        static VertexVector greedyMatching(const Graph& g);
+        static void printOutput(const BenchmarkResult& result);
 };
