@@ -59,14 +59,15 @@ void testKarpSipser() {
 
     std::cout << "Matching Size:\t\t" << matching_size << std::endl;
     std::cout << "Max Matching Size:\t" << max_matching_size << std::endl;
-    if(GraphHelper::isMaximumMatching(matching, g)) {
+    if (GraphHelper::isMaximumMatching(matching, g)) {
             std::cout << "Maximum matching found!" << std::endl;
     }
     std::cout << "Finished" << std::endl;
 }
 
 int main(int argc, char* argv[]) {
-//    testKarpSipser();
+    testKarpSipser();
+	return 0;
     std::ios::sync_with_stdio(false);
 	if (argc < 2) {
 		cerr << "invalid input, no file to read from" << endl;
