@@ -19,7 +19,7 @@ void testGraphIO() {
     std::string outFile = "../test/out.txt";
 
     Graph g;
-	Vertex first_right;
+    Vertex first_right;
     GraphHelper::readGraphFromFile(g, first_right, inFile);
     GraphHelper::writeGraphToFile(outFile, g);
 }
@@ -32,20 +32,20 @@ void testGraphGeneration() {
 }
 
 void runParallelPothenFan(const Graph& g, Vertex first_right, size_t n, vertex_size_t matching_size_solution, VertexVector& initialMatching, int numThreads) {
-	std::cout << "parallel pothen fan with " << numThreads << std::endl;
-	for (int i = 0; i < NO_RUNS; ++i) {
+    std::cout << "parallel pothen fan with " << numThreads << std::endl;
+    for (int i = 0; i < NO_RUNS; ++i) {
 
-		VertexVector mates = initialMatching;
+        VertexVector mates = initialMatching;
 
-		Timer t = Timer();
-		parallel_pothen_fan(g, first_right, mates, numThreads);
-		double elapsed = t.elapsed();
+        Timer t = Timer();
+        parallel_pothen_fan(g, first_right, mates, numThreads);
+        double elapsed = t.elapsed();
 
-		verify_matching(g, mates, matching_size_solution);
-		volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
+        verify_matching(g, mates, matching_size_solution);
+        volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
 
-		cout << matchingSize << "\t" <<  elapsed << endl;
-	}
+        cout << matchingSize << "\t" <<  elapsed << endl;
+    }
 }
 
 void testKarpSipser() {
@@ -60,7 +60,7 @@ void testKarpSipser() {
     std::cout << "Matching Size:\t\t" << matching_size << std::endl;
     std::cout << "Max Matching Size:\t" << max_matching_size << std::endl;
     if(GraphHelper::isMaximumMatching(matching, g)) {
-            std::cout << "Maximum matching found!" << std::endl;
+        std::cout << "Maximum matching found!" << std::endl;
     }
     std::cout << "Finished" << std::endl;
 }
@@ -83,82 +83,83 @@ void compareInitialMatching(Graph g) {
 }
 
 int main(int argc, char* argv[]) {
-
+    std::vector<double> durations = { 0.1, 0.2, 0.3 };
+    GraphHelper::printOutput("ppf", 10, durations);
     std::ios::sync_with_stdio(false);
-	if (argc < 2) {
-		cerr << "invalid input, no file to read from" << endl;
-		return -1;
-	}
+    if (argc < 2) {
+        cerr << "invalid input, no file to read from" << endl;
+        return -1;
+    }
 
-	try {
+    try {
 
         Vertex first_right;
-		Graph g;
-		GraphHelper::readGraphFromFile(g, first_right, argv[1]);
-		vertex_size_t n = num_vertices(g);
+        Graph g;
+        GraphHelper::readGraphFromFile(g, first_right, argv[1]);
+        vertex_size_t n = num_vertices(g);
 
-		verify_bipartite(g);
+        verify_bipartite(g);
 
-		VertexVector solution_mates(n);
-		boost::edmonds_maximum_cardinality_matching(g, &solution_mates[0]);
-		vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
-
-
-		// Compute initial matching using karp-sister
-//		VertexVector initialMatching = GraphHelper::karpSipser(g);
-		VertexVector initialMatching = GraphHelper::greedyMatching(g);
+        VertexVector solution_mates(n);
+        boost::edmonds_maximum_cardinality_matching(g, &solution_mates[0]);
+        vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
 
 
-		std::cout << "pothen fan" << std::endl;
-		for (int i = 0; i < NO_RUNS; ++i) {
-
-			// copy initial matching
-			VertexVector mates = initialMatching;
-
-			// run pf and measure time -------------
-			Timer t = Timer();
-			pothen_fan(g, first_right, mates);
-			double elapsed = t.elapsed();
-			// -------------------------------------
-
-			verify_matching(g, mates, matching_size_solution);
-
-			volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
-
-			cout << matchingSize << "\t" <<  elapsed << endl;
-		}
-
-		for (int i = 10; i < 251; i = i + 30) runParallelPothenFan(g, first_right, n, matching_size_solution, initialMatching, i);
+        // Compute initial matching using karp-sister
+        //		VertexVector initialMatching = GraphHelper::karpSipser(g);
+        VertexVector initialMatching = GraphHelper::greedyMatching(g);
 
 
-//		std::cout << "boost edmonds" << std::endl;
-//		for (int i = 0; i < NO_RUNS; ++i) {
-//
-//			VertexVector mates(n);
-//
-//			Timer t = Timer();
-//			boost::edmonds_maximum_cardinality_matching(g, &mates[0]);
-//			double elapsed = t.elapsed();
-//
-//			volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
-//
-//			cout << matchingSize << "\t" <<  elapsed << endl;
-//		}
+        std::cout << "pothen fan" << std::endl;
+        for (int i = 0; i < NO_RUNS; ++i) {
+
+            // copy initial matching
+            VertexVector mates = initialMatching;
+
+            // run pf and measure time -------------
+            Timer t = Timer();
+            pothen_fan(g, first_right, mates);
+            double elapsed = t.elapsed();
+            // -------------------------------------
+
+            verify_matching(g, mates, matching_size_solution);
+
+            volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
+
+            cout << matchingSize << "\t" <<  elapsed << endl;
+        }
+
+        for (int i = 10; i < 251; i = i + 30) runParallelPothenFan(g, first_right, n, matching_size_solution, initialMatching, i);
 
 
-//		cout << "Max Matching has cardinality: " << matchingSize << endl;
-//		cout << "Matchings: " << endl;
-//		VertexIterator start, end;
-//		for (tie(start, end) = vertices(g); start != end; start++) {
-//			Vertex u = *start;
-//			Vertex v = mates[u];
-//			if (v != g.null_vertex() && u < v) cout << "(" << u << " " << v << ")" << endl;
-//		}
+        //		std::cout << "boost edmonds" << std::endl;
+        //		for (int i = 0; i < NO_RUNS; ++i) {
+        //
+        //			VertexVector mates(n);
+        //
+        //			Timer t = Timer();
+        //			boost::edmonds_maximum_cardinality_matching(g, &mates[0]);
+        //			double elapsed = t.elapsed();
+        //
+        //			volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
+        //
+        //			cout << matchingSize << "\t" <<  elapsed << endl;
+        //		}
 
-	} catch (char const* error) {
-		cerr << "Error: " << error << endl;
-		return -1;
-	}
 
-	return 0;
+        //		cout << "Max Matching has cardinality: " << matchingSize << endl;
+        //		cout << "Matchings: " << endl;
+        //		VertexIterator start, end;
+        //		for (tie(start, end) = vertices(g); start != end; start++) {
+        //			Vertex u = *start;
+        //			Vertex v = mates[u];
+        //			if (v != g.null_vertex() && u < v) cout << "(" << u << " " << v << ")" << endl;
+        //		}
+
+    } catch (char const* error) {
+        cerr << "Error: " << error << endl;
+        return -1;
+    }
+
+    return 0;
 }
