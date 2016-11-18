@@ -104,7 +104,6 @@ int main(int argc, char* argv[]) {
 		boost::edmonds_maximum_cardinality_matching(g, &solution_mates[0]);
 		vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
 
-
 		// Compute initial matching using karp-sister
 
 		Timer t = Timer();
@@ -119,7 +118,7 @@ int main(int argc, char* argv[]) {
 
 		runPothenFan(g, first_right, n, matching_size_solution, initialMatching);
 
-		for (int i = 10; i < 251; i = i+30) runParallelPothenFan(g, first_right, n, matching_size_solution, initialMatching, i);
+		for (int i = 10; i < 250; i = i+20) runParallelPothenFan(g, first_right, n, matching_size_solution, initialMatching, i);
 
 	} catch (char const* error) {
 		cerr << "Error: " << error << endl;
