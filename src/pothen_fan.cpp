@@ -312,7 +312,6 @@ bool find_path_la_recursive_atomic(const Vertex x0, const Graph& g, const Vertex
     return false;
 }
 
-
 void pothen_fan(const Graph& g, const Vertex first_right, VertexVector& mate) {
 
 	const vertex_size_t  n = boost::num_vertices(g);

@@ -5,7 +5,7 @@
 
 Graph GraphHelper::generateRandomGraph(int numNodes, float density) {
 	Graph g(numNodes);
-	srand(time(0));
+	srand(static_cast<unsigned int>(time(0)));
 	int randNodes = rand() % numNodes + 1;
 	int numEdges = static_cast<int>(randNodes * (numNodes - randNodes) * density);
 
@@ -92,7 +92,7 @@ VertexVector GraphHelper::greedyMatching(const Graph& g) {
 	return matching;
 }
 
-void markAdjacentEdges(Vertex v, const Graph& g, std::set<Edge>& _edges, std::vector<int>& degree) {
+void markAdjacentEdges(Vertex v, const Graph& g, std::set<Edge>& _edges, std::vector<size_t>& degree) {
 	auto startOutEdges = boost::out_edges(v, g).first;
 	auto endOutEdges = boost::out_edges(v, g).second;
 	for (auto o = startOutEdges; o != endOutEdges; ++o) {
@@ -120,7 +120,7 @@ VertexVector GraphHelper::karpSipser(const Graph& g) {
 		_edges.insert(*eit);
 	}
 	
-	std::vector<int> degree(numVertices);
+	std::vector<size_t> degree(numVertices);
 	for (Vertex v = 0; v < numVertices; ++v)
 		degree[v] = boost::degree(v, g);
 

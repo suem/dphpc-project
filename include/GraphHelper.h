@@ -9,8 +9,8 @@
 struct BenchmarkResult {
     // Graph information
     std::string graphName;
-    int numEdges;
-    int numVertices;
+    size_t numEdges;
+    size_t numVertices;
 
     // Benchmark information
     std::string timeStamp;

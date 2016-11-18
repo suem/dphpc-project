@@ -31,8 +31,17 @@ void testGraphGeneration() {
 	GraphHelper::writeGraphToFile("../test/out1.txt", g);
 }
 
-void runParallelPothenFan(const Graph& g, Vertex first_right, size_t n, vertex_size_t matching_size_solution, VertexVector& initialMatching, int numThreads) {
-	std::cout << "parallel pothen fan with " << numThreads << std::endl;
+void runParallelPothenFan(const std::string& graphName, const Graph& g, Vertex first_right, size_t n, vertex_size_t matching_size_solution, const VertexVector& initialMatching, int numThreads) {
+	char buff[20];
+	time_t now = time(NULL);
+	strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
+	BenchmarkResult result;
+	result.algorithm = "pothen fan";
+	result.graphName = graphName;
+	result.numEdges = num_edges(g);
+	result.numVertices = num_vertices(g);
+	result.numThreads = numThreads;
+	result.timeStamp = std::string(buff);
 	for (int i = 0; i < NO_RUNS; ++i) {
 
 		VertexVector mates = initialMatching;
@@ -42,15 +51,49 @@ void runParallelPothenFan(const Graph& g, Vertex first_right, size_t n, vertex_s
 		double elapsed = t.elapsed();
 
 		verify_matching(g, mates, matching_size_solution);
-		volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
-
-		cout << matchingSize << "\t" << elapsed << endl;
+	
+		result.durations.push_back(elapsed);
 	}
+
+	GraphHelper::printOutput(result);
 }
 
+void runBoostEdmonds(const std::string& graphName, const Graph& g, const VertexVector& initialMatching) {
+	char buff[20];
+	time_t now = time(NULL);
+	strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
+	BenchmarkResult result;
+	result.algorithm = "boost edmonds";
+	result.graphName = graphName;
+	result.numEdges = num_edges(g);
+	result.numVertices = num_vertices(g);
+	result.numThreads = 1;
+	result.timeStamp = std::string(buff);
+	for (int i = 0; i < NO_RUNS; ++i) {
 
-void runPothenFan(const Graph& g, Vertex first_right, int n, vertex_size_t matching_size_solution, VertexVector& initialMatching) {
-	std::cout << "pothen fan" << std::endl;
+		VertexVector mates = initialMatching;
+
+		Timer t = Timer();
+		boost::edmonds_maximum_cardinality_matching(g, &mates[0]);
+		double elapsed = t.elapsed();
+
+		result.durations.push_back(elapsed);
+	}
+
+	GraphHelper::printOutput(result);
+}
+
+void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_right, int n, vertex_size_t matching_size_solution, const VertexVector& initialMatching) {
+	char buff[20];
+	time_t now = time(NULL);
+	strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
+	BenchmarkResult result;
+	result.algorithm = "pothen fan";
+	result.graphName = graphName;
+	result.numEdges = num_edges(g);	
+	result.numVertices = num_vertices(g);
+	result.numThreads = 1;
+	result.timeStamp = std::string(buff);
 	for (int i = 0; i < NO_RUNS; ++i) {
 
 		VertexVector mates = initialMatching;
@@ -60,10 +103,11 @@ void runPothenFan(const Graph& g, Vertex first_right, int n, vertex_size_t match
 		double elapsed = t.elapsed();
 
 		verify_matching(g, mates, matching_size_solution);
-		volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
-
-		cout << matchingSize << "\t" << elapsed << endl;
+		
+		result.durations.push_back(elapsed);
 	}
+
+	GraphHelper::printOutput(result);
 }
 
 void testKarpSipser() {
@@ -111,11 +155,20 @@ void compareInitialMatching(Graph& g) {
 	std::cout << "Karp Sipser:\t\t" << (float)ksSize / maxSize * 100 << "%" << std::endl;
 }
 
+void printMatchings(size_t matchingSize, const VertexVector& mates, const Graph& g) {
+	cout << "Max Matching has cardinality: " << matchingSize << endl;
+	cout << "Matchings: " << endl;
+	VertexIterator start, end;
+	for (tie(start, end) = vertices(g); start != end; start++) {
+		Vertex u = *start;
+		Vertex v = mates[u];
+		if (v != g.null_vertex() && u < v) cout << "(" << u << " " << v << ")" << endl;
+	}
+}
+
 int main(int argc, char* argv[]) {
 	std::ios::sync_with_stdio(false);
-	//testKarpSipser();
-	//return 0;
-	
+
 	if (argc < 2) {
 		cerr << "invalid input, no file to read from" << endl;
 		return -1;
@@ -133,73 +186,13 @@ int main(int argc, char* argv[]) {
 		boost::edmonds_maximum_cardinality_matching(g, &solution_mates[0]);
 		vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
 
-
-		// Compute initial matching using karp-sister
-		compareInitialMatching(g);
-		return 0;
-		//		VertexVector initialMatching = GraphHelper::karpSipser(g);
+		// Compute initial matching using karp-sipser
+		//	VertexVector initialMatching = GraphHelper::karpSipser(g);
 		VertexVector initialMatching = GraphHelper::greedyMatching(g);
 
-
-		std::cout << "pothen fan" << std::endl;
-		for (int i = 0; i < NO_RUNS; ++i) {
-
-			// copy initial matching
-			VertexVector mates = initialMatching;
-
-			// run pf and measure time -------------
-			Timer t = Timer();
-			pothen_fan(g, first_right, mates);
-			double elapsed = t.elapsed();
-			// -------------------------------------
-
-			verify_matching(g, mates, matching_size_solution);
-
-			volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
-
-			cout << matchingSize << "\t" << elapsed << endl;
-		}
-
-		for (int i = 10; i < 251; i = i + 30) runParallelPothenFan(g, first_right, n, matching_size_solution, initialMatching, i);
-		/*
-				// Compute initial matching using karp-sister
-				Timer t = Timer();
-				VertexVector initialMatching = GraphHelper::karpSipser(g);
-		//		VertexVector initialMatching = GraphHelper::greedyMatching(g);
-				vertex_size_t matching_size_initial = boost::matching_size(g, &initialMatching[0]);
-				double initial_matching_elapsed = t.elapsed();
-
-
-				//		std::cout << "boost edmonds" << std::endl;
-				//		for (int i = 0; i < NO_RUNS; ++i) {
-				//
-				//			VertexVector mates(n);
-				//
-				//			Timer t = Timer();
-				//			boost::edmonds_maximum_cardinality_matching(g, &mates[0]);
-				//			double elapsed = t.elapsed();
-				//
-				//			volatile vertex_size_t matchingSize = boost::matching_size(g, &mates[0]);
-				//
-				//			cout << matchingSize << "\t" <<  elapsed << endl;
-				//		}
-
-				std::cout << "inital matching: " << matching_size_initial
-						  << " of " << matching_size_solution << " (" << (((float) matching_size_initial / (float) matching_size_solution)) * 100 << "%)"
-						  << " (" << initial_matching_elapsed << " s)" <<std::endl;
-
-		*/
-		runPothenFan(g, first_right, n, matching_size_solution, initialMatching);
-
-		//		cout << "Max Matching has cardinality: " << matchingSize << endl;
-		//		cout << "Matchings: " << endl;
-		//		VertexIterator start, end;
-		//		for (tie(start, end) = vertices(g); start != end; start++) {
-		//			Vertex u = *start;
-		//			Vertex v = mates[u];
-		//			if (v != g.null_vertex() && u < v) cout << "(" << u << " " << v << ")" << endl;
-		//		}
-
+		runPothenFan(argv[1], g, first_right, n, matching_size_solution, initialMatching);
+		for (int i = 10; i < 251; i = i + 30) runParallelPothenFan(argv[1], g, first_right, n, matching_size_solution, initialMatching, i);
+		runBoostEdmonds(argv[1], g, initialMatching);
 	}
 	catch (char const* error) {
 		cerr << "Error: " << error << endl;
