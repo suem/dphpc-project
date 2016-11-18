@@ -65,8 +65,25 @@ void testKarpSipser() {
     std::cout << "Finished" << std::endl;
 }
 
+void compareInitialMatching(Graph g) {
+    VertexVector ksMatching = GraphHelper::karpSipser(g);
+    std::cout << "Computed Karp-Sipser." << std::endl;
+    VertexVector gMatching = GraphHelper::greedyMatching(g);
+    std::cout << "Computed greedy matching." << std::endl;
+    VertexVector maxMatching(boost::num_vertices(g));
+    boost::edmonds_maximum_cardinality_matching(g, &maxMatching[0]);
+    std::cout << "Computed reference solution." << std::endl;
+
+    vertex_size_t ksSize = boost::matching_size(g, &ksMatching[0]);
+    vertex_size_t gSize = boost::matching_size(g, &gMatching[0]);
+    vertex_size_t maxSize = boost::matching_size(g, &maxMatching[0]);
+
+    std::cout << "Greedy matching:\t" << gSize / maxSize * 100 << "%" << std::endl;
+    std::cout << "Karp Sipser:\t\t" << ksSize / maxSize * 100 << "%" << std::endl;
+}
+
 int main(int argc, char* argv[]) {
-//    testKarpSipser();
+
     std::ios::sync_with_stdio(false);
 	if (argc < 2) {
 		cerr << "invalid input, no file to read from" << endl;
