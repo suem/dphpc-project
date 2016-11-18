@@ -27,7 +27,8 @@ bool find_path_atomic(const Vertex x0, const Graph& g, const Vertex first_right,
 bool find_path_la_atomic(
 		const Vertex x0,
 		const Graph& g,const Vertex first_right, VertexVector& mate,
-		std::atomic_flag* visited,
+//		std::atomic_flag* visited,
+		std::atomic<unsigned int>* visited, unsigned int iteration,
 		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead,
 		std::vector<PathElement>& stack);
 
@@ -47,6 +48,13 @@ bool find_path_la(
 
 bool find_path_recursive(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited);
 bool find_path_la_recursive(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited, std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead);
+
+inline bool claim_vertex(
+        Vertex y, Vertex first_right,
+		std::atomic<unsigned int>* visited, unsigned int iteration) {
+	return std::atomic_exchange(&visited[y - first_right], iteration) != iteration;
+}
+
 
 inline bool is_right(const Vertex& v, const Vertex first_right) {
 	return v >= first_right;
