@@ -33,18 +33,17 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 		// here we don't need atomic clears to reset the flags
         memset(visited, 0, sizeof(std::atomic_flag) * n_right);
 
-#pragma omp parallel num_threads(nt)
+		std::vector<PathElement> stack;
+
+#pragma omp parallel num_threads(nt) private(stack)
 #pragma omp for
-		for (int v = 0; v < first_right; v++) {
-			// if any thread  has found a path (including us) stop.
-//				if  (path_found) v = first_right; // simulate break (not supported in omp for
+		for (Vertex v = 0; v < first_right; v++) {
 
 			// skip if vertex is already matched
 			if (is_matched(v, g, mate))  continue;
 
 //			bool path_found_v = find_path_atomic(v, g, first_right, mate, visited);
-//			bool path_found_v = find_path_recursive_atomic(v, g, first_right, mate, visited);
-            bool path_found_v = find_path_la_recursive_atomic(v, g, first_right, mate, visited, lookahead);
+			bool path_found_v = find_path_la_atomic(v, g, first_right, mate, visited, lookahead, stack);
 			if (path_found_v && !path_found) path_found = true;
 		}
 
@@ -163,6 +162,99 @@ bool find_path_recursive_atomic(const Vertex x0, const Graph& g, const Vertex fi
 }
 
 
+inline bool lookahead_step_atomic(
+		const Vertex x0,
+		const Graph& g,const Vertex first_right, VertexVector& mate,
+		std::atomic_flag* visited,
+		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead) {
+
+	// lookahead phase
+	AdjVertexIterator laStart, laEnd;
+	for (std::tie(laStart, laEnd) = lookahead[x0]; laStart != laEnd; ++laStart) {
+		Vertex y = *laStart;
+		if (is_unmatched(y, g, mate) && !visited[y - first_right].test_and_set()) {
+
+			// update matching
+			mate[y] = x0;
+			mate[x0] = y;
+
+			lookahead[x0].first = laStart;
+			return true;
+		}
+	}
+	if (lookahead[x0].first != laStart) lookahead[x0].first = laStart;
+
+	return false;
+}
+
+bool find_path_la_atomic(
+		const Vertex v,
+		const Graph& g,const Vertex first_right, VertexVector& mate,
+		std::atomic_flag* visited,
+		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead,
+		std::vector<PathElement>& stack) {
+
+	// do initial lookahead and return if successful ----------------------------------------------
+	bool init_lookahead_success = lookahead_step_atomic(v, g, first_right, mate, visited, lookahead);
+	if (init_lookahead_success) return true;
+	// --------------------------------------------------------------------------------------------
+
+	stack.clear();
+	bool path_found = false;
+
+	PathElement pe;
+	std::tie(pe.yiter, pe.yiter_end) = boost::adjacent_vertices(v, g);
+	pe.x0 = v;
+	stack.push_back(pe);
+
+	while(!stack.empty()) {
+		PathElement& stack_top = stack.back();
+		Vertex x0 = stack_top.x0;
+		AdjVertexIterator& yiter = stack_top.yiter;
+		AdjVertexIterator& yiter_end = stack_top.yiter_end;
+
+
+		if (path_found) {
+			// update matching
+			const Vertex y = *yiter;
+			mate[y] = x0;
+			mate[x0] = y;
+			// return e.g. pop stack
+			stack.pop_back();
+			continue;
+		}
+
+
+		// skip all visited vertices
+		while (yiter != yiter_end && visited[*yiter - first_right].test_and_set()) yiter++;
+
+		// do dfs step on first unvisited neighbor
+		if (yiter != yiter_end) { // if there are still neighbours to visit
+			Vertex y = *yiter;
+			Vertex x1 = mate[y];
+
+			bool lookahead_success = lookahead_step_atomic(x1, g, first_right, mate, visited, lookahead);
+			if (lookahead_success) {
+				path_found = true;
+				continue;
+			}
+
+			PathElement pe;
+			std::tie(pe.yiter, pe.yiter_end) = boost::adjacent_vertices(x1, g);
+			pe.x0 = x1;
+			stack.push_back(pe);
+			continue;
+		} else {
+			// pop stack otherwise, did not find any path and there are not more neighbors
+			stack.pop_back();
+		}
+
+	}
+
+	return path_found;
+}
+
+
 bool find_path_la_recursive_atomic(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, std::atomic_flag* visited,
                                    std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead) {
 
@@ -180,7 +272,6 @@ bool find_path_la_recursive_atomic(const Vertex x0, const Graph& g, const Vertex
             return true;
         }
     }
-
     if (lookahead[x0].first != laStart) lookahead[x0].first = laStart;
 
     // DFS phase
@@ -217,15 +308,10 @@ void pothen_fan(const Graph& g, const Vertex first_right, VertexVector& mate) {
 
 	bool path_found;
 
-	vertex_size_t* visited = new vertex_size_t[n_right];
-	memset(visited, 0, sizeof(bool) * n_right); // set all visited flags to 0
-	vertex_size_t iteration = 0;
-
-    // init parent array
-    Vertex* parent = new Vertex[n_right];
+	bool* visited = new bool[n_right];
 
     // init stack
-	Vertex* stack = new Vertex[first_right];
+	std::vector<PathElement> stack;
 
     // initialize lookahead
     std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead = new std::pair<AdjVertexIterator, AdjVertexIterator>[first_right];
@@ -239,51 +325,145 @@ void pothen_fan(const Graph& g, const Vertex first_right, VertexVector& mate) {
 
     do {
 		path_found = false; // reset path_found
+		memset(visited, 0, sizeof(bool) * n_right); // set all visited flags to 0
 
-		iteration++;
-
-        // iterate over all left vertices
-
+        // iterate over all unmatched left vertices
         for (size_t i = 0; i < unmatched_size; i++) {
 			Vertex x0 = unmatched[i];
 
 			// skip if vertex is already matched
 			if (is_matched(x0, g, mate)) continue;
 
-            bool path_found_v = find_path_la(x0, g, first_right, mate, visited, iteration, parent, lookahead, stack);
+//			bool path_found_v = find_path(x0, g, first_right, mate, visited, stack);
+			bool path_found_v = find_path_la(x0, g, first_right, mate, visited, lookahead, stack);
 
             if (path_found_v && !path_found) path_found = true;
 		}
 	} while(path_found);
 
 	delete[] visited;
-	delete[] parent;
-	delete[] stack;
     delete[] lookahead;
 }
 
-//todo find out why recursive version is faster
-bool find_path(const Vertex x0, const Graph& g, Vertex first_right, VertexVector& mate, bool* visited) {
 
-	std::stack<FindPathElement> stack;
+inline bool lookahead_step(
+		const Vertex x0,
+		const Graph& g,const Vertex first_right, VertexVector& mate,
+		bool* visited,
+		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead) {
+
+	// lookahead phase
+	AdjVertexIterator laStart, laEnd;
+	for (std::tie(laStart, laEnd) = lookahead[x0]; laStart != laEnd; ++laStart) {
+		Vertex y = *laStart;
+		if (is_unmatched(y, g, mate) && !visited[y - first_right]) {
+			visited[y - first_right] = true;
+
+			// update matching
+			mate[y] = x0;
+			mate[x0] = y;
+
+			lookahead[x0].first = laStart;
+			return true;
+		}
+	}
+	if (lookahead[x0].first != laStart) lookahead[x0].first = laStart;
+
+	return false;
+}
+
+bool find_path_la(
+		const Vertex v,
+		const Graph& g,const Vertex first_right, VertexVector& mate,
+		bool* visited,
+		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead,
+		std::vector<PathElement>& stack) {
+
+    // do initial lookahead and return if successful ----------------------------------------------
+	bool init_lookahead_success = lookahead_step(v, g, first_right, mate, visited, lookahead);
+	if (init_lookahead_success) return true;
+	// --------------------------------------------------------------------------------------------
+
+	stack.clear();
+	bool path_found = false;
+
+	PathElement pe;
+	std::tie(pe.yiter, pe.yiter_end) = boost::adjacent_vertices(v, g);
+	pe.x0 = v;
+	stack.push_back(pe);
+
+	while(!stack.empty()) {
+       	PathElement& stack_top = stack.back();
+		Vertex x0 = stack_top.x0;
+		AdjVertexIterator& yiter = stack_top.yiter;
+		AdjVertexIterator& yiter_end = stack_top.yiter_end;
+
+
+		if (path_found) {
+			// update matching
+			const Vertex y = *yiter;
+			mate[y] = x0;
+			mate[x0] = y;
+			// return e.g. pop stack
+            stack.pop_back();
+			continue;
+		}
+
+
+		// skip all visited vertices
+		while (yiter != yiter_end && visited[*yiter - first_right]) yiter++;
+
+		// do dfs step on first unvisited neighbor
+		if (yiter != yiter_end) { // if there are still neighbours to visit
+			Vertex y = *yiter;
+            Vertex x1 = mate[y];
+			visited[y - first_right] = true; // set as visited
+
+			bool lookahead_success = lookahead_step(x1, g, first_right, mate, visited, lookahead);
+			if (lookahead_success) {
+				path_found = true;
+				continue;
+			}
+
+			PathElement pe;
+            std::tie(pe.yiter, pe.yiter_end) = boost::adjacent_vertices(x1, g);
+			pe.x0 = x1;
+            stack.push_back(pe);
+			continue;
+		} else {
+			// pop stack otherwise, did not find any path and there are not more neighbors
+			stack.pop_back();
+		}
+
+	}
+
+    return path_found;
+}
+
+
+
+bool find_path(const Vertex x0, const Graph& g,const Vertex first_right, VertexVector& mate, bool* visited, std::vector<FindPathElement>& stack) {
+
+	stack.clear();
+
 	FindPathElement e1;
 	e1.x0 = x0;
 	std::tie(e1.start, e1.end) = boost::adjacent_vertices(e1.x0, g);
-	stack.push(e1);
+	stack.push_back(e1);
 
 	while (!stack.empty()) {
-		FindPathElement& vars = stack.top();
+		FindPathElement& vars = stack.back();
 		if (vars.found) {
 			mate[vars.y] = vars.x0;
 			mate[vars.x0] = vars.y;
 
 			// handle return value
-			stack.pop();
+			stack.pop_back();
 			if (stack.empty()) {
 				return true;
 			}
 
-			stack.top().found = true;
+			stack.back().found = true;
 			continue;
 		}
 
@@ -302,12 +482,12 @@ bool find_path(const Vertex x0, const Graph& g, Vertex first_right, VertexVector
 				mate[vars.x0] = vars.y;
 
 				// handle return value
-				stack.pop();
+				stack.pop_back();
 				if (stack.empty()) {
 					return true;
 				}
 
-				stack.top().found = true;
+				stack.back().found = true;
 				break;
 			}
 
@@ -315,7 +495,7 @@ bool find_path(const Vertex x0, const Graph& g, Vertex first_right, VertexVector
 			FindPathElement e2;
 			e2.x0 = mate[vars.y];
 			std::tie(e2.start, e2.end) = boost::adjacent_vertices(e2.x0, g);
-			stack.push(e2);
+			stack.push_back(e2);
 
 			break;
 		}
@@ -325,85 +505,11 @@ bool find_path(const Vertex x0, const Graph& g, Vertex first_right, VertexVector
 		}
 
 		if (!stack.empty()) {
-			stack.pop();
+			stack.pop_back();
 		}
 	}
 
 	return false;
-}
-
-bool find_path_la(
-		const Vertex x0,
-		const Graph& g, Vertex first_right,
-		VertexVector& mate,
-		vertex_size_t* visited, vertex_size_t iteration,
-		Vertex* parent,
-		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead,
-		Vertex* stack
-) {
-
-	int stack_pointer = 0;
-	stack[stack_pointer] = x0;
-
-	bool path_found = false;
-	Vertex last_y;
-
-	while(stack_pointer >= 0) {
-		Vertex x = stack[stack_pointer];
-        stack_pointer--;
-
-		// lookahead phase
-		AdjVertexIterator laStart, laEnd;
-		for (std::tie(laStart, laEnd) = lookahead[x]; laStart != laEnd; ++laStart) {
-			Vertex y = *laStart;
-			if (visited[y - first_right] != iteration && is_unmatched(y, g, mate)) {
-				visited[y - first_right] = iteration;
-				lookahead[x].first = laStart;
-                parent[y - first_right] = x;
-                path_found = true;
-				last_y = y;
-                break;
-			}
-		}
-		if (lookahead[x].first != laStart) lookahead[x].first = laStart;
-		if (path_found) break;
-
-
-		// DFS phase
-		AdjVertexIterator start, end;
-		for (std::tie(start, end) = boost::adjacent_vertices(x, g); start != end; ++start) {
-			Vertex y = *start;
-
-			if (visited[y - first_right] == iteration) continue;
-			visited[y - first_right] = iteration;
-
-			parent[y - first_right] = x;
-
-            if (is_unmatched(y,g,mate)) {
-				path_found = true;
-				last_y = y;
-				break;
-			}
-
-			stack_pointer++;
-            stack[stack_pointer] = mate[y];
-		}
-		if (path_found) break;
-
-	}
-
-	if (path_found) {
-        Vertex xp;
-		do {
-			xp = parent[last_y - first_right];
-			Vertex next_y = mate[xp];
-			mate[last_y] = xp;
-			mate[xp] = last_y;
-			last_y = next_y;
-		} while (xp != x0);
-	}
-
-	return path_found;
 }
 
 bool find_path_recursive(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited) {
@@ -445,6 +551,7 @@ bool find_path_recursive(const Vertex x0, const Graph& g, const Vertex first_rig
 
 	return false;
 }
+
 
 bool find_path_la_recursive(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited, std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead) {
 
