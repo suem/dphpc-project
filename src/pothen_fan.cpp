@@ -21,7 +21,12 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 
 	volatile bool path_found;
 
-	std::atomic_flag* visited = new std::atomic_flag[n_right];
+//	std::atomic_flag* visited = new std::atomic_flag[n_right];
+
+    std::atomic<unsigned int>* visited = new std::atomic<unsigned int>[n_right];
+	memset(visited, 0, sizeof(std::atomic<unsigned int>) * n_right);
+    unsigned int iteration = 0;
+
 
     // initialize lookahead
     std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead = new std::pair<AdjVertexIterator, AdjVertexIterator>[first_right];
@@ -30,11 +35,12 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 	do {
 		path_found = false;
 
+        // go to next iteration, equivalent to clearing all visited flags
+        iteration++;
 		// here we don't need atomic clears to reset the flags
-        memset(visited, 0, sizeof(std::atomic_flag) * n_right);
+//        memset(visited, 0, sizeof(std::atomic_flag) * n_right);
 
 		std::vector<PathElement> stack;
-
 #pragma omp parallel num_threads(nt) private(stack)
 #pragma omp for
 		for (Vertex v = 0; v < first_right; v++) {
@@ -43,7 +49,7 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 			if (is_matched(v, g, mate))  continue;
 
 //			bool path_found_v = find_path_atomic(v, g, first_right, mate, visited);
-			bool path_found_v = find_path_la_atomic(v, g, first_right, mate, visited, lookahead, stack);
+			bool path_found_v = find_path_la_atomic(v, g, first_right, mate, visited, iteration, lookahead, stack);
 			if (path_found_v && !path_found) path_found = true;
 		}
 
@@ -165,14 +171,17 @@ bool find_path_recursive_atomic(const Vertex x0, const Graph& g, const Vertex fi
 inline bool lookahead_step_atomic(
 		const Vertex x0,
 		const Graph& g,const Vertex first_right, VertexVector& mate,
-		std::atomic_flag* visited,
+//		std::atomic_flag* visited,
+		std::atomic<unsigned int>* visited, unsigned int iteration,
 		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead) {
 
 	// lookahead phase
 	AdjVertexIterator laStart, laEnd;
 	for (std::tie(laStart, laEnd) = lookahead[x0]; laStart != laEnd; ++laStart) {
 		Vertex y = *laStart;
-		if (is_unmatched(y, g, mate) && !visited[y - first_right].test_and_set()) {
+		if (is_unmatched(y, g, mate)
+			&& claim_vertex(y, first_right, visited, iteration)) {
+//				!visited[y - first_right].test_and_set()) {
 
 			// update matching
 			mate[y] = x0;
@@ -190,12 +199,13 @@ inline bool lookahead_step_atomic(
 bool find_path_la_atomic(
 		const Vertex v,
 		const Graph& g,const Vertex first_right, VertexVector& mate,
-		std::atomic_flag* visited,
+//		std::atomic_flag* visited,
+		std::atomic<unsigned int>* visited, unsigned int iteration,
 		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead,
 		std::vector<PathElement>& stack) {
 
 	// do initial lookahead and return if successful ----------------------------------------------
-	bool init_lookahead_success = lookahead_step_atomic(v, g, first_right, mate, visited, lookahead);
+	bool init_lookahead_success = lookahead_step_atomic(v, g, first_right, mate, visited, iteration, lookahead);
 	if (init_lookahead_success) return true;
 	// --------------------------------------------------------------------------------------------
 
@@ -226,14 +236,15 @@ bool find_path_la_atomic(
 
 
 		// skip all visited vertices
-		while (yiter != yiter_end && visited[*yiter - first_right].test_and_set()) yiter++;
+//		while (yiter != yiter_end && visited[*yiter - first_right].test_and_set()) yiter++;
+		while (yiter != yiter_end && !claim_vertex(*yiter, first_right, visited, iteration)) yiter++;
 
 		// do dfs step on first unvisited neighbor
 		if (yiter != yiter_end) { // if there are still neighbours to visit
 			Vertex y = *yiter;
 			Vertex x1 = mate[y];
 
-			bool lookahead_success = lookahead_step_atomic(x1, g, first_right, mate, visited, lookahead);
+			bool lookahead_success = lookahead_step_atomic(x1, g, first_right, mate, visited, iteration, lookahead);
 			if (lookahead_success) {
 				path_found = true;
 				continue;
