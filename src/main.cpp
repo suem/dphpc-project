@@ -101,8 +101,9 @@ void compareInitialMatching(Graph g) {
 }
 
 int main(int argc, char* argv[]) {
-    std::vector<double> durations = { 0.1, 0.2, 0.3 };
-    GraphHelper::printOutput("ppf", 10, durations);
+    std::vector<double> results = {0.1, 0.2, 0.3};
+    benchmarkResult result =  { "graphname", 5, 10, "timestamp", "algorithm", results, 240 };
+    GraphHelper::printOutput(result);
     std::ios::sync_with_stdio(false);
     if (argc < 2) {
         cerr << "invalid input, no file to read from" << endl;
