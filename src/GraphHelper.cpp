@@ -1,7 +1,10 @@
+#include "graphutils.h"
 #include "GraphHelper.h"
 #include "verifier.h"
 #include <iomanip> // Pretty debug output
 #include <set>
+#include <vector>
+#include <queue>
 
 Graph GraphHelper::generateRandomGraph(int numNodes, float density) {
 	Graph g(numNodes);
@@ -184,4 +187,67 @@ void GraphHelper::printOutput(const BenchmarkResult& result) {
         std::cout << "," << d;
     
     std::cout << std::endl;
+}
+
+
+
+VertexVector GraphHelper::ks(const Graph& g) {
+
+	auto n = boost::num_vertices(g);
+	auto null_vertex = g.null_vertex();
+
+	VertexVector matching(n);
+	std::vector<Vertex> deg(n);
+	for (Vertex v = 0; v < n; v++) {
+		matching[v] = null_vertex;
+		deg[v] = boost::degree(v, g);
+	}
+
+	bool found_edges;
+    do {
+
+		// match all vertices with degree one
+		bool found_deg_one;
+		do {
+			found_deg_one = false;
+
+			for (Vertex v = 0; v < n; v++) {
+				if (deg[v] != 1 || is_matched(v, g, matching)) continue;
+
+				AdjVertexIterator s, e;
+				for (std::tie(s, e) = boost::adjacent_vertices(v, g); s != e; s++) {
+					Vertex u = *s;
+					if (is_matched(u, g, matching)) continue;
+
+					matching[v] = u;
+					matching[u] = v;
+					deg[u]--;
+					deg[v]--;
+					found_deg_one = true;
+				}
+			}
+
+		} while (found_deg_one);
+
+		found_edges = false;
+		// take first unmatched edge
+		EdgeIterator estart, eend;
+		for (std::tie(estart, eend) = boost::edges(g); estart != eend; estart++) {
+			Edge e = *estart;
+			Vertex u = boost::source(e, g);
+			Vertex v = boost::target(e, g);
+
+			if (is_matched(u,g,matching) || is_matched(v,g,matching)) continue;
+
+			matching[v] = u;
+			matching[u] = v;
+			deg[u]--;
+			deg[v]--;
+			found_edges = true;
+		}
+
+	} while (found_edges);
+
+	return matching;
+
 }

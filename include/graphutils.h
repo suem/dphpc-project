@@ -3,6 +3,7 @@
 #pragma once
 
 #include "graphtypes.h"
+#include <atomic>
 
 struct PathElement {
     Vertex x0;
