@@ -141,17 +141,11 @@ void compareInitialMatching(Graph& g) {
 	elapsed = t.elapsed();
 	std::cout << "Computed greedy matching in: " << elapsed << "s" << std::endl;
 
-	std::cout << "Computing Karp-Sipser (matching solution)..." << std::endl;
+	std::cout << "Computing Karp-Sipser..." << std::endl;
 	t = Timer();
 	VertexVector ksMatchMatching = GraphHelper::karpSipser(g);
 	elapsed = t.elapsed();
-	std::cout << "Computed Karp-Sipser (matching solution) in: " << elapsed << "s" << std::endl;
-
-	std::cout << "Computing Karp-Sipser (Set solution)..." << std::endl;
-	t = Timer();
-	VertexVector ksSetMatching = GraphHelper::karpSipserSet(g);
-	elapsed = t.elapsed();
-	std::cout << "Computed Karp-Sipser (Set solution) in: " << elapsed << "s" << std::endl;
+	std::cout << "Computed Karp-Sipser in: " << elapsed << "s" << std::endl;
 
 	std::cout << "Computing Karp-Sipser (no break solution)..." << std::endl;
 	t = Timer();
@@ -168,8 +162,6 @@ void compareInitialMatching(Graph& g) {
 
 	vertex_size_t ksMatchingSize = boost::matching_size(g, &ksMatchMatching[0]);
 	verify_matching(g, ksMatchMatching, ksMatchingSize);
-	vertex_size_t ksSetSize = boost::matching_size(g, &ksSetMatching[0]);
-	verify_matching(g, ksSetMatching, ksSetSize);
 	vertex_size_t ksFastSize = boost::matching_size(g, &ksFastMatching[0]);
 	verify_matching(g, ksFastMatching, ksFastSize);
 	vertex_size_t gSize = boost::matching_size(g, &gMatching[0]);
@@ -179,12 +171,10 @@ void compareInitialMatching(Graph& g) {
 
 	std::cout << "greedy: " << gSize << std::endl;
 	std::cout << "ks (matching): " << ksMatchingSize << std::endl;
-	std::cout << "ks (set): " << ksSetSize << std::endl;
 	std::cout << "ks (fast): " << ksFastSize << std::endl;
 
     std::cout << "Greedy matching:\t" << (float)gSize / maxSize * 100 << "%" << std::endl;
 	std::cout << "Karp Sipser (matching):\t\t" << (float)ksMatchingSize / maxSize * 100 << "%" << std::endl;
-	std::cout << "Karp Sipser (set):\t\t" << (float)ksSetSize / maxSize * 100 << "%" << std::endl;
 	std::cout << "Karp Sipser (fast):\t\t" << (float)ksFastSize / maxSize * 100 << "%" << std::endl;
 }
 

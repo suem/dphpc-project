@@ -95,86 +95,6 @@ VertexVector GraphHelper::greedyMatching(const Graph& g) {
 	return matching;
 }
 
-void markAdjacentEdges(Vertex v, const Graph& g, std::set<Edge>& _edges, std::vector<size_t>& degree) {
-	auto startOutEdges = boost::out_edges(v, g).first;
-	auto endOutEdges = boost::out_edges(v, g).second;
-	for (auto o = startOutEdges; o != endOutEdges; ++o) {
-		if (_edges.find(*o) == _edges.end()) continue;
-
-		Vertex a = source(*o, g);
-		Vertex b = target(*o, g);
-
-		_edges.erase(_edges.find(*o));
-		--degree[a];
-		--degree[b];
-	}
-}
-
-VertexVector GraphHelper::karpSipserSet(const Graph& g) {
-	// Initialize matching with null
-	size_t numVertices = num_vertices(g);
-	size_t numEdges = num_edges(g);
-	VertexVector matching(numVertices);
-	std::fill(matching.begin(), matching.end(), g.null_vertex());
-
-	std::set<Edge> _edges;
-	auto es = boost::edges(g);
-	for (auto eit = es.first; eit != es.second; ++eit) {
-		_edges.insert(*eit);
-	}
-
-	std::vector<size_t> degree(numVertices);
-	for (Vertex v = 0; v < numVertices; ++v)
-		degree[v] = boost::degree(v, g);
-
-	while (!_edges.empty()) {
-		// Search for edge with a vertex of degree 1
-		bool foundEdge = false;
-
-		for (auto e = boost::edges(g).first; e != boost::edges(g).second; ++e) {
-			if (_edges.find(*e) == _edges.end()) {
-				continue;
-			}
-
-			Vertex u = source(*e, g);
-			Vertex v = target(*e, g);
-
-			if (degree[v] == 1 || degree[u] == 1) {
-				// Add vertices to matching
-				matching[u] = v;
-				matching[v] = u;
-
-				// Remove out_edges from u,v
-				markAdjacentEdges(u, g, _edges, degree);
-				markAdjacentEdges(v, g, _edges, degree);
-
-				foundEdge = true;
-				break;
-			}
-		}
-
-		if (foundEdge) continue;
-
-		// If no edge found, select a random one
-		int randEdge = rand() % _edges.size();
-		auto e = _edges.begin();
-		for (int i = 0; i < randEdge; ++i)
-			++e;
-
-		Vertex u = source(*e, g);
-		Vertex v = target(*e, g);
-
-		// Add vertices to matching
-		matching[u] = v;
-		matching[v] = u;
-
-		// Remove out_edges from u,v
-		markAdjacentEdges(u, g, _edges, degree);
-		markAdjacentEdges(v, g, _edges, degree);
-	}
-	return matching;
-}
-
 void GraphHelper::printOutput(const BenchmarkResult& result) {
 	std::cout << result.timeStamp << ",";
 	std::cout << result.graphName << ",";
@@ -187,6 +107,16 @@ void GraphHelper::printOutput(const BenchmarkResult& result) {
 		std::cout << "," << d;
 
 	std::cout << std::endl;
+}
+
+void markAdjacentEdges(Vertex v, const Graph& g, std::vector<size_t>& degree) {
+	auto startOutEdges = boost::out_edges(v, g).first;
+	auto endOutEdges = boost::out_edges(v, g).second;
+	degree[v] = 0;
+	for (auto o = startOutEdges; o != endOutEdges; ++o) {
+		Vertex b = target(*o, g);
+		--degree[b];
+	}
 }
 
 VertexVector GraphHelper::karpSipser(const Graph& g) {
@@ -216,8 +146,8 @@ VertexVector GraphHelper::karpSipser(const Graph& g) {
 			if (deg[v] == 1 || deg[u] == 1) {
 				matching[v] = u;
 				matching[u] = v;
-				deg[u]--;
-				deg[v]--;
+				markAdjacentEdges(v, g, deg);
+				markAdjacentEdges(u, g, deg);
 				found_edges = true;
 				break;
 			}
@@ -242,8 +172,8 @@ VertexVector GraphHelper::karpSipser(const Graph& g) {
 			if (!is_matched(u, matching) && !is_matched(v, matching)) {
 				matching[v] = u;
 				matching[u] = v;
-				deg[u]--;
-				deg[v]--;
+				markAdjacentEdges(v, g, deg);
+				markAdjacentEdges(u, g, deg);
 				found_edges = true;
 				break;
 			}
