@@ -19,12 +19,12 @@ inline bool is_left(const Vertex& v, const Vertex first_right) {
     return v < first_right;
 }
 
-inline bool is_matched(const Vertex& v, const Graph& g, const VertexVector& mate) {
-    return mate[v] != g.null_vertex();
+inline bool is_matched(const Vertex& v, const VertexVector& mate) {
+    return mate[v] != Graph::null_vertex();
 }
 
-inline bool is_unmatched(const Vertex& v, const Graph& g, const VertexVector& mate) {
-    return mate[v] == g.null_vertex();
+inline bool is_unmatched(const Vertex& v, const VertexVector& mate) {
+    return mate[v] == Graph::null_vertex();
 }
 
 inline bool claim_vertex(

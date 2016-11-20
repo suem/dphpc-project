@@ -47,7 +47,7 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 		for (int v = 0; v < first_right; v++) {
 
 			// skip if vertex is already matched
-			if (is_matched(v, g, mate))  continue;
+			if (is_matched(v, mate))  continue;
 
 //			bool path_found_v = find_path_atomic(v, g, first_right, mate, visited);
 			bool path_found_v = find_path_la_atomic(v, g, first_right, mate, visited, iteration, lookahead, stack);
@@ -93,7 +93,7 @@ bool find_path_atomic(const Vertex x0, const Graph& g, Vertex first_right, Verte
 
 			leaveWhile = true;
 
-			if (is_unmatched(vars.y, g, mate)) { // y is unmatched
+			if (is_unmatched(vars.y, mate)) { // y is unmatched
 				mate[vars.y] = vars.x0;
 				mate[vars.x0] = vars.y;
 
@@ -140,7 +140,7 @@ bool find_path_recursive_atomic(const Vertex x0, const Graph& g, const Vertex fi
 		// NOTE: we subtract first_right because the visited array only stores the flag for all right vertices
 		if (visited[y - first_right].test_and_set()) continue;
 
-		if (is_unmatched(y, g, mate)) { // y is unmatched, we found an augmenting path
+		if (is_unmatched(y, mate)) { // y is unmatched, we found an augmenting path
 
 			// update matching while returning from DFS
 			mate[y] = x0;
@@ -180,7 +180,7 @@ inline bool lookahead_step_atomic(
 	AdjVertexIterator laStart, laEnd;
 	for (std::tie(laStart, laEnd) = lookahead[x0]; laStart != laEnd; ++laStart) {
 		Vertex y = *laStart;
-		if (is_unmatched(y, g, mate)
+		if (is_unmatched(y, mate)
 			&& claim_vertex(y, first_right, visited, iteration)) {
 //				!visited[y - first_right].test_and_set()) {
 
@@ -275,7 +275,7 @@ bool find_path_la_recursive_atomic(const Vertex x0, const Graph& g, const Vertex
     AdjVertexIterator laStart, laEnd;
     for (std::tie(laStart, laEnd) = lookahead[x0]; laStart != laEnd; ++laStart) {
         Vertex y = *laStart;
-        if (is_unmatched(y, g, mate) && !visited[y - first_right].test_and_set()) {
+        if (is_unmatched(y, mate) && !visited[y - first_right].test_and_set()) {
             // update matching
             mate[y] = x0;
             mate[x0] = y;
@@ -331,7 +331,7 @@ void pothen_fan(const Graph& g, const Vertex first_right, VertexVector& mate) {
 	// collect all unmatched vertices
     std::vector<Vertex> unmatched;
 	unmatched.reserve(first_right / 2);
-	for (Vertex v = 0; v < first_right; v++) if (is_unmatched(v, g, mate)) unmatched.push_back(v);
+	for (Vertex v = 0; v < first_right; v++) if (is_unmatched(v, mate)) unmatched.push_back(v);
 	size_t unmatched_size = unmatched.size();
 
     do {
@@ -343,7 +343,7 @@ void pothen_fan(const Graph& g, const Vertex first_right, VertexVector& mate) {
 			Vertex x0 = unmatched[i];
 
 			// skip if vertex is already matched
-			if (is_matched(x0, g, mate)) continue;
+			if (is_matched(x0, mate)) continue;
 
 //			bool path_found_v = find_path(x0, g, first_right, mate, visited, stack);
 			bool path_found_v = find_path_la(x0, g, first_right, mate, visited, lookahead, stack);
@@ -367,7 +367,7 @@ inline bool lookahead_step(
 	AdjVertexIterator laStart, laEnd;
 	for (std::tie(laStart, laEnd) = lookahead[x0]; laStart != laEnd; ++laStart) {
 		Vertex y = *laStart;
-		if (is_unmatched(y, g, mate) && !visited[y - first_right]) {
+		if (is_unmatched(y, mate) && !visited[y - first_right]) {
 			visited[y - first_right] = true;
 
 			// update matching
@@ -488,7 +488,7 @@ bool find_path(const Vertex x0, const Graph& g,const Vertex first_right, VertexV
 
 			leaveWhile = true;
 
-			if (is_unmatched(vars.y, g, mate)) { // y is unmatched
+			if (is_unmatched(vars.y, mate)) { // y is unmatched
 				mate[vars.y] = vars.x0;
 				mate[vars.x0] = vars.y;
 
@@ -535,7 +535,7 @@ bool find_path_recursive(const Vertex x0, const Graph& g, const Vertex first_rig
 		if (visited[y - first_right]) continue;
 		visited[y - first_right] = true;
 
-		if (is_unmatched(y, g, mate)) { // y is unmatched, we found an augmenting path
+		if (is_unmatched(y, mate)) { // y is unmatched, we found an augmenting path
 
 			// update matching while returning from DFS
 			mate[y] = x0;
@@ -570,7 +570,7 @@ bool find_path_la_recursive(const Vertex x0, const Graph& g, const Vertex first_
     AdjVertexIterator laStart, laEnd;
     for (std::tie(laStart, laEnd) = lookahead[x0]; laStart != laEnd; ++laStart) {
         Vertex y = *laStart;
-        if (is_unmatched(y, g, mate) && !visited[y - first_right]) {
+        if (is_unmatched(y, mate) && !visited[y - first_right]) {
             visited[y - first_right] = true;
 
             // update matching

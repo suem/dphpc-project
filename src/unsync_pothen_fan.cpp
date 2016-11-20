@@ -44,10 +44,10 @@ void unsync_parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector
 		std::vector<PathElement> stack;
 #pragma omp parallel num_threads(nt) private(stack)
 #pragma omp for
-		for (Vertex v = 0; v < first_right; v++) {
+		for (int v = 0; v < first_right; v++) {
 
 			// skip if vertex is already matched
-			if (is_matched(v, g, mate))  continue;
+			if (is_matched(v, mate))  continue;
 
 			bool path_found_v = dfs_la(v, g, first_right, mate, visited, iteration, lookahead, stack);
 			if (path_found_v && !path_found) path_found = true;
@@ -71,7 +71,7 @@ inline bool lookahead_step_atomic(
 	AdjVertexIterator laStart, laEnd;
 	for (std::tie(laStart, laEnd) = lookahead[x0]; laStart != laEnd; ++laStart) {
 		Vertex y = *laStart;
-		if (is_unmatched(y, g, mate)
+		if (is_unmatched(y, mate)
 			&& claim_vertex(y, first_right, visited, iteration)) {
 //				!visited[y - first_right].test_and_set()) {
 

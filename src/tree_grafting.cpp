@@ -6,6 +6,7 @@
 
 #include "graphtypes.h"
 #include "tree_grafting.h"
+#include "graphutils.h"
 
 void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads) {
 
@@ -37,7 +38,7 @@ void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int nu
 	// for all those unmatched vertices, set the root to itself
 	std::set<Vertex> unmatchedX;
 	for (Vertex v = first_right; v < n; ++v) {
-		if (is_unmatched(v, g, mate)) {
+		if (is_unmatched(v, mate)) {
 			unmatchedX.insert(v);
 			root[v] = v;
 		}
@@ -65,7 +66,7 @@ void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int nu
 
 		// step 2: augment matching
 		for (Vertex v = first_right; v < n; ++v) {
-			if (is_unmatched(v, g, mate)) {
+			if (is_unmatched(v, mate)) {
 				// if an augmenting path P from x0 is found then
 				// Augment matching by P
 			}

@@ -110,7 +110,7 @@ void markAdjacentEdges(Vertex v, const Graph& g, std::set<Edge>& _edges, std::ve
 	}
 }
 
-VertexVector GraphHelper::karpSipser(const Graph& g) {
+VertexVector GraphHelper::karpSipserSet(const Graph& g) {
 	// Initialize matching with null
 	size_t numVertices = num_vertices(g);
 	size_t numEdges = num_edges(g);
@@ -122,7 +122,7 @@ VertexVector GraphHelper::karpSipser(const Graph& g) {
 	for (auto eit = es.first; eit != es.second; ++eit) {
 		_edges.insert(*eit);
 	}
-	
+
 	std::vector<size_t> degree(numVertices);
 	for (Vertex v = 0; v < numVertices; ++v)
 		degree[v] = boost::degree(v, g);
@@ -176,25 +176,22 @@ VertexVector GraphHelper::karpSipser(const Graph& g) {
 }
 
 void GraphHelper::printOutput(const BenchmarkResult& result) {
-    std::cout << result.timeStamp << ",";
-    std::cout << result.graphName << ",";
-    std::cout << result.numVertices << ",";
-    std::cout << result.numEdges << ",";
-    std::cout << result.algorithm << ",";
-    std::cout << result.numThreads << ",";    
-    
-    for (double d : result.durations) 
-        std::cout << "," << d;
-    
-    std::cout << std::endl;
+	std::cout << result.timeStamp << ",";
+	std::cout << result.graphName << ",";
+	std::cout << result.numVertices << ",";
+	std::cout << result.numEdges << ",";
+	std::cout << result.algorithm << ",";
+	std::cout << result.numThreads << ",";
+
+	for (double d : result.durations)
+		std::cout << "," << d;
+
+	std::cout << std::endl;
 }
 
-
-
-VertexVector GraphHelper::ks(const Graph& g) {
-
-	auto n = boost::num_vertices(g);
-	auto null_vertex = g.null_vertex();
+VertexVector GraphHelper::karpSipser(const Graph& g) {
+	auto const n = boost::num_vertices(g);
+	auto const null_vertex = Graph::null_vertex();
 
 	VertexVector matching(n);
 	std::vector<Vertex> deg(n);
@@ -204,20 +201,91 @@ VertexVector GraphHelper::ks(const Graph& g) {
 	}
 
 	bool found_edges;
-    do {
 
+	do {
+		found_edges = false;
+
+		for (auto e = boost::edges(g).first; e != boost::edges(g).second; ++e) {
+			Vertex u = boost::source(*e, g);
+			Vertex v = boost::target(*e, g);
+
+			if (is_matched(u, matching) || is_matched(v, matching)) {
+				continue;
+			}
+
+			if (deg[v] == 1 || deg[u] == 1) {
+				matching[v] = u;
+				matching[u] = v;
+				deg[u]--;
+				deg[v]--;
+				found_edges = true;
+				break;
+			}
+		}
+
+		if (found_edges) continue;
+
+		// If no edge found, select a random unmatched one
+		EdgeIterator eStart, eEnd, eRandom, eIt;
+		std::tie(eStart, eEnd) = boost::edges(g);
+		int randEdge = rand() % num_edges(g);
+		eRandom = eStart;
+		for (int i = 0; i < randEdge; i++)
+			++eRandom;
+
+		eIt = eRandom;
+		do {
+			Edge e = *eIt;
+			Vertex u = boost::source(e, g);
+			Vertex v = boost::target(e, g);
+
+			if (!is_matched(u, matching) && !is_matched(v, matching)) {
+				matching[v] = u;
+				matching[u] = v;
+				deg[u]--;
+				deg[v]--;
+				found_edges = true;
+				break;
+			}
+
+			++eIt;
+			if (eIt == eEnd) {
+				eIt = eStart;
+			}
+
+		} while (eIt != eRandom);
+
+	} while (found_edges);
+
+	return matching;
+}
+
+VertexVector GraphHelper::ks(const Graph& g) {
+
+	auto const n = boost::num_vertices(g);
+	auto const null_vertex = Graph::null_vertex();
+
+	VertexVector matching(n);
+	std::vector<Vertex> deg(n);
+	for (Vertex v = 0; v < n; v++) {
+		matching[v] = null_vertex;
+		deg[v] = boost::degree(v, g);
+	}
+
+	bool found_edges;
+	do {
 		// match all vertices with degree one
 		bool found_deg_one;
 		do {
 			found_deg_one = false;
 
 			for (Vertex v = 0; v < n; v++) {
-				if (deg[v] != 1 || is_matched(v, g, matching)) continue;
+				if (deg[v] != 1 || is_matched(v, matching)) continue;
 
 				AdjVertexIterator s, e;
 				for (std::tie(s, e) = boost::adjacent_vertices(v, g); s != e; s++) {
 					Vertex u = *s;
-					if (is_matched(u, g, matching)) continue;
+					if (is_matched(u, matching)) continue;
 
 					matching[v] = u;
 					matching[u] = v;
@@ -226,7 +294,6 @@ VertexVector GraphHelper::ks(const Graph& g) {
 					found_deg_one = true;
 				}
 			}
-
 		} while (found_deg_one);
 
 		found_edges = false;
@@ -237,7 +304,7 @@ VertexVector GraphHelper::ks(const Graph& g) {
 			Vertex u = boost::source(e, g);
 			Vertex v = boost::target(e, g);
 
-			if (is_matched(u,g,matching) || is_matched(v,g,matching)) continue;
+			if (is_matched(u, matching) || is_matched(v, matching)) continue;
 
 			matching[v] = u;
 			matching[u] = v;
@@ -249,5 +316,4 @@ VertexVector GraphHelper::ks(const Graph& g) {
 	} while (found_edges);
 
 	return matching;
-
 }
