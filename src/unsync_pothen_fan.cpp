@@ -10,94 +10,55 @@
 #include "graphtypes.h"
 #include "unsync_pothen_fan.h"
 
-void unsync_parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads) {
-
-	const int NO_THREADS = numThreads; 
-
-	const vertex_size_t n = boost::num_vertices(g);
-	const vertex_size_t n_right = n - first_right;
-
-	const int nt = std::min(static_cast<int>(n), NO_THREADS);
-
-	volatile bool path_found;
-
-//	std::atomic_flag* visited = new std::atomic_flag[n_right];
-
-    std::atomic<unsigned int>* visited = new std::atomic<unsigned int>[n_right];
-	memset(visited, 0, sizeof(std::atomic<unsigned int>) * n_right);
-    unsigned int iteration = 0;
-
-
-    // initialize lookahead
-    std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead = new std::pair<AdjVertexIterator, AdjVertexIterator>[first_right];
-    for (Vertex i = 0; i < first_right; i++) lookahead[i] = boost::adjacent_vertices(i, g);
-
-	do {
-		path_found = false;
-
-        // go to next iteration, equivalent to clearing all visited flags
-        iteration++;
-
-//		 // here we don't need atomic clears to reset the flags
-//        memset(visited, 0, sizeof(std::atomic_flag) * n_right);
-
-		std::vector<PathElement> stack;
-#pragma omp parallel num_threads(nt) private(stack)
-#pragma omp for
-		for (int v = 0; v < first_right; v++) {
-
-			// skip if vertex is already matched
-			if (is_matched(v, mate))  continue;
-
-			bool path_found_v = dfs_la(v, g, first_right, mate, visited, iteration, lookahead, stack);
-			if (path_found_v && !path_found) path_found = true;
-		}
-
-	} while (path_found);
-
-	delete[] visited;
-}
-
-
+union Flag {
+    std::atomic_flag flag;
+    bool flag_bool;
+};
 
 inline bool lookahead_step_atomic(
 		const Vertex x0,
-		const Graph& g,const Vertex first_right, VertexVector& mate,
-//		std::atomic_flag* visited,
-		std::atomic<unsigned int>* visited, unsigned int iteration,
+		const Graph& g, const Vertex first_right, VertexVector& mate,
+		Flag* visited,
+		std::vector<bool>& visited_local,
 		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead) {
 
+    bool found_unmatched = false;
+
 	// lookahead phase
-	AdjVertexIterator laStart, laEnd;
-	for (std::tie(laStart, laEnd) = lookahead[x0]; laStart != laEnd; ++laStart) {
+	AdjVertexIterator laStart, laEnd, laStartOld;
+    std::tie(laStart, laEnd) = lookahead[x0];
+    laStartOld = laStart;
+
+	for (; laStart != laEnd; laStart++) {
 		Vertex y = *laStart;
-		if (is_unmatched(y, mate)
-			&& claim_vertex(y, first_right, visited, iteration)) {
-//				!visited[y - first_right].test_and_set()) {
+		if (is_unmatched(y, mate) && !visited[y - first_right].flag.test_and_set()) {
 
-			// update matching
-			mate[y] = x0;
-			mate[x0] = y;
-
-			lookahead[x0].first = laStart;
-			return true;
+            visited_local[y - first_right] = false;
+            // update matching
+            mate[y] = x0;
+            mate[x0] = y;
+            found_unmatched = true;
+            laStart++;
+            visited[y - first_right].flag.clear();
+            break;
+            visited[y - first_right].flag.clear();
 		}
 	}
-	if (lookahead[x0].first != laStart) lookahead[x0].first = laStart;
+	lookahead[x0].first = laStart;
 
-	return false;
+	return found_unmatched;
 }
 
 bool dfs_la(
 		const Vertex v,
-		const Graph& g,const Vertex first_right, VertexVector& mate,
-//		std::atomic_flag* visited,
-		std::atomic<unsigned int>* visited, unsigned int iteration,
+		const Graph& g, const Vertex first_right, VertexVector& mate,
+		Flag* visited,
+		std::vector<bool>& visited_local,
 		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead,
 		std::vector<PathElement>& stack) {
 
 	// do initial lookahead and return if successful ----------------------------------------------
-	bool init_lookahead_success = lookahead_step_atomic(v, g, first_right, mate, visited, iteration, lookahead);
+	bool init_lookahead_success = lookahead_step_atomic(v, g, first_right, mate, visited, visited_local, lookahead);
 	if (init_lookahead_success) return true;
 	// --------------------------------------------------------------------------------------------
 
@@ -121,22 +82,29 @@ bool dfs_la(
 			const Vertex y = *yiter;
 			mate[y] = x0;
 			mate[x0] = y;
+            visited[y - first_right].flag.clear();
 			// return e.g. pop stack
 			stack.pop_back();
 			continue;
-		}
-
+		} 
 
 		// skip all visited vertices
-//		while (yiter != yiter_end && visited[*yiter - first_right].test_and_set()) yiter++;
-		while (yiter != yiter_end && !claim_vertex(*yiter, first_right, visited, iteration)) yiter++;
+		while (yiter != yiter_end) {
+            const Vertex y = *yiter;
+            // if y has not been visited in this dfs and if we can claim it, continue from there
+            if (!visited_local[y - first_right] ) {
+                visited_local[y - first_right] = true;
+                if(!visited[y - first_right].flag.test_and_set()) break;
+            }
+            yiter++;
+        }
 
 		// do dfs step on first unvisited neighbor
 		if (yiter != yiter_end) { // if there are still neighbours to visit
 			Vertex y = *yiter;
 			Vertex x1 = mate[y];
 
-			bool lookahead_success = lookahead_step_atomic(x1, g, first_right, mate, visited, iteration, lookahead);
+			bool lookahead_success = lookahead_step_atomic(x1, g, first_right, mate, visited, visited_local, lookahead);
 			if (lookahead_success) {
 				path_found = true;
 				continue;
@@ -150,10 +118,105 @@ bool dfs_la(
 		} else {
 			// pop stack otherwise, did not find any path and there are not more neighbors
 			stack.pop_back();
+            if(!stack.empty()) visited[*(stack.back().yiter++) - first_right].flag.clear();
+            
 		}
 
 	}
 
 	return path_found;
 }
+
+
+void unsync_parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads) {
+
+	const int NO_THREADS = numThreads; 
+
+	const vertex_size_t n = boost::num_vertices(g);
+	const vertex_size_t n_right = n - first_right;
+
+	const int nt = std::min(static_cast<int>(n), NO_THREADS);
+
+
+	Flag* visited = new Flag[n_right];
+	memset(visited, 0, sizeof(Flag) * n_right);
+
+    // initialize lookahead
+    std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead = new std::pair<AdjVertexIterator, AdjVertexIterator>[first_right];
+    for (Vertex i = 0; i < first_right; i++) lookahead[i] = boost::adjacent_vertices(i, g);
+
+    std::vector<PathElement> stack;
+    std::vector<bool> visited_local;
+
+    std::atomic<int> pathFound;
+    pathFound = nt;
+     
+#pragma omp parallel num_threads(nt) private(stack, visited_local)
+    {
+        int tid = omp_get_thread_num();
+        int nthreads = omp_get_num_threads();
+        int numberOfNodes = static_cast<int>(std::round(first_right / nthreads));
+        Vertex start = tid * numberOfNodes;
+        Vertex end = tid == nthreads - 1 ? first_right : start + numberOfNodes;
+
+        std::vector<PathElement> stack;
+        std::vector<bool> visited_local;
+        
+        bool found_old = true;
+        bool found;
+
+        while (pathFound > 0) {
+            found = false;
+            visited_local.assign(n_right, false);
+            for (Vertex v = start; v < end; v++) {
+                // skip if vertex is already matched
+                if (is_matched(v, mate)) continue;
+                found = dfs_la(v, g, first_right, mate, visited, visited_local, lookahead, stack) || found;
+            }
+
+            if (found_old && !found) pathFound--;
+            else if (!found_old && found) pathFound++;
+
+            found_old = found;
+
+            std::cout << pathFound << std::endl;
+        }
+    }
+
+    /*
+
+    std::vector<PathElement> stack;
+    std::vector<bool> visited_local;
+	volatile bool path_found;
+
+	Flag* claimed = new Flag[first_right];
+	memset(claimed, 0, sizeof(Flag) * first_right);
+    
+	do {
+		path_found = false;
+#pragma omp parallel num_threads(nt) private(stack, visited_local)
+        {
+            visited_local.assign(n_right, false);
+#pragma omp for
+            for (Vertex v = 0; v < first_right; v++) {
+
+                // skip if vertex is already matched
+                if (is_matched(v, g, mate)) {
+                    continue;
+                }
+
+                bool path_found_v = dfs_la(v, g, first_right, mate, visited, visited_local, lookahead, stack);
+                if (path_found_v && !path_found) path_found = true;
+
+                claimed[v].flag.clear();
+            }
+        }
+
+	} while (path_found);
+    */
+
+	delete[] visited;
+}
+
+
 
