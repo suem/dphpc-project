@@ -9,6 +9,7 @@
 #include "graphutils.h"
 #include "graphtypes.h"
 #include "unsync_pothen_fan.h"
+#include "Timer.h"
 
 union Flag {
     std::atomic_flag flag;
@@ -42,8 +43,7 @@ inline bool lookahead_step_atomic(
             visited[y - first_right].flag.clear();
             break;
             visited[y - first_right].flag.clear();
-		}
-	}
+		} }
 	lookahead[x0].first = laStart;
 
 	return found_unmatched;
@@ -137,7 +137,6 @@ void unsync_parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector
 
 	const int nt = std::min(static_cast<int>(n), NO_THREADS);
 
-
 	Flag* visited = new Flag[n_right];
 	memset(visited, 0, sizeof(Flag) * n_right);
 
@@ -145,75 +144,44 @@ void unsync_parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector
     std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead = new std::pair<AdjVertexIterator, AdjVertexIterator>[first_right];
     for (Vertex i = 0; i < first_right; i++) lookahead[i] = boost::adjacent_vertices(i, g);
 
-    std::vector<PathElement> stack;
-    std::vector<bool> visited_local;
-
-    std::atomic<int> pathFound;
-    pathFound = nt;
-     
-#pragma omp parallel num_threads(nt) private(stack, visited_local)
-    {
-        int tid = omp_get_thread_num();
-        int nthreads = omp_get_num_threads();
-        int numberOfNodes = static_cast<int>(std::round(first_right / nthreads));
-        Vertex start = tid * numberOfNodes;
-        Vertex end = tid == nthreads - 1 ? first_right : start + numberOfNodes;
-
-        std::vector<PathElement> stack;
-        std::vector<bool> visited_local;
-        
-        bool found_old = true;
-        bool found;
-
-        while (pathFound > 0) {
-            found = false;
-            visited_local.assign(n_right, false);
-            for (Vertex v = start; v < end; v++) {
-                // skip if vertex is already matched
-                if (is_matched(v, mate)) continue;
-                found = dfs_la(v, g, first_right, mate, visited, visited_local, lookahead, stack) || found;
-            }
-
-            if (found_old && !found) pathFound--;
-            else if (!found_old && found) pathFound++;
-
-            found_old = found;
-
-            std::cout << pathFound << std::endl;
-        }
-    }
-
-    /*
 
     std::vector<PathElement> stack;
     std::vector<bool> visited_local;
 	volatile bool path_found;
 
-	Flag* claimed = new Flag[first_right];
-	memset(claimed, 0, sizeof(Flag) * first_right);
-    
+    std::atomic_size_t matching_size;
+    matching_size = 0;
+
 	do {
 		path_found = false;
 #pragma omp parallel num_threads(nt) private(stack, visited_local)
         {
             visited_local.assign(n_right, false);
+            size_t old_matching_size;
+            bool found_local;
+            do {
+                found_local = false;
+                old_matching_size = matching_size;
 #pragma omp for
-            for (Vertex v = 0; v < first_right; v++) {
+                for (Vertex v = 0; v < first_right; v++) {
 
-                // skip if vertex is already matched
-                if (is_matched(v, g, mate)) {
-                    continue;
+                    // skip if vertex is already matched
+                    if (is_matched(v, mate)) {
+                        continue;
+                    }
+
+                    bool path_found_v = dfs_la(v, g, first_right, mate, visited, visited_local, lookahead, stack);
+                    if (path_found_v) {
+                        //matching_size++;
+                        if (!path_found) path_found = true;
+                        if (!found_local) found_local = true;
+                    }
                 }
+            } while(old_matching_size < matching_size && found_local);
 
-                bool path_found_v = dfs_la(v, g, first_right, mate, visited, visited_local, lookahead, stack);
-                if (path_found_v && !path_found) path_found = true;
-
-                claimed[v].flag.clear();
-            }
         }
 
 	} while (path_found);
-    */
 
 	delete[] visited;
 }

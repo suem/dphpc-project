@@ -7,6 +7,7 @@
 #include "verifier.h"
 #include "GraphHelper.h"
 #include "pothen_fan.h"
+#include "unsync_pothen_fan.h"
 #include "Timer.h" 
 
 using namespace boost;
@@ -49,6 +50,34 @@ void runParallelPothenFan(const std::string& graphName, const Graph& g, Vertex f
 
 		Timer t = Timer();
 		parallel_pothen_fan(g, first_right, mates, numThreads);
+		double elapsed = t.elapsed();
+
+//		verify_matching(g, mates, matching_size_solution);
+	
+		result.durations.push_back(elapsed);
+	}
+
+	GraphHelper::printOutput(result);
+}
+
+
+void runUnsyncParallelPothenFan(const std::string& graphName, const Graph& g, Vertex first_right, size_t n, /*vertex_size_t matching_size_solution,*/ const VertexVector& initialMatching, int numThreads) {
+	char buff[20];
+	time_t now = time(NULL);
+	strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
+	BenchmarkResult result;
+	result.algorithm = "unsync parallel pothen fan";
+	result.graphName = graphName;
+	result.numEdges = num_edges(g);
+	result.numVertices = num_vertices(g);
+	result.numThreads = numThreads;
+	result.timeStamp = std::string(buff);
+	for (int i = 0; i < NO_RUNS; ++i) {
+
+		VertexVector mates = initialMatching;
+
+		Timer t = Timer();
+		unsync_parallel_pothen_fan(g, first_right, mates, numThreads);
 		double elapsed = t.elapsed();
 
 //		verify_matching(g, mates, matching_size_solution);
@@ -227,8 +256,11 @@ int main(int argc, char* argv[]) {
 		cout << "#Run pf" << endl;
 		runPothenFan(argv[1], g, first_right, n,  /*matching_size_solution,*/ initialMatching);
 
-		cout << "#Run ppf" << endl;
+		//cout << "#Run ppf" << endl;
 		for (int i = 10; i < 251; i = i + 30) runParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i);
+
+		cout << "#Run unsync_ppf" << endl;
+		for (int i = 10; i < 251; i = i + 30) runUnsyncParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i);
 
 //		runBoostEdmonds(argv[1], g, initialMatching);
 	}
