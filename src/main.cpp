@@ -12,8 +12,8 @@
 using namespace boost;
 using namespace std;
 
-//static const int NO_RUNS = 5;
-static const int NO_RUNS = 2;
+static const int NO_RUNS = 5;
+//static const int NO_RUNS = 2;
 
 void testGraphIO() {
 	std::string inFile = "../test/graphs/small_graph_bi.txt";
@@ -102,7 +102,6 @@ void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_rig
 		Timer t = Timer();
 		pothen_fan(g, first_right, mates);
 
-		cout << "PF: " << endl;
 		double elapsed = t.elapsed();
 
 //		verify_matching(g, mates, matching_size_solution);
@@ -198,30 +197,37 @@ int main(int argc, char* argv[]) {
 	}
 
 	try {
+
+		cout << "#Reading Graph" << endl;
+
 		Vertex first_right;
 		Graph g;
 		GraphHelper::readGraphFromFile(g, first_right, argv[1]);
 		vertex_size_t n = num_vertices(g);
 
-        cout << "verify bp...";
+		cout << "#Verifying if bipartite" << endl;
 		verify_bipartite(g);
-		cout << "...done" << endl;
 
-		compareInitialMatching(g);
-		return 0;
-//		VertexVector solution_mates(n);
-//		boost::edmonds_maximum_cardinality_matching(g, &solution_mates[0]);
-//		vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
+        /*
+		VertexVector solution_mates(n);
+		boost::edmonds_maximum_cardinality_matching(g, &solution_mates[0]);
+		vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
+        */
 
 
 //		VertexVector initialMatching = GraphHelper::greedyMatching(g);
         // Compute initial matching using karp-sipser
-		cout << "run ks...";
+		cout << "#Run KarpSispser to get initial matching" << endl;
+        Timer t = Timer();
+		//VertexVector initialMatching = GraphHelper::karpSipser(g);
 		VertexVector initialMatching = GraphHelper::ks(g);
-		cout << "...done" << endl;
+        double el = t.elapsed();
+		cout << "#KarpSispser took: " << el << endl;
 
-		runPothenFan(argv[1], g, first_right, n, /* matching_size_solution,*/ initialMatching);
+		cout << "#Run pf" << endl;
+		runPothenFan(argv[1], g, first_right, n,  /*matching_size_solution,*/ initialMatching);
 
+		cout << "#Run ppf" << endl;
 		for (int i = 10; i < 251; i = i + 30) runParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i);
 
 //		runBoostEdmonds(argv[1], g, initialMatching);

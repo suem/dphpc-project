@@ -101,7 +101,7 @@ void GraphHelper::printOutput(const BenchmarkResult& result) {
 	std::cout << result.numVertices << ",";
 	std::cout << result.numEdges << ",";
 	std::cout << result.algorithm << ",";
-	std::cout << result.numThreads << ",";
+	std::cout << result.numThreads;
 
 	for (double d : result.durations)
 		std::cout << "," << d;
