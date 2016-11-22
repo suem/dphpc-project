@@ -159,21 +159,22 @@ void testKarpSipser() {
 	std::cout << "Finished" << std::endl;
 }
 
-void compareInitialMatching(Graph& g) {
+void compareInitialMatching(const Graph& g, const Vertex first_right) {
 	double elapsed;
 	Timer t;
 
-	std::cout << "Computing greedy matching..." << std::endl;
-	t = Timer();
+	std::cout << "Computing greedy matching..." << std::endl; t = Timer();
 	VertexVector gMatching = GraphHelper::greedyMatching(g);
 	elapsed = t.elapsed();
 	std::cout << "Computed greedy matching in: " << elapsed << "s" << std::endl;
 
+    /* Too slow for larger graphs
 	std::cout << "Computing Karp-Sipser..." << std::endl;
 	t = Timer();
 	VertexVector ksMatchMatching = GraphHelper::karpSipser(g);
 	elapsed = t.elapsed();
 	std::cout << "Computed Karp-Sipser in: " << elapsed << "s" << std::endl;
+    */
 
 	std::cout << "Computing Karp-Sipser (no break solution)..." << std::endl;
 	t = Timer();
@@ -181,29 +182,46 @@ void compareInitialMatching(Graph& g) {
 	elapsed = t.elapsed();
 	std::cout << "Computed Karp-Sipser (no break solution) in: " << elapsed << "s" << std::endl;
 
-	std::cout << "Computing reference solution..." << std::endl;
+
+	std::cout << "Computing Parallel Karp-Sipser..." << std::endl;
 	t = Timer();
-	VertexVector maxMatching(boost::num_vertices(g));
-	boost::edmonds_maximum_cardinality_matching(g, &maxMatching[0]);
+	VertexVector pksMatching = GraphHelper::parallelKarpSipser(g, first_right);
+	elapsed = t.elapsed();
+	std::cout << "Computed Parallel Karp-Sipser in: " << elapsed << "s" << std::endl;
+
+
+	std::cout << "Computing reference solution (using pothen_fan)..." << std::endl;
+	t = Timer();
+	VertexVector maxMatching = ksFastMatching;
+    pothen_fan(g, first_right, maxMatching);
 	elapsed = t.elapsed();
 	std::cout << "Computed reference solution in: " << elapsed << "s" << std::endl;
 
+    /*
 	vertex_size_t ksMatchingSize = boost::matching_size(g, &ksMatchMatching[0]);
 	verify_matching(g, ksMatchMatching, ksMatchingSize);
+    */
+
 	vertex_size_t ksFastSize = boost::matching_size(g, &ksFastMatching[0]);
 	verify_matching(g, ksFastMatching, ksFastSize);
+
+	vertex_size_t pksMatchingSize = boost::matching_size(g, &pksMatching[0]);
+	verify_matching(g, pksMatching, pksMatchingSize);
+
 	vertex_size_t gSize = boost::matching_size(g, &gMatching[0]);
 	verify_matching(g, gMatching, gSize);
 
 	vertex_size_t maxSize = boost::matching_size(g, &maxMatching[0]);
 
 	std::cout << "greedy: " << gSize << std::endl;
-	std::cout << "ks (matching): " << ksMatchingSize << std::endl;
+	//std::cout << "ks (matching): " << ksMatchingSize << std::endl;
 	std::cout << "ks (fast): " << ksFastSize << std::endl;
+	std::cout << "pks: " << pksMatchingSize << std::endl;
 
     std::cout << "Greedy matching:\t" << (float)gSize / maxSize * 100 << "%" << std::endl;
-	std::cout << "Karp Sipser (matching):\t\t" << (float)ksMatchingSize / maxSize * 100 << "%" << std::endl;
+	//std::cout << "Karp Sipser (matching):\t\t" << (float)ksMatchingSize / maxSize * 100 << "%" << std::endl;
 	std::cout << "Karp Sipser (fast):\t\t" << (float)ksFastSize / maxSize * 100 << "%" << std::endl;
+	std::cout << "Parallel Karp Sipser:\t\t" << (float)pksMatchingSize / maxSize * 100 << "%" << std::endl;
 }
 
 void printMatchings(size_t matchingSize, const VertexVector& mates, const Graph& g) {
@@ -233,6 +251,10 @@ int main(int argc, char* argv[]) {
 		Graph g;
 		GraphHelper::readGraphFromFile(g, first_right, argv[1]);
 		vertex_size_t n = num_vertices(g);
+
+        compareInitialMatching(g, first_right);
+        return 0;
+
 
 		cout << "#Verifying if bipartite" << endl;
 		verify_bipartite(g);

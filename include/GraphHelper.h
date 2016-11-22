@@ -29,6 +29,7 @@ class GraphHelper {
         static VertexVector karpSipser(const Graph& g);
 		// kind of karp sipser very fast but no break
         static VertexVector ks(const Graph& g);
+        static VertexVector parallelKarpSipser(const Graph& g, Vertex first_right); 
         static VertexVector greedyMatching(const Graph& g);
         static void printOutput(const BenchmarkResult& result);
 };

@@ -143,6 +143,8 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
         memset(visited, 0, sizeof(std::atomic<unsigned char>) * n_right);
         //memset(visited, 0, sizeof(std::atomic_flag) * n_right);
 
+        int x = 0;
+
 		std::vector<PathElement> stack;
 #pragma omp parallel num_threads(nt) private(stack)
 #pragma omp for
@@ -152,6 +154,7 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 
 			// skip if vertex is already matched
 			if (is_matched(v, mate))  continue;
+            x++;
 
 			bool path_found_v = dfs_la_atomic(v, g, first_right, mate, visited, lookahead, stack);
 			if (path_found_v && !path_found) path_found = true;
