@@ -16,13 +16,6 @@ struct FindPathElement {
 
 void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads);
 bool find_path_atomic(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, std::atomic_flag* visited);
-bool find_path_la_atomic(
-		const Vertex x0,
-		const Graph& g,const Vertex first_right, VertexVector& mate,
-//		std::atomic_flag* visited,
-		std::atomic<unsigned int>* visited, unsigned int iteration,
-		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead,
-		std::vector<PathElement>& stack);
 
 bool find_path_recursive_atomic(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, std::atomic_flag* visited);
 bool find_path_la_recursive_atomic(
@@ -30,12 +23,6 @@ bool find_path_la_recursive_atomic(
 
 void pothen_fan(const Graph& g, const Vertex first_right, VertexVector& mate);
 bool find_path(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited, std::vector<FindPathElement>& stack);
-bool find_path_la(
-        const Vertex x0,
-		const Graph& g,const Vertex first_right, VertexVector& mate,
-		bool* visited,
-		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead,
-		std::vector<PathElement>& stack);
 
 
 bool find_path_recursive(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited);
