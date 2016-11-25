@@ -157,7 +157,7 @@ void unsync_parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector
             bool found_local;
             found_local = false;
 #pragma omp for
-                for (Vertex v = 0; v < first_right; v++) {
+                for (int v = 0; v < first_right; v++) {
 
                     // skip if vertex is already matched
                     if (is_matched(v, mate)) {

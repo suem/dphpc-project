@@ -148,7 +148,7 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 		std::vector<PathElement> stack;
 #pragma omp parallel num_threads(nt) private(stack)
 #pragma omp for
-		for (size_t i = 0; i < unmatched_size; i++) {
+		for (int i = 0; i < unmatched_size; i++) {
             Vertex v = unmatched[i];
 		//for (int v = 0; v < first_right; v++) {
 

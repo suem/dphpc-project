@@ -95,7 +95,7 @@ VertexVector GraphHelper::greedyMatching(const Graph& g) {
     return matching;
 }
 
-void GraphHelper::printOutput(const BenchmarkResult& result) {
+void GraphHelper::printOutput(const BenchmarkResult& resultStruct) {
     // Header
     std::cout << "TimeStamp" << ",";
     std::cout << "GraphName" << ",";
@@ -104,15 +104,15 @@ void GraphHelper::printOutput(const BenchmarkResult& result) {
     std::cout << "Algorithm" << std::endl;
     
     // Data
-    for (int i : result.numThreads) 
-        std::cout << i << ",";
+	for (int i : resultStruct.numThreads)
+		std::cout << i << ",";
 
     std::cout << "\b" << std::endl;
 
-    for (int i = 0; i < result.iter; ++i) {
+    for (int i = 0; i < resultStruct.iter; ++i) {
         int pos = 0;
-        for (int nThreads : result.numThreads) {
-            std::cout << result.durations[pos][i] << ",";
+        for (int nThreads : resultStruct.numThreads) {
+            std::cout << resultStruct.durations[pos][i] << ",";
             ++pos;
         }
         std::cout << "\b" << std::endl;
@@ -306,16 +306,16 @@ VertexVector GraphHelper::parallelKarpSipser(const Graph& g, const Vertex first_
     std::atomic_int* deg = new std::atomic_int[first_right];
 
 #pragma omp parallel for
-    for (Vertex x = 0; x < first_right; x++) {
+    for (int x = 0; x < first_right; x++) {
         deg[x] = boost::degree(x, g);
     }
 
 #pragma omp parallel for
-    for (Vertex x = 0; x < first_right; x++) 
+    for (int x = 0; x < first_right; x++) 
         if (deg[x] == 1) matchAndUpdate(x, g, matching, deg, visited);
 
 #pragma omp parallel for
-    for (Vertex x = 0; x < first_right; x++) 
+    for (int x = 0; x < first_right; x++) 
         if (deg[x] > 1) matchAndUpdate(x, g, matching, deg, visited);
 
     return matching;

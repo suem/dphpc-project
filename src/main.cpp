@@ -42,7 +42,7 @@ void runParallelPothenFan(const std::string& graphName, const Graph& g, Vertex f
 	result.graphName = graphName;
 	result.numEdges = num_edges(g);
 	result.numVertices = num_vertices(g);
-	result.numThreads = numThreads;
+	//result.numThreads = numThreads;
 	result.timeStamp = std::string(buff);
 	for (int i = 0; i < NO_RUNS; ++i) {
 
@@ -54,7 +54,7 @@ void runParallelPothenFan(const std::string& graphName, const Graph& g, Vertex f
 
 //		verify_matching(g, mates, matching_size_solution);
 	
-		result.durations.push_back(elapsed);
+		//result.durations.push_back(elapsed);
 	}
 
 	GraphHelper::printOutput(result);
@@ -70,7 +70,7 @@ void runUnsyncParallelPothenFan(const std::string& graphName, const Graph& g, Ve
 	result.graphName = graphName;
 	result.numEdges = num_edges(g);
 	result.numVertices = num_vertices(g);
-	result.numThreads = numThreads;
+	//result.numThreads = numThreads;
 	result.timeStamp = std::string(buff);
 	for (int i = 0; i < NO_RUNS; ++i) {
 
@@ -82,7 +82,7 @@ void runUnsyncParallelPothenFan(const std::string& graphName, const Graph& g, Ve
 
 //		verify_matching(g, mates, matching_size_solution);
 	
-		result.durations.push_back(elapsed);
+		//result.durations.push_back(elapsed);
 	}
 
 	GraphHelper::printOutput(result);
@@ -97,7 +97,7 @@ void runBoostEdmonds(const std::string& graphName, const Graph& g, const VertexV
 	result.graphName = graphName;
 	result.numEdges = num_edges(g);
 	result.numVertices = num_vertices(g);
-	result.numThreads = 1;
+	//result.numThreads = 1;
 	result.timeStamp = std::string(buff);
 	for (int i = 0; i < NO_RUNS; ++i) {
 
@@ -107,7 +107,7 @@ void runBoostEdmonds(const std::string& graphName, const Graph& g, const VertexV
 		boost::edmonds_maximum_cardinality_matching(g, &mates[0]);
 		double elapsed = t.elapsed();
 
-		result.durations.push_back(elapsed);
+		//result.durations.push_back(elapsed);
 	}
 
 	GraphHelper::printOutput(result);
@@ -122,7 +122,7 @@ void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_rig
 	result.graphName = graphName;
 	result.numEdges = num_edges(g);	
 	result.numVertices = num_vertices(g);
-	result.numThreads = 1;
+	//result.numThreads = 1;
 	result.timeStamp = std::string(buff);
 	for (int i = 0; i < NO_RUNS; ++i) {
 
@@ -135,7 +135,7 @@ void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_rig
 
 //		verify_matching(g, mates, matching_size_solution);
 		
-		result.durations.push_back(elapsed);
+		//result.durations.push_back(elapsed);
 	}
 
 	GraphHelper::printOutput(result);
