@@ -252,9 +252,6 @@ int main(int argc, char* argv[]) {
 		GraphHelper::readGraphFromFile(g, first_right, argv[1]);
 		vertex_size_t n = num_vertices(g);
 
-        compareInitialMatching(g, first_right);
-        return 0;
-
 
 		cout << "#Verifying if bipartite" << endl;
 		verify_bipartite(g);
@@ -279,10 +276,10 @@ int main(int argc, char* argv[]) {
 		runPothenFan(argv[1], g, first_right, n,  /*matching_size_solution,*/ initialMatching);
 
 		//cout << "#Run ppf" << endl;
-		for (int i = 10; i < 251; i = i + 30) runParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i);
+		for (int i = 1; i < 251; i = i + 20) runParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i);
 
 		cout << "#Run unsync_ppf" << endl;
-		for (int i = 10; i < 251; i = i + 30) runUnsyncParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i);
+		for (int i = 1; i < 251; i = i + 20) runUnsyncParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i);
 
 //		runBoostEdmonds(argv[1], g, initialMatching);
 	}
