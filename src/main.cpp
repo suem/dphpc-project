@@ -32,18 +32,19 @@ void testGraphGeneration() {
 		std::cout << source(*e, g) << " " << target(*e, g) << std::endl;
 	GraphHelper::writeGraphToFile("../test/out1.txt", g);
 }
+std::vector<double> runParallelPothenFan(const std::string& graphName, const Graph& g, Vertex first_right, size_t n, /*vertex_size_t matching_size_solution,*/ const VertexVector& initialMatching, int numThreads) {
+	//char buff[20];
+	//time_t now = time(NULL);
+	//strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
+	std::vector<double> durations;
 
-void runParallelPothenFan(const std::string& graphName, const Graph& g, Vertex first_right, size_t n, /*vertex_size_t matching_size_solution,*/ const VertexVector& initialMatching, int numThreads) {
-	char buff[20];
-	time_t now = time(NULL);
-	strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
-	BenchmarkResult result;
-	result.algorithm = "parallel pothen fan";
-	result.graphName = graphName;
-	result.numEdges = num_edges(g);
-	result.numVertices = num_vertices(g);
-	//result.numThreads = numThreads;
-	result.timeStamp = std::string(buff);
+	//BenchmarkResult result;
+	//result.algorithm = "parallel pothen fan";
+	//result.graphName = graphName;
+	//result.numEdges = num_edges(g);
+	//result.numVertices = num_vertices(g);
+	////result.numThreads = numThreads;
+	//result.timeStamp = std::string(buff);
 	for (int i = 0; i < NO_RUNS; ++i) {
 
 		VertexVector mates = initialMatching;
@@ -52,12 +53,15 @@ void runParallelPothenFan(const std::string& graphName, const Graph& g, Vertex f
 		parallel_pothen_fan(g, first_right, mates, numThreads);
 		double elapsed = t.elapsed();
 
+		durations.push_back(elapsed);
+
 //		verify_matching(g, mates, matching_size_solution);
 	
 		//result.durations.push_back(elapsed);
 	}
 
-	GraphHelper::printOutput(result);
+	//GraphHelper::printOutput(result);
+	return durations;
 }
 
 
@@ -272,11 +276,33 @@ int main(int argc, char* argv[]) {
         double el = t.elapsed();
 		cout << "#KarpSispser took: " << el << endl;
 
-		cout << "#Run pf" << endl;
-		runPothenFan(argv[1], g, first_right, n,  /*matching_size_solution,*/ initialMatching);
+		//cout << "#Run pf" << endl;
+		//runPothenFan(argv[1], g, first_right, n,  /*matching_size_solution,*/ initialMatching);
 
-		//cout << "#Run ppf" << endl;
-		for (int i = 10; i < 251; i = i + 20) runParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i);
+		char buff[20];
+		time_t now = time(NULL);
+		strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
+
+		BenchmarkResult result;
+		result.algorithm = "parallel pothen fan";
+		result.graphName = argv[1];
+		result.numEdges = num_edges(g);
+		result.numVertices = num_vertices(g);
+		result.timeStamp = std::string(buff);
+		result.iter = NO_RUNS;
+
+		cout << "#Run ppf" << endl;
+		std::vector<int> numThreads;
+		std::vector < std::vector<double>> durations;
+		for (int i = 10; i < 251; i = i + 20) {
+			numThreads.push_back(i);
+			durations.push_back(runParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i));
+		}
+
+		result.numThreads = numThreads;
+		result.durations = durations;
+
+		GraphHelper::printOutput(result);
 
 //		cout << "#Run unsync_ppf" << endl;
 //		for (int i = 1; i < 251; i = i + 20) runUnsyncParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i);

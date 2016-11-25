@@ -102,12 +102,18 @@ void GraphHelper::printOutput(const BenchmarkResult& resultStruct) {
     std::cout << "NumVertices" << ",";
     std::cout << "NumEdges" << ",";
     std::cout << "Algorithm" << std::endl;
+
+	std::cout << resultStruct.timeStamp << ",";
+	std::cout << resultStruct.graphName << ",";
+	std::cout << resultStruct.numVertices << ",";
+	std::cout << resultStruct.numEdges << ",";
+	std::cout << resultStruct.algorithm << std::endl;
     
     // Data
 	for (int i : resultStruct.numThreads)
 		std::cout << i << ",";
 
-    std::cout << "\b" << std::endl;
+    std::cout << "\b " << std::endl;
 
     for (int i = 0; i < resultStruct.iter; ++i) {
         int pos = 0;
@@ -115,7 +121,7 @@ void GraphHelper::printOutput(const BenchmarkResult& resultStruct) {
             std::cout << resultStruct.durations[pos][i] << ",";
             ++pos;
         }
-        std::cout << "\b" << std::endl;
+        std::cout << "\b " << std::endl;
     } 
 }
 
