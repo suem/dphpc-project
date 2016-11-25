@@ -89,7 +89,7 @@ void runUnsyncParallelPothenFan(const std::string& graphName, const Graph& g, Ve
 		//result.durations.push_back(elapsed);
 	}
 
-	GraphHelper::printOutput(result);
+	//GraphHelper::printOutput(result);
 }
 
 void runBoostEdmonds(const std::string& graphName, const Graph& g, const VertexVector& initialMatching) {
@@ -114,7 +114,7 @@ void runBoostEdmonds(const std::string& graphName, const Graph& g, const VertexV
 		//result.durations.push_back(elapsed);
 	}
 
-	GraphHelper::printOutput(result);
+	//GraphHelper::printOutput(result);
 }
 
 void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_right, int n, /*vertex_size_t matching_size_solution,*/ const VertexVector& initialMatching) {
@@ -142,7 +142,7 @@ void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_rig
 		//result.durations.push_back(elapsed);
 	}
 
-	GraphHelper::printOutput(result);
+	//GraphHelper::printOutput(result);
 }
 
 void testKarpSipser() {
@@ -281,11 +281,11 @@ int main(int argc, char* argv[]) {
 
 		char buff[20];
 		time_t now = time(NULL);
-		strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
+		strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
 
 		BenchmarkResult result;
 		result.algorithm = "parallel pothen fan";
-		result.graphName = argv[1];
+		result.graphName = GraphHelper::getGraphNameFromPath(argv[1]);
 		result.numEdges = num_edges(g);
 		result.numVertices = num_vertices(g);
 		result.timeStamp = std::string(buff);
@@ -302,7 +302,7 @@ int main(int argc, char* argv[]) {
 		result.numThreads = numThreads;
 		result.durations = durations;
 
-		GraphHelper::printOutput(result);
+		GraphHelper::printOutput(result, "C:\\dphpc-test\\");
 
 //		cout << "#Run unsync_ppf" << endl;
 //		for (int i = 1; i < 251; i = i + 20) runUnsyncParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i);

@@ -5,6 +5,7 @@
 #include <string>
 #include <stdlib.h>
 #include <fstream>
+#include <sstream>
 
 struct BenchmarkResult {
     // Graph information
@@ -32,5 +33,6 @@ class GraphHelper {
         static VertexVector ks(const Graph& g);
         static VertexVector parallelKarpSipser(const Graph& g, Vertex first_right); 
         static VertexVector greedyMatching(const Graph& g);
-        static void printOutput(const BenchmarkResult& result);
+        static void printOutput(const BenchmarkResult& result, const std::string& outPath);
+		static std::string getGraphNameFromPath(const std::string& graphPath);
 };
