@@ -13,10 +13,11 @@ struct BenchmarkResult {
     size_t numVertices;
 
     // Benchmark information
+    int iter;
     std::string timeStamp;
     std::string algorithm;
-    std::vector<double> durations;
-    int numThreads;
+    std::vector<std::vector<double>> durations;
+    std::vector<int> numThreads;
 };
 
 class GraphHelper {

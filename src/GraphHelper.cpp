@@ -96,17 +96,27 @@ VertexVector GraphHelper::greedyMatching(const Graph& g) {
 }
 
 void GraphHelper::printOutput(const BenchmarkResult& result) {
-    std::cout << result.timeStamp << ",";
-    std::cout << result.graphName << ",";
-    std::cout << result.numVertices << ",";
-    std::cout << result.numEdges << ",";
-    std::cout << result.algorithm << ",";
-    std::cout << result.numThreads;
+    // Header
+    std::cout << "TimeStamp" << ",";
+    std::cout << "GraphName" << ",";
+    std::cout << "NumVertices" << ",";
+    std::cout << "NumEdges" << ",";
+    std::cout << "Algorithm" << std::endl;
+    
+    // Data
+    for (int i : result.numThreads) 
+        std::cout << i << ",";
 
-    for (double d : result.durations)
-        std::cout << "," << d;
+    std::cout << "\b" << std::endl;
 
-    std::cout << std::endl;
+    for (int i = 0; i < result.iter; ++i) {
+        int pos = 0;
+        for (int nThreads : result.numThreads) {
+            std::cout << result.durations[pos][i] << ",";
+            ++pos;
+        }
+        std::cout << "\b" << std::endl;
+    } 
 }
 
 void markAdjacentEdges(Vertex v, const Graph& g, std::vector<size_t>& degree) {
