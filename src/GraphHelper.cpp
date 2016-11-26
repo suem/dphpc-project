@@ -95,18 +95,68 @@ VertexVector GraphHelper::greedyMatching(const Graph& g) {
     return matching;
 }
 
-void GraphHelper::printOutput(const BenchmarkResult& result) {
-    std::cout << result.timeStamp << ",";
-    std::cout << result.graphName << ",";
-    std::cout << result.numVertices << ",";
-    std::cout << result.numEdges << ",";
-    std::cout << result.algorithm << ",";
-    std::cout << result.numThreads;
+void GraphHelper::printOutput(const BenchmarkResult& resultStruct, const std::string& outPath) {
+	// generate file name: algorithm name, graphName, and timestamp
+	std::string fileName = resultStruct.algorithm + '_' + resultStruct.graphName + '_' + resultStruct.timeStamp + ".csv";
+	std::string filePath = outPath + fileName;
+	std::replace(filePath.begin(), filePath.end(), ' ', '_');
+	// create csv file
+	std::ofstream csv(filePath);
 
-    for (double d : result.durations)
-        std::cout << "," << d;
 
-    std::cout << std::endl;
+    // Header
+    csv << "TimeStamp" << ",";
+    csv << "GraphName" << ",";
+    csv << "NumVertices" << ",";
+    csv << "NumEdges" << ",";
+    csv << "Algorithm" << std::endl;
+	 
+	csv << resultStruct.timeStamp << ",";
+	csv << resultStruct.graphName << ",";
+	csv << resultStruct.numVertices << ",";
+	csv << resultStruct.numEdges << ",";
+	csv << resultStruct.algorithm << std::endl;
+    
+    // Data
+	std::string temp;
+	for (int i : resultStruct.numThreads)
+		temp += std::to_string(i) + ",";
+
+	csv << temp.substr(0, temp.size() - 1) << std::endl;
+
+    for (int i = 0; i < resultStruct.iter; ++i) {
+        int pos = 0;
+		temp.clear();
+        for (int nThreads : resultStruct.numThreads) {
+			temp += std::to_string(resultStruct.durations[pos][i]) + ",";
+            ++pos;
+        }
+		csv << temp.substr(0, temp.size() - 1) << std::endl;
+    } 
+	std::cout << "CSV Filepath: " << filePath<< std::endl;
+}
+
+std::string GraphHelper::getGraphNameFromPath(const std::string& graphPath) {
+	// This helperfunction takes a path to a graph file and returns the name of the file
+	std::istringstream ss(graphPath);
+	std::string token;
+	std::string last;
+	char delimiter;
+
+	#ifdef _WIN32
+		delimiter = '\\';
+	#else
+		delimiter = '/';
+	#endif
+
+	while (std::getline(ss, token, delimiter)) {
+		last = token;
+	}
+
+	std::istringstream ss2(last);
+
+	std::getline(ss2, token, '.');
+	return token;
 }
 
 void markAdjacentEdges(Vertex v, const Graph& g, std::vector<size_t>& degree) {
