@@ -76,7 +76,6 @@ bool dfs_la(
 		AdjVertexIterator& yiter = stack_top.yiter;
 		AdjVertexIterator& yiter_end = stack_top.yiter_end;
 
-
 		if (path_found) {
 			// update matching
 			const Vertex y = *yiter;
@@ -118,10 +117,8 @@ bool dfs_la(
 		} else {
 			// pop stack otherwise, did not find any path and there are not more neighbors
 			stack.pop_back();
-            if(!stack.empty()) visited[*(stack.back().yiter++) - first_right].flag.clear();
-            
+            if(!stack.empty()) visited[*(stack.back().yiter++) - first_right].flag.clear();        
 		}
-
 	}
 
 	return path_found;
@@ -144,7 +141,6 @@ void unsync_parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector
     std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead = new std::pair<AdjVertexIterator, AdjVertexIterator>[first_right];
     for (Vertex i = 0; i < first_right; i++) lookahead[i] = boost::adjacent_vertices(i, g);
 
-
     std::vector<PathElement> stack;
     std::vector<bool> visited_local;
 	volatile bool path_found;
@@ -157,7 +153,7 @@ void unsync_parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector
             bool found_local;
             found_local = false;
 #pragma omp for
-                for (Vertex v = 0; v < first_right; v++) {
+                for (int v = 0; v < first_right; v++) {
 
                     // skip if vertex is already matched
                     if (is_matched(v, mate)) {
@@ -171,7 +167,6 @@ void unsync_parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector
                         if (!found_local) found_local = true;
                     }
                 }
-
         }
 
 	} while (path_found);

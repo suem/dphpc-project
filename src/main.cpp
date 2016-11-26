@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
 		cout << "#KarpSispser took: " << el << endl;
 
 		cout << "#Run pf" << endl;
-		runPothenFan(argv[1], g, first_right, n,  /*matching_size_solution,*/ initialMatching);
+		runUnsyncParallelPothenFan(argv[1], g, first_right, n,  /*matching_size_solution,*/ initialMatching, 8);
 
 		//cout << "#Run ppf" << endl;
 		for (int i = 10; i < 251; i = i + 20) runParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i);
