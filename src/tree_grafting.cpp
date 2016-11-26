@@ -11,14 +11,10 @@
 void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads) {
 
 	const int NO_THREADS = numThreads; 
-
 	const vertex_size_t n = boost::num_vertices(g);
-	const vertex_size_t n_right = n - first_right;
-
 	const int nt = std::min(static_cast<int>(n), NO_THREADS);
 
 	volatile bool path_found;
-
 	bool* visited = new bool[n];
 
 	// initialize the root vector
@@ -43,8 +39,6 @@ void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int nu
 		}
 	}
 
-	// initialize numUnvisited
-	size_t numUnvisitedY = n_right; // all in Y are unvisited
 	// init stack
 	std::vector<FindPathElement> stack;
 
@@ -53,6 +47,14 @@ void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int nu
 		
 		// construct alternating BFS Forest
 		while (!F.empty()) {
+			// find numUnvisited
+			size_t numUnvisitedY = 0; 
+			for (Vertex y = first_right; y < n; ++y) {
+				if (!visited[y]) {
+					++numUnvisitedY;
+				}
+			}
+
 			if (F.size() < numUnvisitedY / ALPHA) {
 				F = top_down_bfs(g, F, visited, parent, root, leaf, mate);
 			}
@@ -69,7 +71,7 @@ void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int nu
 		}
 
 		// step 2: augment matching. This should be parallel.
-		for (Vertex x = 0; x < n_right; ++x) {
+		for (Vertex x = 0; x < first_right; ++x) {
 			if (is_unmatched(x, mate)) {
 				// if an augmenting path P from x is found then augment matching by P
 				path_found = path_found || find_path_tg(x, g, first_right, mate, visited, stack);
