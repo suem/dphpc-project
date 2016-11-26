@@ -6,9 +6,17 @@
 #include <atomic>
 
 struct PathElement {
-    Vertex x0;
-    AdjVertexIterator yiter;
-    AdjVertexIterator yiter_end;
+	Vertex x0;
+	AdjVertexIterator yiter;
+	AdjVertexIterator yiter_end;
+};
+
+struct FindPathElement {
+	Vertex x0;
+	Vertex y;
+	AdjVertexIterator start;
+	AdjVertexIterator end;
+	bool found = false;
 };
 
 inline bool is_right(const Vertex& v, const Vertex first_right) {
@@ -32,4 +40,3 @@ inline bool claim_vertex(
         std::atomic<unsigned int>* visited, unsigned int iteration) {
     return std::atomic_exchange(&visited[y - first_right], iteration) != iteration;
 }
-

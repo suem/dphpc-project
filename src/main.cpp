@@ -7,6 +7,7 @@
 #include "verifier.h"
 #include "GraphHelper.h"
 #include "pothen_fan.h"
+#include "tree_grafting.h"
 #include "unsync_pothen_fan.h"
 #include "Timer.h" 
 
@@ -27,7 +28,8 @@ void testGraphIO() {
 }
 
 void testGraphGeneration() {
-	Graph g = GraphHelper::generateRandomGraph(40, 1);
+	Vertex first_right;
+	Graph g = GraphHelper::generateRandomGraph(40, 1, first_right);
 	for (EdgeIterator e = boost::edges(g).first; e != boost::edges(g).second; e++)
 		std::cout << source(*e, g) << " " << target(*e, g) << std::endl;
 	GraphHelper::writeGraphToFile("../test/out1.txt", g);
@@ -54,6 +56,7 @@ std::vector<double> runParallelPothenFan(const std::string& graphName, const Gra
 		double elapsed = t.elapsed();
 
 		durations.push_back(elapsed);
+		std::cout << elapsed << std::endl;
 
 //		verify_matching(g, mates, matching_size_solution);
 	
@@ -145,8 +148,38 @@ void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_rig
 	//GraphHelper::printOutput(result);
 }
 
+void runTreeGrafting(const std::string& graphName, const Graph& g, Vertex first_right, vertex_size_t n, vertex_size_t matching_size_solution, const VertexVector& initialMatching) {
+	char buff[20];
+	time_t now = time(NULL);
+	strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
+	BenchmarkResult result;
+	result.algorithm = "tree grafting";
+	result.graphName = graphName;
+	result.numEdges = num_edges(g);
+	result.numVertices = num_vertices(g);
+	//result.numThreads = 1;
+	result.timeStamp = std::string(buff);
+	for (int i = 0; i < NO_RUNS; ++i) {
+
+		VertexVector mates = initialMatching;
+
+		Timer t = Timer();
+		ms_bfs_graft(g, first_right, mates, 1);
+
+		double elapsed = t.elapsed();
+
+		verify_matching(g, mates, matching_size_solution);
+
+		std::cout << elapsed << std::endl;
+	//	result.durations.push_back(elapsed);
+	}
+
+	//GraphHelper::printOutput(result);
+}
+
 void testKarpSipser() {
-	Graph g = GraphHelper::generateRandomGraph(5000, 0.5);
+	Vertex first_right;
+	Graph g = GraphHelper::generateRandomGraph(10000, 0.5, first_right);
 	VertexVector matching = GraphHelper::karpSipser(g);
 	vertex_size_t matching_size = boost::matching_size(g, &matching[0]);
 
@@ -253,30 +286,30 @@ int main(int argc, char* argv[]) {
 
 		Vertex first_right;
 		Graph g;
-		GraphHelper::readGraphFromFile(g, first_right, argv[1]);
+		g = GraphHelper::generateRandomGraph(10000, 0.5f, first_right);
+		//GraphHelper::readGraphFromFile(g, first_right, argv[1]);
 		vertex_size_t n = num_vertices(g);
-
-
+	
 		cout << "#Verifying if bipartite" << endl;
 		verify_bipartite(g);
 
-        /*
 		VertexVector solution_mates(n);
 		boost::edmonds_maximum_cardinality_matching(g, &solution_mates[0]);
 		vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
-        */
 
-
-//		VertexVector initialMatching = GraphHelper::greedyMatching(g);
-        // Compute initial matching using karp-sipser
-		cout << "#Run KarpSispser to get initial matching" << endl;
+		cout << "#Run Greedy to get initial matching" << endl;
         Timer t = Timer();
 		//VertexVector initialMatching = GraphHelper::karpSipser(g);
-		VertexVector initialMatching = GraphHelper::ks(g);
+		//VertexVector initialMatching = GraphHelper::ks(g);
+		VertexVector initialMatching = GraphHelper::greedyMatching(g);
         double el = t.elapsed();
-		cout << "#KarpSispser took: " << el << endl;
+		cout << "#Greedy took: " << el << endl;
 
-		for (int i = 10; i < 251; i = i + 20) runParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i);
+		cout << "run tree grafting (sequential)" << std::endl;
+		runTreeGrafting(GraphHelper::getGraphNameFromPath(argv[1]), g, first_right, n, matching_size_solution, initialMatching);
+		return 0;
+
+		//for (int i = 10; i < 251; i = i + 20) runParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i);
 
 		//cout << "#Run pf" << endl;
 		//runPothenFan(argv[1], g, first_right, n,  /*matching_size_solution,*/ initialMatching);

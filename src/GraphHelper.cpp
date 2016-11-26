@@ -6,7 +6,7 @@
 #include <vector>
 #include <queue>
 
-Graph GraphHelper::generateRandomGraph(int numNodes, float density) {
+Graph GraphHelper::generateRandomGraph(int numNodes, float density, Vertex& first_right) {
     Graph g(numNodes);
     srand(static_cast<unsigned int>(time(0)));
     int randNodes = rand() % numNodes + 1;
@@ -28,6 +28,7 @@ Graph GraphHelper::generateRandomGraph(int numNodes, float density) {
         }
     }
 
+	first_right = randNodes - 1;
     return g;
 }
 
