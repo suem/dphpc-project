@@ -286,8 +286,8 @@ int main(int argc, char* argv[]) {
 
 		Vertex first_right;
 		Graph g;
-		g = GraphHelper::generateRandomGraph(10000, 0.5f, first_right);
-		//GraphHelper::readGraphFromFile(g, first_right, argv[1]);
+		//g = GraphHelper::generateRandomGraph(10, 0.4f, first_right);
+		GraphHelper::readGraphFromFile(g, first_right, argv[1]);
 		vertex_size_t n = num_vertices(g);
 	
 		cout << "#Verifying if bipartite" << endl;
@@ -302,6 +302,7 @@ int main(int argc, char* argv[]) {
 		//VertexVector initialMatching = GraphHelper::karpSipser(g);
 		//VertexVector initialMatching = GraphHelper::ks(g);
 		VertexVector initialMatching = GraphHelper::greedyMatching(g);
+		
         double el = t.elapsed();
 		cout << "#Greedy took: " << el << endl;
 

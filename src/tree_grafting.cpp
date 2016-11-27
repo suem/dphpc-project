@@ -16,6 +16,7 @@ void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int nu
 
 	volatile bool path_found;
 	bool* visited = new bool[n];
+	bool* augment_visited = new bool[n];
 
 	// initialize the root vector
 	VertexVector root(n);
@@ -27,10 +28,11 @@ void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int nu
 	VertexVector leaf(n);
 	std::fill(leaf.begin(), leaf.end(), Graph::null_vertex());
 	// initialize the visited array
-	memset(visited, 0, sizeof(bool) * n);
+	std::fill_n(visited, n, false);
 	
-	// unmatchedX <- all unmatched X vertices
+	// F <- all unmatched X vertices
 	// for all those unmatched vertices, set the root to itself
+	// TODO: in parallel
 	std::deque<Vertex> F;
 	for (Vertex x = 0; x < first_right; ++x) {
 		if (is_unmatched(x, mate)) {
@@ -38,9 +40,6 @@ void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int nu
 			root[x] = x;
 		}
 	}
-
-	// init stack
-	std::vector<FindPathElement> stack;
 
 	do {
 		path_found = false;
@@ -70,20 +69,25 @@ void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int nu
 			}
 		}
 
+		std::fill_n(augment_visited, n, false);
 		// step 2: augment matching. This should be parallel.
 		for (Vertex x = 0; x < first_right; ++x) {
 			if (is_unmatched(x, mate)) {
 				// if an augmenting path P from x is found then augment matching by P
-				path_found = path_found || find_path_tg(x, g, first_right, mate, visited, stack);
+				bool path_found_now = find_path_tg(x, g, first_right, mate, augment_visited);
+				path_found = path_found_now || path_found;
 			}
 		}
 
 		// step 3: construct frontier for the next phase
-		F = graft(g, first_right, visited, parent, root, leaf, mate);
+		if (path_found) {
+			F = graft(g, first_right, visited, parent, root, leaf, mate);
+		}
 
 	} while (path_found);
 
 	delete[] visited;
+	delete[] augment_visited;
 }
 
 std::deque<Vertex> top_down_bfs(
@@ -103,10 +107,10 @@ std::deque<Vertex> top_down_bfs(
 		if (is_active_tree(x, root, leaf)) {
 			leaf[root[x]] = Graph::null_vertex();
 			AdjVertexIterator start, end;
-			std::tie(start, end) = boost::adjacent_vertices(x, g);
-			for (auto it = start; it != end; ++it) {
-				if (!visited[*it]) {
-					updatePointers(x, *it, visited, queue, parent, root, leaf, mate);
+			for (std::tie(start, end) = boost::adjacent_vertices(x, g); start != end; ++start) {
+				Vertex y = *start;
+				if (!visited[y]) {
+					updatePointers(x, y, visited, queue, parent, root, leaf, mate);
 				}
 			}
 		}
@@ -130,9 +134,8 @@ std::deque<Vertex> bottom_up_bfs(
 	// TODO: in parallel
 	for (Vertex y : R) {
 		AdjVertexIterator start, end;
-		std::tie(start, end) = boost::adjacent_vertices(y, g);
-		for (auto it = start; it != end; ++it) {
-			Vertex x = *it;
+		for (std::tie(start, end) = boost::adjacent_vertices(y, g); start != end; ++start) {
+			Vertex x = *start;
 			if (is_active_tree(x, root, leaf)) {
 				leaf[root[x]] = Graph::null_vertex();
 				updatePointers(x, y, visited, queue, parent, root, leaf, mate);
@@ -230,9 +233,10 @@ void updatePointers(
 	}
 }
 
-bool find_path_tg(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited, std::vector<FindPathElement>& stack) {
+bool find_path_tg(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited) {
 
-	stack.clear();
+	// init stack
+	std::vector<FindPathElement> stack;
 
 	FindPathElement e1;
 	e1.x0 = x0;

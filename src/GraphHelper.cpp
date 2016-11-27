@@ -27,8 +27,8 @@ Graph GraphHelper::generateRandomGraph(int numNodes, float density, Vertex& firs
             }
         }
     }
-
-	first_right = randNodes - 1;
+	
+	first_right = randNodes;
     return g;
 }
 

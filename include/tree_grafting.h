@@ -57,4 +57,4 @@ inline bool is_renewable_tree(Vertex v, const VertexVector& root, const VertexVe
 	return root[v] != Graph::null_vertex() && leaf[root[v]] != Graph::null_vertex();
 }
 
-bool find_path_tg(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited, std::vector<FindPathElement>& stack);
+bool find_path_tg(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited);
