@@ -34,25 +34,19 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 	for (Vertex v = 0; v < first_right; v++) if (is_unmatched(v, mate)) unmatched.push_back(v);
 	size_t unmatched_size = unmatched.size();
 
-
 	do {
 		path_found = false;
 
         memset(visited, 0, sizeof(std::atomic<unsigned char>) * n_right);
-        //memset(visited, 0, sizeof(std::atomic_flag) * n_right);
-
-        int x = 0;
 
 		std::vector<PathElement> stack;
 #pragma omp parallel num_threads(nt) private(stack)
 #pragma omp for
 		for (int i = 0; i < unmatched_size; i++) {
             Vertex v = unmatched[i];
-		//for (int v = 0; v < first_right; v++) {
 
 			// skip if vertex is already matched
 			if (is_matched(v, mate))  continue;
-            x++;
 
 			bool path_found_v = dfs_la_atomic(v, g, first_right, mate, visited, lookahead, stack);
 			if (path_found_v && !path_found) path_found = true;
@@ -61,6 +55,7 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 	} while (path_found);
 
 	delete[] visited;
+	delete[] lookahead;
 }
 
 void pothen_fan(const Graph& g, const Vertex first_right, VertexVector& mate) {
