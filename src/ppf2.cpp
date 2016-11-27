@@ -135,10 +135,6 @@ void ppf2(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads
     }
 	size_t unmatched_size = unmatched.size();
 
-
-    std::vector<bool>* visited_local = new std::vector<bool>[numThreads];
-    for (size_t i = 0; i < numThreads; i++) visited_local[i] = std::vector<bool>(n, false);
-
 	do {
 		path_found = false;
         memset(visited, 0, sizeof(std::atomic_flag) * n_right);
@@ -172,5 +168,6 @@ void ppf2(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads
     for (Vertex y = first_right; y < n; y++) if (is_matched(y, mate)) mate[mate[y]] = y;
 
 	delete[] visited;
+	delete[] lookahead;
 }
 

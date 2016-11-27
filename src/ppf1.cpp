@@ -134,36 +134,31 @@ void ppf1(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads
     }
 	size_t unmatched_size = unmatched.size();
 
-
-    std::vector<bool>* visited_local = new std::vector<bool>[numThreads];
-    for (size_t i = 0; i < numThreads; i++) visited_local[i] = std::vector<bool>(n, false);
-
 	do {
 		path_found = false;
         memset(visited, 0, sizeof(std::atomic_flag) * n_right);
 
 		std::vector<PathElement> stack;
 #pragma omp parallel num_threads(nt) private(stack)
-        {
 #pragma omp for
-            for (size_t i = 0; i < unmatched_size; i++) {
-                auto& urv = unmatched[i];
+		for (size_t i = 0; i < unmatched_size; i++) {
+			auto& urv = unmatched[i];
 
-                // skip if vertex is already matched
-                if (!urv.unmatched) continue;
+			// skip if vertex is already matched
+			if (!urv.unmatched) continue;
 
-                Vertex v = urv.x;
+			Vertex v = urv.x;
 
-                bool path_found_v = dfs_la_atomic(v, g, first_right, mate, visited, lookahead, stack);
-                if (path_found_v) {
-                    urv.unmatched = false;
-                    if (!path_found) path_found = true;
-                }
-            }
+			bool path_found_v = dfs_la_atomic(v, g, first_right, mate, visited, lookahead, stack);
+			if (path_found_v) {
+				urv.unmatched = false;
+				if (!path_found) path_found = true;
+			}
 		}
 
 	} while (path_found);
 
 	delete[] visited;
+	delete[] lookahead;
 }
 
