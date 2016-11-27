@@ -19,6 +19,13 @@ struct FindPathElement {
 	bool found = false;
 };
 
+struct UnmatchedVertex {
+    UnmatchedVertex(Vertex _x) : x(_x) { }
+    Vertex x;
+    bool unmatched = true;
+};
+
+
 inline bool is_right(const Vertex& v, const Vertex first_right) {
     return v >= first_right;
 }
