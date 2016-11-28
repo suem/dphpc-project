@@ -505,6 +505,7 @@ bool dfs_la_atomic(
 		else {
 			// pop stack otherwise, did not find any path and there are not more neighbors
 			stack.pop_back();
+			if (!stack.empty()) stack.back().yiter++;
 		}
 
 	}
@@ -600,7 +601,7 @@ bool dfs_la(
 		else {
 			// pop stack otherwise, did not find any path and there are not more neighbors
 			stack.pop_back();
-			stack.back().yiter++;
+			if (!stack.empty()) stack.back().yiter++;
 		}
 
 	}

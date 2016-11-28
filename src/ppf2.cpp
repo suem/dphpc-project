@@ -13,8 +13,8 @@
 inline bool lookahead_step(
 		const Vertex x0,
 		const Graph& g,const Vertex first_right, VertexVector& mate,
-		std::atomic_flag* visited,
-		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead) {
+		std::vector<std::atomic_flag>& visited,
+		std::vector<std::pair<AdjVertexIterator, AdjVertexIterator>>& lookahead) {
 
 	// lookahead phase
 	AdjVertexIterator laStart, laEnd;
@@ -38,8 +38,8 @@ inline bool lookahead_step(
 inline bool dfs_la_atomic(
 		const Vertex v,
 		const Graph& g,const Vertex first_right, VertexVector& mate,
-		std::atomic_flag* visited,
-		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead,
+        std::vector<std::atomic_flag>& visited,
+        std::vector<std::pair<AdjVertexIterator, AdjVertexIterator>>& lookahead,
 		std::vector<PathElement>& stack) {
 
 	// do initial lookahead and return if successful ----------------------------------------------
@@ -118,11 +118,14 @@ void ppf2(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads
 
 	volatile bool path_found;
 
-	std::atomic_flag* visited = new std::atomic_flag[n_right];
+	std::vector<std::atomic_flag> visited(n_right);
+
+	// initialize lookahead
+	// collect all unmatched
 
     // initialize lookahead
     // collect all unmatched
-    std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead = new std::pair<AdjVertexIterator, AdjVertexIterator>[first_right];
+	std::vector<std::pair<AdjVertexIterator, AdjVertexIterator>> lookahead(first_right);
     std::vector<UnmatchedVertex> unmatched;
 	unmatched.reserve(first_right);
 
@@ -137,7 +140,7 @@ void ppf2(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads
 
 	do {
 		path_found = false;
-        memset(visited, 0, sizeof(std::atomic_flag) * n_right);
+		memset(&visited[0], 0, sizeof(visited[0]) * n_right);
 
 		std::vector<PathElement> stack;
 #pragma omp parallel num_threads(nt) private(stack)
@@ -166,8 +169,5 @@ void ppf2(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads
 #pragma omp for
     // update matchings for left vertices
     for (int y = first_right; y < n; y++) if (is_matched(y, mate)) mate[mate[y]] = y;
-
-	delete[] visited;
-	delete[] lookahead;
 }
 

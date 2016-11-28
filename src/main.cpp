@@ -48,10 +48,10 @@ std::vector<double> runParallelPothenFan(const std::string& graphName, const Gra
 		VertexVector mates = initialMatching;
 
 		Timer t = Timer();
-		ppf1(g, first_right, mates, numThreads);
+//		ppf1(g, first_right, mates, numThreads);
 		//parallel_pothen_fan(g, first_right, mates, numThreads);
-		//ppf2(g, first_right, mates, numThreads);
-		//ppf3(g, first_right, mates, numThreads);
+//		ppf2(g, first_right, mates, numThreads);
+		ppf3(g, first_right, mates, numThreads);
 		double elapsed = t.elapsed();
 		durations[i] = elapsed;
 
