@@ -13,24 +13,24 @@
 inline bool lookahead_step(
 		const Vertex x0,
 		const Graph& g,const Vertex first_right, VertexVector& mate,
-		std::atomic_size_t* visited,
+		std::vector<std::atomic_size_t>& visited,
 		size_t iteration,
-		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead) {
+		std::vector<std::pair<AdjVertexIterator, AdjVertexIterator>>& lookahead
+) {
 
 	// lookahead phase
 	AdjVertexIterator laStart, laEnd;
 	for (std::tie(laStart, laEnd) = lookahead[x0]; laStart != laEnd; ++laStart) {
 		Vertex y = *laStart;
-		if (is_unmatched(y, mate) 
-                //&& !visited[y - first_right].test_and_set()) {
-                && std::atomic_exchange(&visited[y - first_right], iteration) < iteration) {
+		if (is_unmatched(y, mate) && visited[y - first_right] < iteration) {
+			if (std::atomic_exchange(&visited[y - first_right], iteration) < iteration) {
+				// update matching
+				mate[y] = x0;
+				//mate[x0] = y; // this store can be done when we are done
 
-			// update matching
-			mate[y] = x0;
-			//mate[x0] = y; // this store can be done when we are done
-
-			lookahead[x0].first = laStart;
-			return true;
+				lookahead[x0].first = laStart;
+				return true;
+			}
 		}
 	}
 	if (lookahead[x0].first != laStart) lookahead[x0].first = laStart;
@@ -41,10 +41,9 @@ inline bool lookahead_step(
 inline bool dfs_la_atomic(
 		const Vertex v,
 		const Graph& g,const Vertex first_right, VertexVector& mate,
-		//std::atomic_flag* visited,
-		std::atomic_size_t* visited,
+        std::vector<std::atomic_size_t>& visited,
 		size_t iteration,
-		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead,
+		std::vector<std::pair<AdjVertexIterator, AdjVertexIterator>>& lookahead,
 		std::vector<PathElement>& stack) {
 
 	// do initial lookahead and return if successful ----------------------------------------------
@@ -79,8 +78,17 @@ inline bool dfs_la_atomic(
 
 
 		// skip all visited vertices
-		while (yiter != yiter_end && std::atomic_exchange(&visited[*yiter - first_right], iteration) >= iteration) {
-            yiter++;
+//		while (yiter != yiter_end && std::atomic_exchange(&visited[*yiter - first_right], iteration) >= iteration) {
+//			yiter++;
+//		}
+		while (yiter != yiter_end) {
+			const Vertex y_index = *yiter - first_right;
+            if (visited[y_index] < iteration) {
+				if (std::atomic_exchange(&visited[y_index], iteration) < iteration) {
+					break;
+				}
+			}
+			yiter++;
         }
 
 		// do dfs step on first unvisited neighbor
@@ -122,15 +130,15 @@ void ppf3(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads
 
 	volatile bool path_found;
 
-	//std::atomic_flag* visited = new std::atomic_flag[n_right];
-	std::atomic_size_t* visited = new std::atomic_size_t[n_right];
-    memset(visited, 0, sizeof(std::atomic_size_t) * n_right);
+	std::vector<std::atomic_size_t> visited(n_right);
+	memset(&visited[0], 0, sizeof(visited[0]) * n_right);
+
     size_t iteration = 1;
 
 
     // initialize lookahead
     // collect all unmatched
-    std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead = new std::pair<AdjVertexIterator, AdjVertexIterator>[first_right];
+	std::vector<std::pair<AdjVertexIterator, AdjVertexIterator>> lookahead(first_right);
     std::vector<UnmatchedVertex> unmatched;
 	unmatched.reserve(first_right);
 
@@ -148,7 +156,7 @@ void ppf3(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads
 
         iteration++;
         if (iteration == 0) { // integer overflow on iteration, reset visited flags
-            memset(visited, 0, sizeof(std::atomic_size_t) * n_right);
+			memset(&visited[0], 0, sizeof(visited[0]) * n_right);
             iteration = 1;
         }
 
@@ -178,7 +186,5 @@ void ppf3(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads
     // update matchings for left vertices
     for (int y = first_right; y < n; y++) if (is_matched(y, mate)) mate[mate[y]] = y;
 
-	delete[] visited;
-	delete[] lookahead;
 }
 

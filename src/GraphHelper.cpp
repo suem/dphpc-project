@@ -106,24 +106,24 @@ void GraphHelper::printOutput(const BenchmarkResult& resultStruct, const std::st
 
 
     // Header
-    csv << "TimeStamp" << ",";
-    csv << "GraphName" << ",";
-    csv << "NumVertices" << ",";
-    csv << "NumEdges" << ",";
-    csv << "Algorithm" << std::endl;
-	 
-	csv << resultStruct.timeStamp << ",";
-	csv << resultStruct.graphName << ",";
-	csv << resultStruct.numVertices << ",";
-	csv << resultStruct.numEdges << ",";
-	csv << resultStruct.algorithm << std::endl;
+    std::cout << "TimeStamp" << ",";
+    std::cout << "GraphName" << ",";
+    std::cout << "NumVertices" << ",";
+    std::cout << "NumEdges" << ",";
+    std::cout << "Algorithm" << std::endl;
+
+	std::cout << resultStruct.timeStamp << ",";
+	std::cout << resultStruct.graphName << ",";
+	std::cout << resultStruct.numVertices << ",";
+	std::cout << resultStruct.numEdges << ",";
+	std::cout << resultStruct.algorithm << std::endl;
     
     // Data
 	std::string temp;
 	for (int i : resultStruct.numThreads)
 		temp += std::to_string(i) + ",";
 
-	csv << temp.substr(0, temp.size() - 1) << std::endl;
+	std::cout << temp.substr(0, temp.size() - 1) << std::endl;
 
     for (int i = 0; i < resultStruct.iter; ++i) {
         int pos = 0;
@@ -132,9 +132,9 @@ void GraphHelper::printOutput(const BenchmarkResult& resultStruct, const std::st
 			temp += std::to_string(resultStruct.durations[pos][i]) + ",";
             ++pos;
         }
-		csv << temp.substr(0, temp.size() - 1) << std::endl;
+		std::cout << temp.substr(0, temp.size() - 1) << std::endl;
     } 
-	std::cout << "CSV Filepath: " << filePath<< std::endl;
+	//std::cout << "CSV Filepath: " << filePath<< std::endl;
 }
 
 std::string GraphHelper::getGraphNameFromPath(const std::string& graphPath) {
