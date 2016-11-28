@@ -12,11 +12,12 @@ void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int nu
 
 	const int NO_THREADS = numThreads; 
 	const vertex_size_t n = boost::num_vertices(g);
+	const vertex_size_t n_right = n - first_right;
 	const int nt = std::min(static_cast<int>(n), NO_THREADS);
 
 	volatile bool path_found;
 	bool* visited = new bool[n];
-	bool* augment_visited = new bool[n];
+	bool* augment_visited = new bool[n_right];
 
 	// initialize the root vector
 	VertexVector root(n);
@@ -28,7 +29,7 @@ void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int nu
 	VertexVector leaf(n);
 	std::fill(leaf.begin(), leaf.end(), Graph::null_vertex());
 	// initialize the visited array
-	std::fill_n(visited, n, false);
+	memset(visited, 0, sizeof(bool) * n);
 	
 	// F <- all unmatched X vertices
 	// for all those unmatched vertices, set the root to itself
@@ -69,7 +70,7 @@ void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int nu
 			}
 		}
 
-		std::fill_n(augment_visited, n, false);
+		memset(augment_visited, 0, sizeof(bool) * n_right);
 		// step 2: augment matching. This should be parallel.
 		for (Vertex x = 0; x < first_right; ++x) {
 			if (is_unmatched(x, mate)) {
@@ -264,8 +265,8 @@ bool find_path_tg(const Vertex x0, const Graph& g, const Vertex first_right, Ver
 		for (; vars.start != vars.end; ++vars.start) {
 			vars.y = *vars.start;
 
-			if (visited[vars.y]) continue;
-			visited[vars.y] = true;
+			if (visited[vars.y - first_right]) continue;
+			visited[vars.y - first_right] = true;
 
 			leaveWhile = true;
 

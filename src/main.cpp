@@ -305,12 +305,12 @@ int main(int argc, char* argv[]) {
 		VertexVector solution_mates = initialMatching;
 		pothen_fan(g, first_right, solution_mates);
 		vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
-
+		
 		/*
 		cout << "run tree grafting (sequential)" << std::endl;
 		runTreeGrafting(GraphHelper::getGraphNameFromPath(argv[1]), g, first_right, n, matching_size_solution, initialMatching);
 		return 0;
-		 */
+		*/ 
 
 		runPothenFan(argv[1], g, first_right, n,  matching_size_solution, initialMatching);
 
@@ -349,7 +349,7 @@ int main(int argc, char* argv[]) {
 //		cout << "#Run unsync_ppf" << endl;
 //		for (int i = 1; i < 251; i = i + 20) runUnsyncParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i);
 	}
-	catch (char const* error) {
+	catch (const char* error) {
 		cerr << "Error: " << error << endl;
 		return -1;
 	}
