@@ -128,7 +128,7 @@ void pf(const Graph& g, const Vertex first_right, VertexVector& mate) {
 
     do {
 		path_found = false; // reset path_found
-        visited.assign(n_right, false); // clear visited flags
+        std::fill(visited.begin(), visited.end(), false);
 
         // iterate over all unmatched left vertices
         for (size_t i = 0; i < unmatched_size; i++) {
