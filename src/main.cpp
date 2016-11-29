@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include <omp.h>
 #include "graphtypes.h"
 #include <boost/graph/bipartite.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
@@ -22,7 +21,7 @@ using namespace boost;
 using namespace std;
 
 //static const int NO_RUNS = 20;
-static const int NO_RUNS = 5;
+static const int NO_RUNS = 10;
 
 void testGraphIO() {
 	std::string inFile = "../test/graphs/small_graph_bi.txt";
@@ -168,6 +167,7 @@ void testKarpSipser() {
 }
 
 void compareInitialMatching(const Graph& g, const Vertex first_right) {
+    /*
 	double elapsed;
 	Timer t;
 
@@ -188,11 +188,10 @@ void compareInitialMatching(const Graph& g, const Vertex first_right) {
 	std::cout << "Computed Karp-Sipser in: " << elapsed << "s" << std::endl;
 
 
-	const int NO_THREADS = omp_get_max_threads();
 	std::cout << "Computing Parallel Karp-Sipser..." << std::endl;
 	t = Timer();
 	VertexVector pksMatching(n);
-	parallel_karp_sipser(g, first_right, pksMatching, NO_THREADS);
+	parallel_karp_sipser(g, first_right, pksMatching, 40);
 	elapsed = t.elapsed();
 	std::cout << "Computed Parallel Karp-Sipser in: " << elapsed << "s" << std::endl;
 
@@ -226,6 +225,7 @@ void compareInitialMatching(const Graph& g, const Vertex first_right) {
     std::cout << "Simple Greedy matching:\t" << (float)gSize / maxSize * 100 << "%" << std::endl;
 	std::cout << "Karp Sipser :\t\t" << (float)ksMatchingSize / maxSize * 100 << "%" << std::endl;
 	std::cout << "Parallel Karp Sipser:\t\t" << (float)pksMatchingSize / maxSize * 100 << "%" << std::endl;
+     */
 }
 
 void printMatchings(size_t matchingSize, const VertexVector& mates, const Graph& g) {
@@ -263,8 +263,9 @@ int main(int argc, char* argv[]) {
         Timer t = Timer();
 		//VertexVector initialMatching = GraphHelper::karpSipser(g);
 		//VertexVector initialMatching = GraphHelper::greedyMatching(g);
-		VertexVector initialMatching(n);
-        parallel_karp_sipser(g, first_right, initialMatching, omp_get_max_threads());
+		//VertexVector initialMatching = GraphHelper::ks(g);
+        VertexVector initialMatching(n);
+        simple_greedy_matching(g, initialMatching);
 
 
         double el = t.elapsed();
