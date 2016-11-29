@@ -7,6 +7,7 @@
 #include "verifier.h"
 #include "GraphHelper.h"
 #include "pothen_fan.h"
+#include "pf.h"
 #include "ppf1.h"
 #include "ppf2.h"
 #include "ppf3.h"
@@ -38,7 +39,7 @@ void testGraphGeneration() {
 	GraphHelper::writeGraphToFile("../test/out1.txt", g);
 }
 
-std::vector<double> runParallelPothenFan(const std::string& graphName, const Graph& g, Vertex first_right, size_t n, vertex_size_t matching_size_solution, const VertexVector& initialMatching, int numThreads) {
+void runParallelPothenFan(const std::string& graphName, const Graph& g, Vertex first_right, size_t n, vertex_size_t matching_size_solution, const VertexVector& initialMatching, int numThreads) {
 
 	cout << "#Running ppf " << NO_RUNS << " times with " << numThreads << " threads:" << endl;
 
@@ -49,7 +50,6 @@ std::vector<double> runParallelPothenFan(const std::string& graphName, const Gra
 
 		Timer t = Timer();
 //		ppf1(g, first_right, mates, numThreads);
-		//parallel_pothen_fan(g, first_right, mates, numThreads);
 //		ppf2(g, first_right, mates, numThreads);
 		ppf3(g, first_right, mates, numThreads);
 		double elapsed = t.elapsed();
@@ -64,36 +64,6 @@ std::vector<double> runParallelPothenFan(const std::string& graphName, const Gra
 	}
 	average_runtime = average_runtime / (NO_RUNS - 1);
 	cout << "#ppf avg: " << average_runtime << endl;
-
-	return durations;
-}
-
-
-void runUnsyncParallelPothenFan(const std::string& graphName, const Graph& g, Vertex first_right, size_t n, /*vertex_size_t matching_size_solution,*/ const VertexVector& initialMatching, int numThreads) {
-	char buff[20];
-	time_t now = time(NULL);
-	strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
-	BenchmarkResult result;
-	result.algorithm = "unsync parallel pothen fan";
-	result.graphName = graphName;
-	result.numEdges = num_edges(g);
-	result.numVertices = num_vertices(g);
-	//result.numThreads = numThreads;
-	result.timeStamp = std::string(buff);
-	for (int i = 0; i < NO_RUNS; ++i) {
-
-		VertexVector mates = initialMatching;
-
-		Timer t = Timer();
-		unsync_parallel_pothen_fan(g, first_right, mates, numThreads);
-		double elapsed = t.elapsed();
-
-//		verify_matching(g, mates, matching_size_solution);
-	
-		//result.durations.push_back(elapsed);
-	}
-
-	//GraphHelper::printOutput(result);
 }
 
 void runBoostEdmonds(const std::string& graphName, const Graph& g, const VertexVector& initialMatching) {
@@ -132,7 +102,7 @@ void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_rig
 		VertexVector mates = initialMatching;
 
 		Timer t = Timer();
-		pothen_fan(g, first_right, mates);
+		pf(g, first_right, mates);
         durations[i] = t.elapsed();
 
 		verify_matching(g, mates, matching_size_solution);
@@ -144,7 +114,7 @@ void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_rig
 		average_runtime += durations[i];
 	}
 	average_runtime = average_runtime / (NO_RUNS - 1);
-	cout << "#ppf avg: " << average_runtime << endl;
+	cout << "#pf avg: " << average_runtime << endl;
 }
 
 void runTreeGrafting(const std::string& graphName, const Graph& g, Vertex first_right, vertex_size_t n, vertex_size_t matching_size_solution, const VertexVector& initialMatching) {
@@ -226,10 +196,10 @@ void compareInitialMatching(const Graph& g, const Vertex first_right) {
 	std::cout << "Computed Parallel Karp-Sipser in: " << elapsed << "s" << std::endl;
 
 
-	std::cout << "Computing reference solution (using pothen_fan)..." << std::endl;
+	std::cout << "Computing reference solution (using pf)..." << std::endl;
 	t = Timer();
 	VertexVector maxMatching = ksFastMatching;
-    pothen_fan(g, first_right, maxMatching);
+    pf(g, first_right, maxMatching);
 	elapsed = t.elapsed();
 	std::cout << "Computed reference solution in: " << elapsed << "s" << std::endl;
 
@@ -303,9 +273,14 @@ int main(int argc, char* argv[]) {
 
 		cout << "#Computing Solution with pf" << endl;
 		VertexVector solution_mates = initialMatching;
-		pothen_fan(g, first_right, solution_mates);
+		pf(g, first_right, solution_mates);
 		vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
-		
+
+		vertex_size_t matching_size_initial = boost::matching_size(g, &initialMatching[0]);
+
+		cout << "#Initial Matching: " << (float)matching_size_initial / (float) matching_size_solution << "% optimal" << endl;
+
+
 		/*
 		cout << "run tree grafting (sequential)" << std::endl;
 		runTreeGrafting(GraphHelper::getGraphNameFromPath(argv[1]), g, first_right, n, matching_size_solution, initialMatching);

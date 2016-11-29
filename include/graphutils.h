@@ -25,7 +25,6 @@ struct UnmatchedVertex {
     bool unmatched = true;
 };
 
-
 inline bool is_right(const Vertex& v, const Vertex first_right) {
     return v >= first_right;
 }
