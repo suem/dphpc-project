@@ -2,46 +2,48 @@
 #pragma once
 
 #include <atomic>
-#include <queue>
 #include "graphtypes.h"
 #include "graphutils.h"
 
 void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads);
 
-std::deque<Vertex> top_down_bfs(
+VertexVector top_down_bfs(
 	const Graph& g, 
-	std::deque<Vertex>& F,
+	VertexVector& F,
 	bool* visited,
 	VertexVector& parent, 
 	VertexVector& root, 
 	VertexVector& leaf, 
-	VertexVector& mate);
+	VertexVector& mate,
+	int numThreads);
 
-std::deque<Vertex> bottom_up_bfs(
+VertexVector bottom_up_bfs(
 	const Graph& g,
-	std::deque<Vertex>& R,
+	VertexVector& R,
 	bool* visited,
 	VertexVector& parent,
 	VertexVector& root,
 	VertexVector& leaf,
-	VertexVector& mate);
+	VertexVector& mate,
+	int numThreads);
 
 // rebuild frontier (queue) for the next phase
-std::deque<Vertex> graft(
+VertexVector graft(
 	const Graph& g,
 	const Vertex first_right,
 	bool* visited,
 	VertexVector& parent,
 	VertexVector& root,
 	VertexVector& leaf,
-	VertexVector& mate);
+	VertexVector& mate,
+	int numThreads);
 
 // update pointers in BSF traversals
 void updatePointers(
 	Vertex x,
 	Vertex y,
 	bool* visited,
-	std::deque<Vertex>& queue,
+	VertexVector& queue,
 	VertexVector& parent,
 	VertexVector& root,
 	VertexVector& leaf,

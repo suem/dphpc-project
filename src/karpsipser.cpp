@@ -49,7 +49,7 @@ void parallel_karp_sipser(const Graph& g, const Vertex first_right, VertexVector
 #pragma omp parallel num_threads(numThreads)
 #pragma omp for
     for (int x = 0; x < first_right; x++)
-        deg[x] = boost::degree(x, g);
+        deg[x] = static_cast<int>(boost::degree(x, g));
 
 #pragma omp parallel num_threads(numThreads)
 #pragma omp for
@@ -67,7 +67,7 @@ void ks_matchAndUpdate(
         const Vertex u,
         const Graph& g,
         VertexVector& matching,
-        std::vector<int>& deg,
+        std::vector<size_t>& deg,
         std::vector<bool>& visited) {
 
     if (visited[u]) return;
@@ -110,7 +110,7 @@ void karp_sipser(const Graph& g, const Vertex first_right, std::vector<Vertex>& 
     matching.assign(n, Graph::null_vertex());
 
     std::vector<bool> visited(n, false);
-    std::vector<int> deg(first_right);
+    std::vector<size_t> deg(first_right);
 
     for (int x = 0; x < first_right; x++)
         deg[x] = boost::degree(x, g);

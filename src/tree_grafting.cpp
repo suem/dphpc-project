@@ -10,10 +10,9 @@
 
 void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads) {
 
-	const int NO_THREADS = numThreads; 
 	const vertex_size_t n = boost::num_vertices(g);
 	const vertex_size_t n_right = n - first_right;
-	const int nt = std::min(static_cast<int>(n), NO_THREADS);
+	const int nt = std::min(static_cast<int>(n), numThreads);
 
 	volatile bool path_found;
 	bool* visited = new bool[n];
@@ -33,8 +32,8 @@ void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int nu
 	
 	// F <- all unmatched X vertices
 	// for all those unmatched vertices, set the root to itself
-	// TODO: in parallel
-	std::deque<Vertex> F;
+	// parallel + lock vector?
+	VertexVector F;
 	for (Vertex x = 0; x < first_right; ++x) {
 		if (is_unmatched(x, mate)) {
 			F.push_back(x);
@@ -56,23 +55,25 @@ void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int nu
 			}
 
 			if (F.size() < numUnvisitedY / ALPHA) {
-				F = top_down_bfs(g, F, visited, parent, root, leaf, mate);
+				F = top_down_bfs(g, F, visited, parent, root, leaf, mate, nt);
 			}
 			else {
 				// fill unvisited Y vertices
-				std::deque<Vertex> R;
+				VertexVector R;
 				for (Vertex y = first_right; y < n; ++y) {
 					if (!visited[y]) {
 						R.push_back(y);
 					}
 				}
-				F = bottom_up_bfs(g, R, visited, parent, root, leaf, mate);
+				F = bottom_up_bfs(g, R, visited, parent, root, leaf, mate, nt);
 			}
 		}
 
 		memset(augment_visited, 0, sizeof(bool) * n_right);
-		// step 2: augment matching. This should be parallel.
-		for (Vertex x = 0; x < first_right; ++x) {
+		// step 2: augment matching. 
+#pragma omp parallel num_threads(nt)
+#pragma omp for
+		for (int x = 0; x < first_right; ++x) {
 			if (is_unmatched(x, mate)) {
 				// if an augmenting path P from x is found then augment matching by P
 				bool path_found_now = find_path_tg(x, g, first_right, mate, augment_visited);
@@ -82,7 +83,7 @@ void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int nu
 
 		// step 3: construct frontier for the next phase
 		if (path_found) {
-			F = graft(g, first_right, visited, parent, root, leaf, mate);
+			F = graft(g, first_right, visited, parent, root, leaf, mate, nt);
 		}
 
 	} while (path_found);
@@ -91,20 +92,22 @@ void ms_bfs_graft(const Graph& g, Vertex first_right, VertexVector& mate, int nu
 	delete[] augment_visited;
 }
 
-std::deque<Vertex> top_down_bfs(
+VertexVector top_down_bfs(
 	const Graph& g,
-	std::deque<Vertex>& F,
+	VertexVector& F,
 	bool* visited,
 	VertexVector& parent,
 	VertexVector& root,
 	VertexVector& leaf,
-	VertexVector& mate) {
+	VertexVector& mate,
+	int numThreads) {
 
 	// this should be a thread safe queue once.
-	std::deque<Vertex> queue;
+	VertexVector queue;
 
 	// TODO: in parallel
-	for (Vertex x : F) {
+	for (int i = 0; i < F.size(); ++i) {
+		Vertex x = F[i];
 		if (is_active_tree(x, root, leaf)) {
 			leaf[root[x]] = Graph::null_vertex();
 			AdjVertexIterator start, end;
@@ -120,17 +123,18 @@ std::deque<Vertex> top_down_bfs(
 	return queue;
 }
 
-std::deque<Vertex> bottom_up_bfs(
+VertexVector bottom_up_bfs(
 	const Graph& g,
-	std::deque<Vertex>& R,
+	VertexVector& R,
 	bool* visited,
 	VertexVector& parent,
 	VertexVector& root,
 	VertexVector& leaf,
-	VertexVector& mate) {
+	VertexVector& mate,
+	int numThreads) {
 
 	// this should be a thread safe queue once.
-	std::deque<Vertex> queue;
+	VertexVector queue;
 
 	// TODO: in parallel
 	for (Vertex y : R) {
@@ -148,27 +152,28 @@ std::deque<Vertex> bottom_up_bfs(
 	return queue;
 }
 
-std::deque<Vertex> graft(
+VertexVector graft(
 	const Graph& g,
 	const Vertex first_right,
 	bool* visited,
 	VertexVector& parent,
 	VertexVector& root,
 	VertexVector& leaf,
-	VertexVector& mate) {
+	VertexVector& mate,
+	int numThreads) {
 
 	const vertex_size_t n = boost::num_vertices(g);
-	std::deque<Vertex> queue;
+	VertexVector queue;
 
-	std::deque<Vertex> activeX;
+	VertexVector activeX;
 	for (Vertex x = 0; x < first_right; ++x) {
 		if (is_active_tree(x, root, leaf)) {
 			activeX.push_back(x);
 		}
 	}
 
-	std::deque<Vertex> activeY;
-	std::deque<Vertex> renewableY;
+	VertexVector activeY;
+	VertexVector renewableY;
 	for (Vertex y = first_right; y < n; ++y) {
 		if (is_active_tree(y, root, leaf)) {
 			activeY.push_back(y);
@@ -185,7 +190,7 @@ std::deque<Vertex> graft(
 	}
 
 	if (activeX.size() > renewableY.size() / ALPHA) {
-		queue = bottom_up_bfs(g, renewableY, visited, parent, root, leaf, mate);
+		queue = bottom_up_bfs(g, renewableY, visited, parent, root, leaf, mate, numThreads);
 	}
 	else {
 		// queue <- unmatched X vertices 
@@ -216,7 +221,7 @@ void updatePointers(
 	Vertex x,
 	Vertex y,
 	bool* visited,
-	std::deque<Vertex>& queue,
+	VertexVector& queue,
 	VertexVector& parent,
 	VertexVector& root,
 	VertexVector& leaf,

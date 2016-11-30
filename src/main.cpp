@@ -93,7 +93,7 @@ void runBoostEdmonds(const std::string& graphName, const Graph& g, const VertexV
 	//GraphHelper::printOutput(result);
 }
 
-void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_right, int n, vertex_size_t matching_size_solution, const VertexVector& initialMatching) {
+void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_right, size_t n, vertex_size_t matching_size_solution, const VertexVector& initialMatching) {
 
 	cout << "#Running pf " << NO_RUNS << " times" << endl;
 
@@ -118,7 +118,7 @@ void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_rig
 	cout << "#pf avg: " << average_runtime << endl;
 }
 
-void runTreeGrafting(const std::string& graphName, const Graph& g, Vertex first_right, vertex_size_t n, vertex_size_t matching_size_solution, const VertexVector& initialMatching) {
+void runTreeGrafting(const std::string& graphName, const Graph& g, Vertex first_right, vertex_size_t n, vertex_size_t matching_size_solution, const VertexVector& initialMatching, int numThreads) {
 	char buff[20];
 	time_t now = time(NULL);
 	strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&now));
@@ -134,7 +134,7 @@ void runTreeGrafting(const std::string& graphName, const Graph& g, Vertex first_
 		VertexVector mates = initialMatching;
 
 		Timer t = Timer();
-		ms_bfs_graft(g, first_right, mates, 1);
+		ms_bfs_graft(g, first_right, mates, numThreads);
 
 		double elapsed = t.elapsed();
 
@@ -279,15 +279,17 @@ int main(int argc, char* argv[]) {
 		vertex_size_t matching_size_initial = boost::matching_size(g, &initialMatching[0]);
 
 		cout << "#Initial Matching: " << (float)matching_size_initial / (float) matching_size_solution << "% optimal" << endl;
-
-
+		
 		/*
-		cout << "run tree grafting (sequential)" << std::endl;
-		runTreeGrafting(GraphHelper::getGraphNameFromPath(argv[1]), g, first_right, n, matching_size_solution, initialMatching);
-		return 0;
-		*/ 
+		cout << "run tree grafting" << std::endl;
+		for (int i = 1; i < 5; ++i) {
+			cout << i << " threads" << std::endl;
+			runTreeGrafting(GraphHelper::getGraphNameFromPath(argv[1]), g, first_right, n, matching_size_solution, initialMatching, i);
+		}
+		return 0;*/
 
-		runPothenFan(argv[1], g, first_right, n,  matching_size_solution, initialMatching);
+
+		runPothenFan(argv[1], g, first_right, n, matching_size_solution, initialMatching);
 
 		for (int i = 10; i < 251; i = i + 20) runParallelPothenFan(argv[1], g, first_right, n, matching_size_solution, initialMatching, i);
 

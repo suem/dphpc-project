@@ -348,7 +348,7 @@ VertexVector GraphHelper::parallelKarpSipser(const Graph& g, const Vertex first_
 
 #pragma omp parallel for
     for (int x = 0; x < first_right; x++) {
-        deg[x] = boost::degree(x, g);
+        deg[x] = static_cast<int>(boost::degree(x, g));
     }
 
 #pragma omp parallel for
