@@ -9,6 +9,7 @@ import pandas as pd
 import random
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
 
 import os
 import sys
@@ -18,8 +19,8 @@ import time, datetime
 # if set to true all benchmarks from the data directory are converted to plot diagrams
 REBUILD_ALL = False
 # input and output directories
-DATA_DIR = r"..\data"
-OUTPUT_DIR = r"..\output"
+DATA_DIR = r"../data"
+OUTPUT_DIR = r"../output"
 
 # get path of current execution
 ABS_PATH = os.path.dirname(os.path.abspath(__file__))
@@ -42,11 +43,47 @@ def main():
     if REBUILD_ALL:
         print("Rebuild all benchmarks")
 
-    # iterate through data directoy and get process each file
-    for subdir, dirs, files in os.walk(DATA_PATH):
-        for file in files:
-            processFile(os.path.join(subdir, file));
+    # iterate through speedup plots files and process the files
+    speedupPath = os.path.join(DATA_PATH, "speedup")
+    for subdir, dirs, files in os.walk(speedupPath):
+        for file in files: 
+            processSpeedupFile(os.path.join(subdir, file));
 
+
+"""
+This function will take the location of a file with speedup values as an
+argument and will convert the file content to a speedup plot diagram
+"""
+def processSpeedupFile(filePath):
+    print("Process Speedup file: ") 
+    print(filePath)
+
+    (header, data) = parseBenchmarkFile(filePath)
+
+    # set up seaborn plot
+    sns.set_style("whitegrid")
+    fig = plt.figure(figsize=(30,30))
+    ax = fig.add_subplot(111)
+
+    # set up labels
+    ax.set_xlabel("Number of threads", fontsize = 20)
+    ax.set_ylabel("Speedup", fontsize = 20)
+    #ax.set_xscale("log", basex = 2)
+
+    plt.title("Place holder", fontsize = 24)
+
+    plt.scatter(x = 1, y = np.average(data["1"].asArray()))
+
+
+
+
+
+"""
+This funciton will take the location of a file with timing values as an
+argument and will convert the file content to a speedup plot diagram
+"""
+def processTimingFile(filePath):
+    pass
 
 """
 This function will take the location of a file as an argument and will 
@@ -79,9 +116,18 @@ def processFile(filePath):
         plotBenchmark(benchmark)
 
 """
-This function parses a benchmark entry (desciption and value) from the csv format to a dictionary
+This function parses a benchmark file from the csv format to a pandas dataframe
+@returns: This function returns a tuple of header and data of the parsed csv file
 """
-def parseBenchmark(descriptionLine, valueLine):
+def parseBenchmarkFile(benchmarkFilePath):
+
+    header = pd.read_csv(benchmarkFilePath, nrows = 1)
+    data = pd.read_csv(benchmarkFilePath, comment = '#', skiprows = 2)
+
+    return (header, data)
+
+
+    """
     # parse input to lists of entries
     descriptionList = descriptionLine.rstrip('\n').replace(" ", "").split(',')
     valueList = valueLine.rstrip('\n').replace(" ", "").split(',')
@@ -99,14 +145,12 @@ def parseBenchmark(descriptionLine, valueLine):
     benchmarkDict[descriptionList[index]] = valueList[index:]
 
     return benchmarkDict    
+    """
 
 """
 This function takes a benchmark dictionary and plots the diagram
 """
 def plotBenchmark(benchmarkDict):
-    
-
-
     # create filename:
     dateStr = benchmarkDict['TimeStamp']
     dateStruct = time.strptime(dateStr, "%d-%m-%Y%H%M%S")
