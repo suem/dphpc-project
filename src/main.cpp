@@ -134,7 +134,7 @@ void runTreeGrafting(const std::string& graphName, const Graph& g, Vertex first_
 		VertexVector mates = initialMatching;
 
 		Timer t = Timer();
-		ms_bfs_graft(g, first_right, mates, numThreads);
+		TreeGrafting(g, first_right, mates, numThreads);
 
 		double elapsed = t.elapsed();
 
@@ -286,8 +286,8 @@ int main(int argc, char* argv[]) {
 			cout << i << " threads" << std::endl;
 			runTreeGrafting(GraphHelper::getGraphNameFromPath(argv[1]), g, first_right, n, matching_size_solution, initialMatching, i);
 		}
-		return 0;*/
-
+		return 0;
+		*/
 
 		runPothenFan(argv[1], g, first_right, n, matching_size_solution, initialMatching);
 
