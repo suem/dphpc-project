@@ -14,7 +14,7 @@ inline bool lookahead_step(
 		const Vertex x0,
 		const Graph& g,const Vertex first_right, VertexVector& mate,
 		std::vector<std::atomic_flag>& visited,
-		std::vector<std::pair<AdjVertexIterator, AdjVertexIterator>>& lookahead) {
+		std::vector<Lookahead>& lookahead) {
 
 	// lookahead phase
 	AdjVertexIterator laStart, laEnd;
@@ -39,7 +39,7 @@ inline bool dfs_la_atomic(
 		const Vertex v,
 		const Graph& g,const Vertex first_right, VertexVector& mate,
         std::vector<std::atomic_flag>& visited,
-        std::vector<std::pair<AdjVertexIterator, AdjVertexIterator>>& lookahead,
+        std::vector<Lookahead>& lookahead,
 		std::vector<PathElement>& stack) {
 
 	// do initial lookahead and return if successful ----------------------------------------------
@@ -125,7 +125,7 @@ void ppf2(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads
 
     // initialize lookahead
     // collect all unmatched
-	std::vector<std::pair<AdjVertexIterator, AdjVertexIterator>> lookahead(first_right);
+	std::vector<Lookahead> lookahead(first_right);
     std::vector<UnmatchedVertex> unmatched;
 	unmatched.reserve(first_right);
 

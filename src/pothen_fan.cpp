@@ -25,8 +25,10 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 	std::atomic<unsigned char>* visited = new std::atomic<unsigned char>[n_right];
 
     // initialize lookahead
-    std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead = new std::pair<AdjVertexIterator, AdjVertexIterator>[first_right];
-    for (Vertex i = 0; i < first_right; i++) lookahead[i] = boost::adjacent_vertices(i, g);
+    Lookahead* lookahead = new Lookahead[first_right];
+#pragma omp parallel num_threads(nt)
+#pragma omp for
+    for (int i = 0; i < first_right; i++) lookahead[i] = boost::adjacent_vertices(i, g);
 
     // collect all unmatched
     std::vector<Vertex> unmatched;
@@ -34,12 +36,13 @@ void parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector& mate,
 	for (Vertex v = 0; v < first_right; v++) if (is_unmatched(v, mate)) unmatched.push_back(v);
 	size_t unmatched_size = unmatched.size();
 
+	std::vector<PathElement> stack;
+
 	do {
 		path_found = false;
 
         memset(visited, 0, sizeof(std::atomic<unsigned char>) * n_right);
 
-		std::vector<PathElement> stack;
 #pragma omp parallel num_threads(nt) private(stack)
 #pragma omp for
 		for (int i = 0; i < unmatched_size; i++) {
@@ -71,7 +74,7 @@ void pothen_fan(const Graph& g, const Vertex first_right, VertexVector& mate) {
 	std::vector<PathElement> stack;
 
     // initialize lookahead
-    std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead = new std::pair<AdjVertexIterator, AdjVertexIterator>[first_right];
+    Lookahead* lookahead = new Lookahead[first_right];
     for (Vertex i = 0; i < first_right; i++) lookahead[i] = boost::adjacent_vertices(i, g);
 
 	// collect all unmatched vertices
@@ -210,7 +213,7 @@ bool find_path_recursive_atomic(const Vertex x0, const Graph& g, const Vertex fi
 }
 
 bool find_path_la_recursive_atomic(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, std::atomic_flag* visited,
-	std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead) {
+	Lookahead* lookahead) {
 
 
 	// lookahead phase
@@ -363,7 +366,7 @@ bool find_path_recursive(const Vertex x0, const Graph& g, const Vertex first_rig
 	return false;
 }
 
-bool find_path_la_recursive(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited, std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead) {
+bool find_path_la_recursive(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited, Lookahead* lookahead) {
 
 	// lookahead phase
 	AdjVertexIterator laStart, laEnd;
@@ -416,7 +419,7 @@ bool lookahead_step_atomic(
 	const Graph& g, const Vertex first_right, VertexVector& mate,
 	//std::atomic_flag* visited,
 	std::atomic<unsigned char>* visited,
-	std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead) {
+	Lookahead* lookahead) {
 
 	// lookahead phase
 	AdjVertexIterator laStart, laEnd;
@@ -444,7 +447,7 @@ bool dfs_la_atomic(
 	const Graph& g, const Vertex first_right, VertexVector& mate,
 	//std::atomic_flag* visited,
 	std::atomic<unsigned char>* visited,
-	std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead,
+	Lookahead* lookahead,
 	std::vector<PathElement>& stack) {
 
 	// do initial lookahead and return if successful ----------------------------------------------
@@ -517,7 +520,7 @@ bool lookahead_step(
 	const Vertex x0,
 	const Graph& g, const Vertex first_right, VertexVector& mate,
 	bool* visited,
-	std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead) {
+	Lookahead* lookahead) {
 
 	// lookahead phase
 	AdjVertexIterator laStart, laEnd;
@@ -544,7 +547,7 @@ bool dfs_la(
 	const Graph& g, const Vertex first_right,
 	VertexVector& mate,
 	bool* visited,
-	std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead,
+	Lookahead* lookahead,
 	std::vector<PathElement>& stack) {
 
 	// do initial lookahead and return if successful ----------------------------------------------

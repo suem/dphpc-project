@@ -17,12 +17,12 @@ void pothen_fan(const Graph& g, const Vertex first_right, VertexVector& mate);
 bool find_path_atomic(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, std::atomic_flag* visited);
 bool find_path_recursive_atomic(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, std::atomic_flag* visited);
 bool find_path_la_recursive_atomic(
-	const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, std::atomic_flag* visited, std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead);
+	const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, std::atomic_flag* visited, Lookahead* lookahead);
 
 // non-atomic
 bool find_path(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited, std::vector<FindPathElement>& stack);
 bool find_path_recursive(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited);
-bool find_path_la_recursive(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited, std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead);
+bool find_path_la_recursive(const Vertex x0, const Graph& g, const Vertex first_right, VertexVector& mate, bool* visited, Lookahead* lookahead);
 
 /////////////////////////
 // lookahead functions //
@@ -32,21 +32,21 @@ bool lookahead_step(
 	const Vertex x0,
 	const Graph& g, const Vertex first_right, VertexVector& mate,
 	bool* visited,
-	std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead);
+	Lookahead* lookahead);
 
 bool lookahead_step_atomic(
 	const Vertex x0,
 	const Graph& g, const Vertex first_right, VertexVector& mate,
 	//std::atomic_flag* visited,
 	std::atomic<unsigned char>* visited,
-	std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead);
+	Lookahead* lookahead);
 
 bool dfs_la(
 	const Vertex v,
 	const Graph& g, const Vertex first_right,
 	VertexVector& mate,
 	bool* visited,
-	std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead,
+	Lookahead* lookahead,
 	std::vector<PathElement>& stack);
 
 bool dfs_la_atomic(
@@ -54,5 +54,5 @@ bool dfs_la_atomic(
 	const Graph& g, const Vertex first_right, VertexVector& mate,
 	//std::atomic_flag* visited,
 	std::atomic<unsigned char>* visited,
-	std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead,
+	Lookahead* lookahead,
 	std::vector<PathElement>& stack);

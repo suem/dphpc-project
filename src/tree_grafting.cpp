@@ -19,8 +19,8 @@ inline bool is_renewable_tree(Vertex v, const VertexVector& root, const VertexVe
 }
 
 TreeGrafting::TreeGrafting(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads) :
-	m_graph(g), m_mate(mate), m_firstRight(first_right) {
-	n = boost::num_vertices(g);
+	m_graph(g), m_mate(mate), m_firstRight(first_right), n(boost::num_vertices(g)), 
+	activeX(n), activeY(n), renewableY(n) {
 	n_right = n - first_right;
 	m_numThreads = std::min(static_cast<int>(n), numThreads);
 
@@ -55,14 +55,24 @@ void TreeGrafting::ms_bfs_graft() {
 
 	// F <- all unmatched X vertices
 	// for all those unmatched vertices, set the root to itself
-	// parallel + lock vector?
-	VertexVector F;
-	for (Vertex x = 0; x < m_firstRight; ++x) {
+	TSVertexVector F(n);
+	TSVertexVector R(n);
+#pragma omp parallel num_threads(m_numThreads)
+#pragma omp for
+	for (int x = 0; x < m_firstRight; ++x) {
 		if (is_unmatched(x, m_mate)) {
 			F.push_back(x);
 			m_root[x] = x;
 		}
 	}
+
+	// initialize stack
+	std::vector<PathElement> stack;
+	// initialize lookahead
+	Lookahead* lookahead = new Lookahead[m_firstRight];
+#pragma omp parallel num_threads(m_numThreads)
+#pragma omp for
+	for (int i = 0; i < m_firstRight; i++) lookahead[i] = boost::adjacent_vertices(i, m_graph);
 
 	do {
 		path_found = false;
@@ -78,44 +88,45 @@ void TreeGrafting::ms_bfs_graft() {
 			}
 
 			if (F.size() < numUnvisitedY / ALPHA) {
-				F = top_down_bfs(F);
+				top_down_bfs(F);
 			}
 			else {
 				// fill unvisited Y vertices
-				VertexVector R;
+				R.clear();
 				for (Vertex y = m_firstRight; y < n; ++y) {
 					if (!m_visited[y]) {
 						R.push_back(y);
 					}
 				}
-				F = bottom_up_bfs(R);
+				bottom_up_bfs(R, F);
 			}
 		}
 
 		memset(m_augmentVisited, 0, sizeof(std::atomic_flag) * n_right);
 		// step 2: augment matching. 
-#pragma omp parallel num_threads(m_numThreads)
+#pragma omp parallel num_threads(m_numThreads) private(stack)
 #pragma omp for
 		for (int x = 0; x < m_firstRight; ++x) {
 			if (is_unmatched(x, m_mate)) {
 				// if an augmenting path P from x is found then augment matching by P
-				path_found = find_path_tg(x) || path_found;
+				bool path_found_v = find_path_tg(x, lookahead, stack);
+				if (path_found_v && !path_found) path_found = true;
 			}
 		}
 
 		// step 3: construct frontier for the next phase
 		if (path_found) {
-			F = graft();
+			graft(F);
 		}
 
 	} while (path_found);
 }
 
-VertexVector TreeGrafting::top_down_bfs(VertexVector& F) {
-	// this should be a thread safe queue once.
-	VertexVector queue;
+void TreeGrafting::top_down_bfs(TSVertexVector& F) {
+	activeX.clear();
 
-	// TODO: in parallel
+#pragma omp parallel num_threads(m_numThreads)
+#pragma omp for
 	for (int i = 0; i < F.size(); ++i) {
 		Vertex x = F[i];
 		if (is_active_tree(x, m_root, m_leaf)) {
@@ -124,48 +135,51 @@ VertexVector TreeGrafting::top_down_bfs(VertexVector& F) {
 			for (std::tie(start, end) = boost::adjacent_vertices(x, m_graph); start != end; ++start) {
 				Vertex y = *start;
 				if (!m_visited[y]) {
-					updatePointers(x, y, queue);
+					updatePointers(x, y, activeX);
 				}
 			}
 		}
 	}
 
-	return queue;
+	F = activeX;
 }
 
-VertexVector TreeGrafting::bottom_up_bfs(VertexVector& R) {
-	// this should be a thread safe queue once.
-	VertexVector queue;
+void TreeGrafting::bottom_up_bfs(TSVertexVector& R, TSVertexVector& ret) {
+	ret.clear();
 
-	// TODO: in parallel
-	for (Vertex y : R) {
+#pragma omp parallel num_threads(m_numThreads)
+#pragma omp for
+	for (int i = 0; i < R.size(); ++i) {
+		Vertex y = R[i];
 		AdjVertexIterator start, end;
 		for (std::tie(start, end) = boost::adjacent_vertices(y, m_graph); start != end; ++start) {
 			Vertex x = *start;
 			if (is_active_tree(x, m_root, m_leaf)) {
 				m_leaf[m_root[x]] = Graph::null_vertex();
-				updatePointers(x, y, queue);
+				updatePointers(x, y, ret);
 				break;
 			}
 		}
 	}
-
-	return queue;
 }
 
-VertexVector TreeGrafting::graft() {
-	VertexVector queue;
+void TreeGrafting::graft(TSVertexVector& ret) {
+	ret.clear();
 
-	VertexVector activeX;
-	for (Vertex x = 0; x < m_firstRight; ++x) {
+	activeX.clear();
+#pragma omp parallel num_threads(m_numThreads)
+#pragma omp for
+	for (int x = 0; x < m_firstRight; ++x) {
 		if (is_active_tree(x, m_root, m_leaf)) {
 			activeX.push_back(x);
 		}
 	}
 
-	VertexVector activeY;
-	VertexVector renewableY;
-	for (Vertex y = m_firstRight; y < n; ++y) {
+	activeY.clear();
+	renewableY.clear();
+#pragma omp parallel num_threads(m_numThreads)
+#pragma omp for
+	for (int y = m_firstRight; y < n; ++y) {
 		if (is_active_tree(y, m_root, m_leaf)) {
 			activeY.push_back(y);
 		}
@@ -174,41 +188,47 @@ VertexVector TreeGrafting::graft() {
 		}
 	}
 
-	// TODO: in parallel
-	for (auto y : renewableY) {
+#pragma omp parallel num_threads(m_numThreads)
+#pragma omp for
+	for (int i = 0; i < renewableY.size(); ++i) {
+		Vertex y = renewableY[i];
 		m_visited[y] = false;
 		m_root[y] = Graph::null_vertex();
 	}
 
 	if (activeX.size() > renewableY.size() / ALPHA) {
-		queue = bottom_up_bfs(renewableY);
+		bottom_up_bfs(renewableY, ret);
 	}
 	else {
-		// queue <- unmatched X vertices 
-		for (Vertex x = m_firstRight; x < n; ++x) {
+		// queue(ret) <- unmatched X vertices 
+#pragma omp parallel num_threads(m_numThreads)
+#pragma omp for
+		for (int x = m_firstRight; x < n; ++x) {
 			if (is_unmatched(x, m_mate)) {
-				queue.push_back(x);
+				ret.push_back(x);
 			}
 		}
 
-		// TODO: in parallel
-		for (Vertex y : activeY) {
+#pragma omp parallel num_threads(m_numThreads)
+#pragma omp for
+		for (int i = 0; i < activeY.size(); ++i) {
+			Vertex y = activeY[i];
 			m_visited[y] = false;
 			m_root[y] = Graph::null_vertex();
 		}
 
-		// TODO: in parallel
-		for (Vertex x : activeX) {
+#pragma omp parallel num_threads(m_numThreads)
+#pragma omp for
+		for (int i = 0; i < activeX.size(); ++i) {
 			// if x is in unmatchedX, exclude it
+			Vertex x = activeX[i];
 			if (is_unmatched(x, m_mate)) continue;
 			m_root[x] = Graph::null_vertex();
 		}
 	}
-
-	return queue;
 }
 
-void TreeGrafting::updatePointers(const Vertex x, const Vertex y, VertexVector& queue) {
+void TreeGrafting::updatePointers(const Vertex x, const Vertex y, TSVertexVector& queue) {
 	m_parent[y] = x;
 	m_visited[y] = true;
 	m_root[y] = m_root[x];
@@ -222,72 +242,93 @@ void TreeGrafting::updatePointers(const Vertex x, const Vertex y, VertexVector& 
 	}
 }
 
-bool TreeGrafting::find_path_tg(const Vertex x0) {
-	// init stack
-	std::vector<FindPathElement> stack;
+bool TreeGrafting::find_path_tg(const Vertex v, 
+	Lookahead* lookahead, 
+	std::vector<PathElement>& stack) {
 
-	FindPathElement e1;
-	e1.x0 = x0;
-	std::tie(e1.start, e1.end) = boost::adjacent_vertices(e1.x0, m_graph);
-	stack.push_back(e1);
+
+	// do initial lookahead and return if successful ----------------------------------------------
+	bool init_lookahead_success = lookahead_step_atomic(v, lookahead);
+	if (init_lookahead_success) return true;
+	// --------------------------------------------------------------------------------------------
+
+	stack.clear();
+	bool path_found = false;
+
+	PathElement pe;
+	std::tie(pe.yiter, pe.yiter_end) = boost::adjacent_vertices(v, m_graph);
+	pe.x0 = v;
+	stack.push_back(pe);
 
 	while (!stack.empty()) {
-		FindPathElement& vars = stack.back();
-		if (vars.found) {
-			m_mate[vars.y] = vars.x0;
-			m_mate[vars.x0] = vars.y;
+		PathElement& stack_top = stack.back();
+		Vertex x0 = stack_top.x0;
+		AdjVertexIterator& yiter = stack_top.yiter;
+		AdjVertexIterator& yiter_end = stack_top.yiter_end;
 
-			// handle return value
+		if (path_found) {
+			// update matching
+			const Vertex y = *yiter;
+			m_mate[y] = x0;
+			m_mate[x0] = y;
+			// return e.g. pop stack
 			stack.pop_back();
-			if (stack.empty()) {
-				return true;
-			}
-
-			stack.back().found = true;
 			continue;
 		}
 
-		bool leaveWhile = false;
+		// skip all visited vertices
+		while (yiter != yiter_end
+			&& m_augmentVisited[*yiter - m_firstRight].test_and_set()) {
+			yiter++;
+		}
 
-		for (; vars.start != vars.end; ++vars.start) {
-			vars.y = *vars.start;
+		// do dfs step on first unvisited neighbor
+		if (yiter != yiter_end) { // if there are still neighbours to visit
+			Vertex y = *yiter;
+			Vertex x1 = m_mate[y];
 
-			// skip vertex if this was alredy visited by another thread
-			if (m_augmentVisited[vars.y - m_firstRight].test_and_set()) continue;
-
-			leaveWhile = true;
-
-			if (is_unmatched(vars.y, m_mate)) { // y is unmatched
-				m_mate[vars.y] = vars.x0;
-				m_mate[vars.x0] = vars.y;
-
-				// handle return value
-				stack.pop_back();
-				if (stack.empty()) {
-					return true;
-				}
-
-				stack.back().found = true;
-				break;
+			bool lookahead_success = lookahead_step_atomic(x1, lookahead);
+			if (lookahead_success) {
+				path_found = true;
+				continue;
 			}
 
-			// y is matched with x1
-			FindPathElement e2;
-			e2.x0 = m_mate[vars.y];
-			std::tie(e2.start, e2.end) = boost::adjacent_vertices(e2.x0, m_graph);
-			stack.push_back(e2);
-
-			break;
-		}
-
-		if (leaveWhile) {
+			PathElement pe;
+			std::tie(pe.yiter, pe.yiter_end) = boost::adjacent_vertices(x1, m_graph);
+			pe.x0 = x1;
+			stack.push_back(pe);
 			continue;
 		}
-
-		if (!stack.empty()) {
+		else {
+			// pop stack otherwise, did not find any path and there are not more neighbors
 			stack.pop_back();
+			if (!stack.empty()) stack.back().yiter++;
 		}
 	}
+
+	return path_found;
+}
+
+bool TreeGrafting::lookahead_step_atomic(
+	const Vertex x0,
+	Lookahead* lookahead) {
+
+	// lookahead phase
+	AdjVertexIterator laStart, laEnd;
+	for (std::tie(laStart, laEnd) = lookahead[x0]; laStart != laEnd; ++laStart) {
+		Vertex y = *laStart;
+		if (is_unmatched(y, m_mate) &&
+			!m_augmentVisited[y - m_firstRight].test_and_set()) {
+
+			// update matching
+			m_mate[y] = x0;
+			m_mate[x0] = y;
+
+			lookahead[x0].first = laStart;
+			return true;
+		}
+	}
+	if (lookahead[x0].first != laStart) lookahead[x0].first = laStart;
 
 	return false;
 }

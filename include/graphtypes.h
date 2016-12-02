@@ -15,3 +15,4 @@ typedef boost::graph_traits<Graph>::vertex_iterator VertexIterator;
 typedef boost::graph_traits<Graph>::adjacency_iterator AdjVertexIterator;
 typedef boost::graph_traits<Graph>::edge_iterator EdgeIterator;
 typedef std::vector<Vertex> VertexVector;
+typedef std::pair<AdjVertexIterator, AdjVertexIterator> Lookahead;

@@ -252,9 +252,11 @@ int main(int argc, char* argv[]) {
 
 		Vertex first_right;
 		Graph g;
-		//g = GraphHelper::generateRandomGraph(10000, 0.5f, first_right);
+		//g = GraphHelper::generateRandomGraph(10000, 0.0001f, first_right);
 		GraphHelper::readGraphFromFile(g, first_right, argv[1]);
 		vertex_size_t n = num_vertices(g);
+		vertex_size_t e = num_edges(g);
+		cout << "vertices: " << n << " edges: " << e << endl;
 	
 		cout << "#Verifying if bipartite" << endl;
 		verify_bipartite(g);
@@ -282,12 +284,13 @@ int main(int argc, char* argv[]) {
 		
 		/*
 		cout << "run tree grafting" << std::endl;
-		for (int i = 1; i < 5; ++i) {
+		for (int i = 1; i < 9; ++i) {
 			cout << i << " threads" << std::endl;
 			runTreeGrafting(GraphHelper::getGraphNameFromPath(argv[1]), g, first_right, n, matching_size_solution, initialMatching, i);
 		}
 		return 0;
 		*/
+		
 
 		runPothenFan(argv[1], g, first_right, n, matching_size_solution, initialMatching);
 

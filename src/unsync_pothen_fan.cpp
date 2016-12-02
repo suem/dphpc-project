@@ -21,7 +21,7 @@ inline bool lookahead_step_atomic(
 		const Graph& g, const Vertex first_right, VertexVector& mate,
 		Flag* visited,
 		std::vector<bool>& visited_local,
-		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead) {
+		Lookahead* lookahead) {
 
     bool found_unmatched = false;
 
@@ -54,7 +54,7 @@ bool dfs_la(
 		const Graph& g, const Vertex first_right, VertexVector& mate,
 		Flag* visited,
 		std::vector<bool>& visited_local,
-		std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead,
+		Lookahead* lookahead,
 		std::vector<PathElement>& stack) {
 
 	// do initial lookahead and return if successful ----------------------------------------------
@@ -138,7 +138,7 @@ void unsync_parallel_pothen_fan(const Graph& g, Vertex first_right, VertexVector
 	memset(visited, 0, sizeof(Flag) * n_right);
 
     // initialize lookahead
-    std::pair<AdjVertexIterator, AdjVertexIterator>* lookahead = new std::pair<AdjVertexIterator, AdjVertexIterator>[first_right];
+    Lookahead* lookahead = new Lookahead[first_right];
     for (Vertex i = 0; i < first_right; i++) lookahead[i] = boost::adjacent_vertices(i, g);
 
     std::vector<PathElement> stack;
