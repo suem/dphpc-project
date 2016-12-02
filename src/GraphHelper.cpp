@@ -45,9 +45,9 @@ void GraphHelper::readGraphFromFile(Graph& g, Vertex& first_right, const std::st
     while (inFile >> u >> v) boost::add_edge(u, v, g);
 }
 
-void GraphHelper::writeGraphToFile(const std::string& filePath, const Graph& g) {
+void GraphHelper::writeGraphToFile(const std::string& filePath, const Graph& g, const Vertex& first_right) {
     std::ofstream outFile(filePath);
-    outFile << num_vertices(g) << std::endl;
+    outFile << num_vertices(g) << first_right << std::endl;
 
     for (EdgeIterator e = boost::edges(g).first; e != boost::edges(g).second; e++)
         outFile << source(*e, g) << " " << target(*e, g) << std::endl;

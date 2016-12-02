@@ -25,7 +25,7 @@ class GraphHelper {
     public:
         static Graph generateRandomGraph(int numNodes, float density, Vertex& first_right);
         static void readGraphFromFile(Graph& g, Vertex& first_right, const std::string& filePath);
-        static void writeGraphToFile(const std::string& filePath, const Graph& g);
+        static void writeGraphToFile(const std::string& filePath, const Graph& g, const Vertex& first_right);
         static bool isMaximumMatching(const VertexVector& matching, const Graph& g); 
 		// karp sipser using samuels matching method 
         static VertexVector karpSipser(const Graph& g);
