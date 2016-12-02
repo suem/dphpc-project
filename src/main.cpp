@@ -31,7 +31,7 @@ void testGraphIO() {
 	Graph g;
 	Vertex first_right;
 	GraphHelper::readGraphFromFile(g, first_right, inFile);
-	GraphHelper::writeGraphToFile(outFile, g);
+//	GraphHelper::writeGraphToFile(outFile, g);
 }
 
 void testGraphGeneration() {
@@ -39,7 +39,7 @@ void testGraphGeneration() {
 	Graph g = GraphHelper::generateRandomGraph(40, 1, first_right);
 	for (EdgeIterator e = boost::edges(g).first; e != boost::edges(g).second; e++)
 		std::cout << source(*e, g) << " " << target(*e, g) << std::endl;
-	GraphHelper::writeGraphToFile("../test/out1.txt", g);
+//	GraphHelper::writeGraphToFile("../test/out1.txt", g);
 }
 
 void runParallelPothenFan(
