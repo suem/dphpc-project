@@ -23,6 +23,7 @@ using namespace std;
 
 //static const int NO_RUNS = 20;
 static const int NO_RUNS = 10;
+static const int NO_RUNS_SEQUENTIAL = 2;
 
 void testGraphIO() {
 	std::string inFile = "../test/graphs/small_graph_bi.txt";
@@ -111,11 +112,11 @@ void runBoostEdmonds(const std::string& graphName, const Graph& g, const VertexV
 
 void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_right, size_t n, vertex_size_t matching_size_solution, const VertexVector& initialMatching) {
 
-	cout << "#Running pf " << NO_RUNS << " times" << endl;
+	cout << "#Running pf " << NO_RUNS_SEQUENTIAL << " times" << endl;
 
-	std::vector<double> durations(NO_RUNS);
+	std::vector<double> durations(NO_RUNS_SEQUENTIAL);
 
-	for (int i = 0; i < NO_RUNS; ++i) {
+	for (int i = 0; i < NO_RUNS_SEQUENTIAL; ++i) {
 
 		VertexVector mates = initialMatching;
 
@@ -127,7 +128,7 @@ void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_rig
 	}
 
 	double average_runtime = 0.0;
-	for (int i = 1; i < NO_RUNS; ++i) {
+	for (int i = 1; i < NO_RUNS_SEQUENTIAL; ++i) {
 		average_runtime += durations[i];
 	}
 	average_runtime = average_runtime / (NO_RUNS - 1);
