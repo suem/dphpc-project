@@ -24,22 +24,10 @@ using namespace std;
 //static const int NO_RUNS = 20;
 static const int NO_RUNS = 10;
 
-void testGraphIO() {
-	std::string inFile = "../test/graphs/small_graph_bi.txt";
-	std::string outFile = "../test/out.txt";
-
-	Graph g;
+void testGraphGeneration(int numNodes, float density, char* path) {
 	Vertex first_right;
-	GraphHelper::readGraphFromFile(g, first_right, inFile);
-//	GraphHelper::writeGraphToFile(outFile, g);
-}
-
-void testGraphGeneration() {
-	Vertex first_right;
-	Graph g = GraphHelper::generateRandomGraph(40, 1, first_right);
-	for (EdgeIterator e = boost::edges(g).first; e != boost::edges(g).second; e++)
-		std::cout << source(*e, g) << " " << target(*e, g) << std::endl;
-//	GraphHelper::writeGraphToFile("../test/out1.txt", g);
+	Graph g = GraphHelper::generateRandomGraph(numNodes, density, first_right);
+	GraphHelper::writeGraphToFile(path, g, first_right);
 }
 
 void runParallelPothenFan(
@@ -282,26 +270,41 @@ int main(int argc, char* argv[]) {
 		cout << "#Verifying if bipartite" << endl;
 		verify_bipartite(g);
 
-		cout << "#Run parallel karp sipser to get initial matching" << endl;
+		cout << "#Run karp sipser to get initial matching" << endl;
         Timer t = Timer();
 		//VertexVector initialMatching = GraphHelper::karpSipser(g);
 		//VertexVector initialMatching = GraphHelper::greedyMatching(g);
 		//VertexVector initialMatching = GraphHelper::ks(g);
-        VertexVector initialMatching(n);
-        simple_greedy_matching(g, initialMatching);
-
+        VertexVector initialMatchingKS(n);
+        karp_sipser(g, first_right, initialMatchingKS);
 
         double el = t.elapsed();
-		cout << "#inital matching took: " << el << endl;
+		vertex_size_t matching_size_ks = boost::matching_size(g, &initialMatchingKS[0]);
+		cout << "#karp sipser matching took: " << el << ", size = " << matching_size_ks << endl;
+
+
+		cout << "#Run greedy to get initial matching" << endl;
+		t = Timer();
+		//VertexVector initialMatching = GraphHelper::karpSipser(g);
+		//VertexVector initialMatching = GraphHelper::greedyMatching(g);
+		//VertexVector initialMatching = GraphHelper::ks(g);
+		VertexVector initialMatchingGreedy(n);
+		simple_greedy_matching(g, initialMatchingGreedy);
+		el = t.elapsed();
+
+		vertex_size_t matching_size_greedy = boost::matching_size(g, &initialMatchingGreedy[0]);
+		cout << "#karp sipser matching took: " << el << ", size = " << matching_size_greedy << endl;
+
+		VertexVector& initialMatching = matching_size_greedy < matching_size_ks ? initialMatchingKS : initialMatchingGreedy;
 
 		cout << "#Computing Solution with pf" << endl;
-		VertexVector solution_mates = initialMatching;
+		VertexVector solution_mates = matching_size_greedy < matching_size_ks ? initialMatchingKS : initialMatchingGreedy;
+
 		pf(g, first_right, solution_mates);
 		vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
 
-		vertex_size_t matching_size_initial = boost::matching_size(g, &initialMatching[0]);
-
-		cout << "#Initial Matching: " << (float)matching_size_initial / (float) matching_size_solution << "% optimal" << endl;
+		cout << "#Karp Sipser Initial Matching: " << (float) matching_size_ks / (float) matching_size_solution << "% optimal" << endl;
+		cout << "#Greedy Initial Matching: " << (float) matching_size_greedy / (float) matching_size_solution << "% optimal" << endl;
 		
 		/*
 		cout << "run tree grafting" << std::endl;
