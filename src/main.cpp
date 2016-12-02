@@ -13,6 +13,7 @@
 #include "ppf1.h"
 #include "ppf2.h"
 #include "ppf3.h"
+#include "ppf4.h"
 #include "tree_grafting.h"
 #include "unsync_pothen_fan.h"
 #include "Timer.h" 
@@ -23,48 +24,58 @@ using namespace std;
 //static const int NO_RUNS = 20;
 static const int NO_RUNS = 10;
 
-void testGraphIO() {
-	std::string inFile = "../test/graphs/small_graph_bi.txt";
-	std::string outFile = "../test/out.txt";
-
-	Graph g;
+void testGraphGeneration(int numNodes, float density, char* path) {
 	Vertex first_right;
-	GraphHelper::readGraphFromFile(g, first_right, inFile);
-	GraphHelper::writeGraphToFile(outFile, g);
+	Graph g = GraphHelper::generateRandomGraph(numNodes, density, first_right);
+	GraphHelper::writeGraphToFile(path, g, first_right);
 }
 
-void testGraphGeneration() {
-	Vertex first_right;
-	Graph g = GraphHelper::generateRandomGraph(40, 1, first_right);
-	for (EdgeIterator e = boost::edges(g).first; e != boost::edges(g).second; e++)
-		std::cout << source(*e, g) << " " << target(*e, g) << std::endl;
-	GraphHelper::writeGraphToFile("../test/out1.txt", g);
-}
+void runParallelPothenFan(
+		const std::string& graphName, const Graph& g, Vertex first_right, vertex_size_t matching_size_solution, const VertexVector& initialMatching,
+		size_t noRuns,
+		int numThreads) {
 
-void runParallelPothenFan(const std::string& graphName, const Graph& g, Vertex first_right, size_t n, vertex_size_t matching_size_solution, const VertexVector& initialMatching, int numThreads) {
+	cout << "#Running ppf " << noRuns << " times with " << numThreads << " threads:" << endl;
 
-	cout << "#Running ppf " << NO_RUNS << " times with " << numThreads << " threads:" << endl;
+	std::vector<double> durations(noRuns);
+    
 
-	std::vector<double> durations(NO_RUNS);
-
-	for (int i = 0; i < NO_RUNS; ++i) {
+	for (int i = 0; i < noRuns; ++i) {
 		VertexVector mates = initialMatching;
 
 		Timer t = Timer();
 //		ppf1(g, first_right, mates, numThreads);
 //		ppf2(g, first_right, mates, numThreads);
-		ppf3(g, first_right, mates, numThreads);
+		ppf3(g, first_right, mates, numThreads); // best version so far
+
+        /*
+        // ppf4 ---
+        vector<MateVisited> matchingVisited(initialMatching.size());
+        for (Vertex v = 0; v < num_vertices(g); v++) {
+            matchingVisited[v].iteration = 0;
+            matchingVisited[v].mate = initialMatching[v];
+        }
+		ppf4(g, first_right, matchingVisited, numThreads);
+        // --------
+         */
+
 		double elapsed = t.elapsed();
 		durations[i] = elapsed;
+
+        /*
+        // ppf4 ------
+        for (Vertex v = 0; v < num_vertices(g); v++) mates[v] = matchingVisited[v].mate;
+        // -----------
+         */
 
 		verify_matching(g, mates, matching_size_solution);
 	}
 
 	double average_runtime = 0.0;
-	for (int i = 1; i < NO_RUNS; ++i) {
+	for (int i = 1; i < noRuns; ++i) {
 		average_runtime += durations[i];
 	}
-	average_runtime = average_runtime / (NO_RUNS - 1);
+	average_runtime = average_runtime / (noRuns - 1);
 	cout << "#ppf avg: " << average_runtime << endl;
 }
 
@@ -93,13 +104,17 @@ void runBoostEdmonds(const std::string& graphName, const Graph& g, const VertexV
 	//GraphHelper::printOutput(result);
 }
 
-void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_right, size_t n, vertex_size_t matching_size_solution, const VertexVector& initialMatching) {
+void runPothenFan(
+		const std::string& graphName,
+		const Graph& g, Vertex first_right, vertex_size_t matching_size_solution, const VertexVector& initialMatching,
+		size_t noRuns
+) {
 
-	cout << "#Running pf " << NO_RUNS << " times" << endl;
+	cout << "#Running pf " << noRuns << " times" << endl;
 
-	std::vector<double> durations(NO_RUNS);
+	std::vector<double> durations(noRuns);
 
-	for (int i = 0; i < NO_RUNS; ++i) {
+	for (int i = 0; i < noRuns; ++i) {
 
 		VertexVector mates = initialMatching;
 
@@ -111,10 +126,10 @@ void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_rig
 	}
 
 	double average_runtime = 0.0;
-	for (int i = 1; i < NO_RUNS; ++i) {
+	for (int i = 1; i < noRuns; ++i) {
 		average_runtime += durations[i];
 	}
-	average_runtime = average_runtime / (NO_RUNS - 1);
+	average_runtime = average_runtime / (noRuns - 1);
 	cout << "#pf avg: " << average_runtime << endl;
 }
 
@@ -261,26 +276,41 @@ int main(int argc, char* argv[]) {
 		cout << "#Verifying if bipartite" << endl;
 		verify_bipartite(g);
 
-		cout << "#Run parallel karp sipser to get initial matching" << endl;
+		cout << "#Run karp sipser to get initial matching" << endl;
         Timer t = Timer();
 		//VertexVector initialMatching = GraphHelper::karpSipser(g);
 		//VertexVector initialMatching = GraphHelper::greedyMatching(g);
 		//VertexVector initialMatching = GraphHelper::ks(g);
-        VertexVector initialMatching(n);
-        simple_greedy_matching(g, initialMatching);
-
+        VertexVector initialMatchingKS(n);
+        karp_sipser(g, first_right, initialMatchingKS);
 
         double el = t.elapsed();
-		cout << "#inital matching took: " << el << endl;
+		vertex_size_t matching_size_ks = boost::matching_size(g, &initialMatchingKS[0]);
+		cout << "#karp sipser matching took: " << el << ", size = " << matching_size_ks << endl;
+
+
+		cout << "#Run greedy to get initial matching" << endl;
+		t = Timer();
+		//VertexVector initialMatching = GraphHelper::karpSipser(g);
+		//VertexVector initialMatching = GraphHelper::greedyMatching(g);
+		//VertexVector initialMatching = GraphHelper::ks(g);
+		VertexVector initialMatchingGreedy(n);
+		simple_greedy_matching(g, initialMatchingGreedy);
+		el = t.elapsed();
+
+		vertex_size_t matching_size_greedy = boost::matching_size(g, &initialMatchingGreedy[0]);
+		cout << "#greedy matching took: " << el << ", size = " << matching_size_greedy << endl;
+
+		VertexVector& initialMatching = matching_size_greedy < matching_size_ks ? initialMatchingKS : initialMatchingGreedy;
 
 		cout << "#Computing Solution with pf" << endl;
-		VertexVector solution_mates = initialMatching;
+		VertexVector solution_mates = matching_size_greedy < matching_size_ks ? initialMatchingKS : initialMatchingGreedy;
+
 		pf(g, first_right, solution_mates);
 		vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
 
-		vertex_size_t matching_size_initial = boost::matching_size(g, &initialMatching[0]);
-
-		cout << "#Initial Matching: " << (float)matching_size_initial / (float) matching_size_solution << "% optimal" << endl;
+		cout << "#Karp Sipser Initial Matching: " << (float) matching_size_ks / (float) matching_size_solution << "% optimal" << endl;
+		cout << "#Greedy Initial Matching: " << (float) matching_size_greedy / (float) matching_size_solution << "% optimal" << endl;
 		
 		/*
 		cout << "run tree grafting" << std::endl;
@@ -292,9 +322,9 @@ int main(int argc, char* argv[]) {
 		*/
 		
 
-		runPothenFan(argv[1], g, first_right, n, matching_size_solution, initialMatching);
+		runPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 2);
 
-		for (int i = 10; i < 251; i = i + 20) runParallelPothenFan(argv[1], g, first_right, n, matching_size_solution, initialMatching, i);
+		for (int i = 10; i < 251; i = i + 20) runParallelPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 10, i);
 
 
 
