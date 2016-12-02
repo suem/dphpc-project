@@ -26,8 +26,7 @@ public:
 	void clear() { m_size = 0; }
 
 	void push_back(Vertex v) {
-		size_t old = std::atomic_fetch_add(&m_size, 1);
-		m_vector[old] = v;
+		m_vector[std::atomic_fetch_add(&m_size, (size_t)1)] = v;
 	}
 
 private:
