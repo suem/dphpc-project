@@ -23,7 +23,6 @@ using namespace std;
 
 //static const int NO_RUNS = 20;
 static const int NO_RUNS = 10;
-static const int NO_RUNS_SEQUENTIAL = 2;
 
 void testGraphIO() {
 	std::string inFile = "../test/graphs/small_graph_bi.txt";
@@ -43,14 +42,17 @@ void testGraphGeneration() {
 	GraphHelper::writeGraphToFile("../test/out1.txt", g);
 }
 
-void runParallelPothenFan(const std::string& graphName, const Graph& g, Vertex first_right, size_t n, vertex_size_t matching_size_solution, const VertexVector& initialMatching, int numThreads) {
+void runParallelPothenFan(
+		const std::string& graphName, const Graph& g, Vertex first_right, vertex_size_t matching_size_solution, const VertexVector& initialMatching,
+		size_t noRuns,
+		int numThreads) {
 
-	cout << "#Running ppf " << NO_RUNS << " times with " << numThreads << " threads:" << endl;
+	cout << "#Running ppf " << noRuns << " times with " << numThreads << " threads:" << endl;
 
-	std::vector<double> durations(NO_RUNS);
+	std::vector<double> durations(noRuns);
     
 
-	for (int i = 0; i < NO_RUNS; ++i) {
+	for (int i = 0; i < noRuns; ++i) {
 		VertexVector mates = initialMatching;
 
 		Timer t = Timer();
@@ -78,10 +80,10 @@ void runParallelPothenFan(const std::string& graphName, const Graph& g, Vertex f
 	}
 
 	double average_runtime = 0.0;
-	for (int i = 1; i < NO_RUNS; ++i) {
+	for (int i = 1; i < noRuns; ++i) {
 		average_runtime += durations[i];
 	}
-	average_runtime = average_runtime / (NO_RUNS - 1);
+	average_runtime = average_runtime / (noRuns - 1);
 	cout << "#ppf avg: " << average_runtime << endl;
 }
 
@@ -110,13 +112,17 @@ void runBoostEdmonds(const std::string& graphName, const Graph& g, const VertexV
 	//GraphHelper::printOutput(result);
 }
 
-void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_right, size_t n, vertex_size_t matching_size_solution, const VertexVector& initialMatching) {
+void runPothenFan(
+		const std::string& graphName,
+		const Graph& g, Vertex first_right, vertex_size_t matching_size_solution, const VertexVector& initialMatching,
+		size_t noRuns
+) {
 
-	cout << "#Running pf " << NO_RUNS_SEQUENTIAL << " times" << endl;
+	cout << "#Running pf " << noRuns << " times" << endl;
 
-	std::vector<double> durations(NO_RUNS_SEQUENTIAL);
+	std::vector<double> durations(noRuns);
 
-	for (int i = 0; i < NO_RUNS_SEQUENTIAL; ++i) {
+	for (int i = 0; i < noRuns; ++i) {
 
 		VertexVector mates = initialMatching;
 
@@ -128,10 +134,10 @@ void runPothenFan(const std::string& graphName, const Graph& g, Vertex first_rig
 	}
 
 	double average_runtime = 0.0;
-	for (int i = 1; i < NO_RUNS_SEQUENTIAL; ++i) {
+	for (int i = 1; i < noRuns; ++i) {
 		average_runtime += durations[i];
 	}
-	average_runtime = average_runtime / (NO_RUNS - 1);
+	average_runtime = average_runtime / (noRuns - 1);
 	cout << "#pf avg: " << average_runtime << endl;
 }
 
@@ -306,9 +312,9 @@ int main(int argc, char* argv[]) {
 		return 0;
 		*/
 
-		runPothenFan(argv[1], g, first_right, n, matching_size_solution, initialMatching);
+		runPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 2);
 
-		for (int i = 10; i < 251; i = i + 20) runParallelPothenFan(argv[1], g, first_right, n, matching_size_solution, initialMatching, i);
+		for (int i = 10; i < 251; i = i + 20) runParallelPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 10, i);
 
 
 
