@@ -46,8 +46,9 @@ void runParallelPothenFan(
 		Timer t = Timer();
 //		ppf1(g, first_right, mates, numThreads);
 //		ppf2(g, first_right, mates, numThreads);
-		//ppf3(g, first_right, mates, numThreads);
-        
+		ppf3(g, first_right, mates, numThreads); // best version so far
+
+        /*
         // ppf4 ---
         vector<MateVisited> matchingVisited(initialMatching.size());
         for (Vertex v = 0; v < num_vertices(g); v++) {
@@ -56,13 +57,16 @@ void runParallelPothenFan(
         }
 		ppf4(g, first_right, matchingVisited, numThreads);
         // --------
+         */
 
 		double elapsed = t.elapsed();
 		durations[i] = elapsed;
 
+        /*
         // ppf4 ------
         for (Vertex v = 0; v < num_vertices(g); v++) mates[v] = matchingVisited[v].mate;
         // -----------
+         */
 
 		verify_matching(g, mates, matching_size_solution);
 	}
@@ -293,7 +297,7 @@ int main(int argc, char* argv[]) {
 		el = t.elapsed();
 
 		vertex_size_t matching_size_greedy = boost::matching_size(g, &initialMatchingGreedy[0]);
-		cout << "#karp sipser matching took: " << el << ", size = " << matching_size_greedy << endl;
+		cout << "#greedy matching took: " << el << ", size = " << matching_size_greedy << endl;
 
 		VertexVector& initialMatching = matching_size_greedy < matching_size_ks ? initialMatchingKS : initialMatchingGreedy;
 
