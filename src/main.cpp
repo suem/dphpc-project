@@ -13,6 +13,7 @@
 #include "ppf1.h"
 #include "ppf2.h"
 #include "ppf3.h"
+#include "ppf4.h"
 #include "tree_grafting.h"
 #include "unsync_pothen_fan.h"
 #include "Timer.h" 
@@ -46,6 +47,7 @@ void runParallelPothenFan(const std::string& graphName, const Graph& g, Vertex f
 	cout << "#Running ppf " << NO_RUNS << " times with " << numThreads << " threads:" << endl;
 
 	std::vector<double> durations(NO_RUNS);
+    
 
 	for (int i = 0; i < NO_RUNS; ++i) {
 		VertexVector mates = initialMatching;
@@ -53,9 +55,23 @@ void runParallelPothenFan(const std::string& graphName, const Graph& g, Vertex f
 		Timer t = Timer();
 //		ppf1(g, first_right, mates, numThreads);
 //		ppf2(g, first_right, mates, numThreads);
-		ppf3(g, first_right, mates, numThreads);
+		//ppf3(g, first_right, mates, numThreads);
+        
+        // ppf4 ---
+        vector<MateVisited> matchingVisited(initialMatching.size());
+        for (Vertex v = 0; v < num_vertices(g); v++) {
+            matchingVisited[v].iteration = 0;
+            matchingVisited[v].mate = initialMatching[v];
+        }
+		ppf4(g, first_right, matchingVisited, numThreads);
+        // --------
+
 		double elapsed = t.elapsed();
 		durations[i] = elapsed;
+
+        // ppf4 ------
+        for (Vertex v = 0; v < num_vertices(g); v++) mates[v] = matchingVisited[v].mate;
+        // -----------
 
 		verify_matching(g, mates, matching_size_solution);
 	}
