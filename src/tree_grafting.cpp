@@ -130,13 +130,6 @@ void TreeGrafting::ms_bfs_graft() {
 		}
 
 	} while (path_found);
-
-#pragma omp parallel num_threads(m_numThreads)
-#pragma omp for
-	// update matchings for left vertices
-	for (int y = m_firstRight; y < n; y++) {
-		if (is_matched(y, m_mate)) m_mate[m_mate[y]] = static_cast<int>(y);
-	}
 }
 
 void TreeGrafting::top_down_bfs(TSVertexVector& F) {
@@ -288,6 +281,7 @@ bool TreeGrafting::find_path_tg(const Vertex v,
 			// update matching
 			const Vertex y = *yiter;
 			m_mate[y] = x0;
+			m_mate[x0] = y;
 			// return e.g. pop stack
 			stack.pop_back();
 			continue;
@@ -347,6 +341,7 @@ bool TreeGrafting::lookahead_step(
 			if (std::atomic_exchange(&(*m_augmentVisited)[y - m_firstRight], iteration) < iteration) {
 				// update matching
 				m_mate[y] = x0;
+				m_mate[x0] = y;
 				lookahead[x0].first = laStart;
 				return true;
 			}

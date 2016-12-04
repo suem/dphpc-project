@@ -318,21 +318,21 @@ int main(int argc, char* argv[]) {
 		cout << "#Karp Sipser Initial Matching: " << (float) matching_size_ks / (float) matching_size_solution << "% optimal" << endl;
 		cout << "#Greedy Initial Matching: " << (float) matching_size_greedy / (float) matching_size_solution << "% optimal" << endl;
 		
-		/*
+		
 		cout << "run tree grafting" << std::endl;
 		for (int i = 1; i < 9; ++i) {
 			cout << i << " threads" << std::endl;
 			runTreeGrafting(GraphHelper::getGraphNameFromPath(argv[1]), g, first_right, n, matching_size_solution, initialMatching, i);
 		}
+		for (int i = 10; i < 251; i+=10) {
+		cout << i << " threads" << std::endl;
+		runTreeGrafting(GraphHelper::getGraphNameFromPath(argv[1]), g, first_right, n, matching_size_solution, initialMatching, i);
+		}
 		return 0;
-		*/
-		
 
 		runPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 2);
 
 		for (int i = 10; i < 251; i = i + 20) runParallelPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 10, i);
-
-
 
 		/*
 		char buff[20];
