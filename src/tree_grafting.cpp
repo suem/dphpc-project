@@ -30,28 +30,31 @@ TreeGrafting::TreeGrafting(const Graph& g, Vertex first_right, VertexVector& mat
 
 TreeGrafting::~TreeGrafting() {
 	delete[] m_visited;
-	delete[] m_augmentVisited;
+	delete m_augmentVisited;
 }
 
 void TreeGrafting::init() {
 	m_visited = new bool[n];
-	m_augmentVisited = new std::atomic_flag[n_right];
+
+	m_augmentVisited = new std::vector<std::atomic_size_t>(n_right);
+	memset(&(*m_augmentVisited)[0], 0, sizeof((*m_augmentVisited)[0]) * n_right);
 
 	// initialize the root vector
 	m_root.resize(n);
-	std::fill(m_root.begin(), m_root.end(), Graph::null_vertex());
+	memset(&m_root[0], Graph::null_vertex(), sizeof(m_root[0]) * n);
 	// initialize the parent vector
 	m_parent.resize(n);
-	std::fill(m_parent.begin(), m_parent.end(), Graph::null_vertex());
+	memset(&m_parent[0], Graph::null_vertex(), sizeof(m_parent[0]) * n);
 	// initialize the leaf vector
 	m_leaf.resize(n);
-	std::fill(m_leaf.begin(), m_leaf.end(), Graph::null_vertex());
+	memset(&m_leaf[0], Graph::null_vertex(), sizeof(m_leaf[0]) * n);
 	// initialize the visited array
 	memset(m_visited, 0, sizeof(bool) * n);
 }
 
 void TreeGrafting::ms_bfs_graft() {
 	volatile bool path_found;
+	size_t iteration = 1;
 
 	// F <- all unmatched X vertices
 	// for all those unmatched vertices, set the root to itself
@@ -72,7 +75,9 @@ void TreeGrafting::ms_bfs_graft() {
 	Lookahead* lookahead = new Lookahead[m_firstRight];
 #pragma omp parallel num_threads(m_numThreads)
 #pragma omp for
-	for (int i = 0; i < m_firstRight; i++) lookahead[i] = boost::adjacent_vertices(i, m_graph);
+	for (int i = 0; i < m_firstRight; i++) {
+		lookahead[i] = boost::adjacent_vertices(i, m_graph);
+	}
 
 	do {
 		path_found = false;
@@ -102,14 +107,19 @@ void TreeGrafting::ms_bfs_graft() {
 			}
 		}
 
-		memset(m_augmentVisited, 0, sizeof(std::atomic_flag) * n_right);
+		iteration++;
+		if (iteration == 0) { // integer overflow on iteration, reset visited flags
+			memset(&(*m_augmentVisited)[0], 0, sizeof((*m_augmentVisited)[0]) * n_right);
+			iteration = 1;
+		}
+
 		// step 2: augment matching. 
 #pragma omp parallel num_threads(m_numThreads) private(stack)
 #pragma omp for
 		for (int x = 0; x < m_firstRight; ++x) {
 			if (is_unmatched(x, m_mate)) {
 				// if an augmenting path P from x is found then augment matching by P
-				bool path_found_v = find_path_tg(x, lookahead, stack);
+				bool path_found_v = find_path_tg(x, iteration, lookahead, stack);
 				if (path_found_v && !path_found) path_found = true;
 			}
 		}
@@ -120,6 +130,13 @@ void TreeGrafting::ms_bfs_graft() {
 		}
 
 	} while (path_found);
+
+#pragma omp parallel num_threads(m_numThreads)
+#pragma omp for
+	// update matchings for left vertices
+	for (int y = m_firstRight; y < n; y++) {
+		if (is_matched(y, m_mate)) m_mate[m_mate[y]] = static_cast<int>(y);
+	}
 }
 
 void TreeGrafting::top_down_bfs(TSVertexVector& F) {
@@ -242,13 +259,13 @@ void TreeGrafting::updatePointers(const Vertex x, const Vertex y, TSVertexVector
 	}
 }
 
-bool TreeGrafting::find_path_tg(const Vertex v, 
-	Lookahead* lookahead, 
+bool TreeGrafting::find_path_tg(const Vertex v,
+	size_t iteration,
+	Lookahead* lookahead,
 	std::vector<PathElement>& stack) {
 
-
 	// do initial lookahead and return if successful ----------------------------------------------
-	bool init_lookahead_success = lookahead_step_atomic(v, lookahead);
+	bool init_lookahead_success = lookahead_step(v, iteration, lookahead);
 	if (init_lookahead_success) return true;
 	// --------------------------------------------------------------------------------------------
 
@@ -266,19 +283,25 @@ bool TreeGrafting::find_path_tg(const Vertex v,
 		AdjVertexIterator& yiter = stack_top.yiter;
 		AdjVertexIterator& yiter_end = stack_top.yiter_end;
 
+
 		if (path_found) {
 			// update matching
 			const Vertex y = *yiter;
 			m_mate[y] = x0;
-			m_mate[x0] = y;
 			// return e.g. pop stack
 			stack.pop_back();
 			continue;
 		}
 
+
 		// skip all visited vertices
-		while (yiter != yiter_end
-			&& m_augmentVisited[*yiter - m_firstRight].test_and_set()) {
+		while (yiter != yiter_end) {
+			const Vertex y_index = *yiter - m_firstRight;
+			if ((*m_augmentVisited)[y_index] < iteration) {
+				if (std::atomic_exchange(&(*m_augmentVisited)[y_index], iteration) < iteration) {
+					break;
+				}
+			}
 			yiter++;
 		}
 
@@ -287,7 +310,7 @@ bool TreeGrafting::find_path_tg(const Vertex v,
 			Vertex y = *yiter;
 			Vertex x1 = m_mate[y];
 
-			bool lookahead_success = lookahead_step_atomic(x1, lookahead);
+			bool lookahead_success = lookahead_step(x1, iteration, lookahead);
 			if (lookahead_success) {
 				path_found = true;
 				continue;
@@ -302,33 +325,35 @@ bool TreeGrafting::find_path_tg(const Vertex v,
 		else {
 			// pop stack otherwise, did not find any path and there are not more neighbors
 			stack.pop_back();
+			// move yiter to next vertex for next iteration
 			if (!stack.empty()) stack.back().yiter++;
 		}
+
 	}
 
 	return path_found;
 }
 
-bool TreeGrafting::lookahead_step_atomic(
+bool TreeGrafting::lookahead_step(
 	const Vertex x0,
+	size_t iteration,
 	Lookahead* lookahead) {
 
 	// lookahead phase
 	AdjVertexIterator laStart, laEnd;
 	for (std::tie(laStart, laEnd) = lookahead[x0]; laStart != laEnd; ++laStart) {
 		Vertex y = *laStart;
-		if (is_unmatched(y, m_mate) &&
-			!m_augmentVisited[y - m_firstRight].test_and_set()) {
-
-			// update matching
-			m_mate[y] = x0;
-			m_mate[x0] = y;
-
-			lookahead[x0].first = laStart;
-			return true;
+		if (is_unmatched(y, m_mate) && (*m_augmentVisited)[y - m_firstRight] < iteration) {
+			if (std::atomic_exchange(&(*m_augmentVisited)[y - m_firstRight], iteration) < iteration) {
+				// update matching
+				m_mate[y] = x0;
+				lookahead[x0].first = laStart;
+				return true;
+			}
 		}
 	}
 	if (lookahead[x0].first != laStart) lookahead[x0].first = laStart;
 
 	return false;
 }
+

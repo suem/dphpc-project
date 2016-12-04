@@ -56,8 +56,8 @@ private:
 	// update pointers in bfs traversals
 	void updatePointers(const Vertex x, const Vertex y, TSVertexVector& queue);
 	// find and augment a path
-	bool find_path_tg(const Vertex x0, Lookahead* lookahead, std::vector<PathElement>& stack);	
-	bool lookahead_step_atomic(const Vertex x0, Lookahead* lookahead);
+	bool find_path_tg(const Vertex x0, size_t iteration, Lookahead* lookahead, std::vector<PathElement>& stack);
+	bool lookahead_step(const Vertex x0, size_t iteration, Lookahead* lookahead);
 
 private:
 	int m_numThreads;
@@ -77,7 +77,7 @@ private:
 	TSVertexVector activeY;
 
 	bool* m_visited = nullptr;
-	std::atomic_flag* m_augmentVisited = nullptr;
+	std::vector<std::atomic_size_t>* m_augmentVisited = nullptr;
 
 	static const float ALPHA;
 };

@@ -144,6 +144,7 @@ void runTreeGrafting(const std::string& graphName, const Graph& g, Vertex first_
 	result.numVertices = num_vertices(g);
 	//result.numThreads = 1;
 	result.timeStamp = std::string(buff);
+	std::vector<double> times(NO_RUNS);
 	for (int i = 0; i < NO_RUNS; ++i) {
 
 		VertexVector mates = initialMatching;
@@ -155,11 +156,16 @@ void runTreeGrafting(const std::string& graphName, const Graph& g, Vertex first_
 
 		verify_matching(g, mates, matching_size_solution);
 
-		std::cout << elapsed << std::endl;
-	//	result.durations.push_back(elapsed);
+		times[i] = elapsed;
 	}
 
-	//GraphHelper::printOutput(result);
+	double avg = 0;
+	for (auto i : times) {
+		avg += i;
+	}
+	avg /= NO_RUNS;
+
+	std::cout << avg << std::endl;
 }
 
 void testKarpSipser() {
