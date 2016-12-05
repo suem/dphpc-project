@@ -60,9 +60,11 @@ def processSpeedupFile(filePath):
 
     (header, data) = parseBenchmarkFile(filePath)
 
+
+
     # set up seaborn plot
     sns.set_style("whitegrid")
-    fig = plt.figure(figsize=(30,30))
+    fig = plt.figure(figsize=(30,200))
     ax = fig.add_subplot(111)
 
     # set up labels
@@ -72,11 +74,13 @@ def processSpeedupFile(filePath):
 
     plt.title("Place holder", fontsize = 24)
 
-    plt.scatter(x = 1, y = np.average(data["1"].asArray()))
+    for plotType in [ 'box', 'violin', 'strip']:
+        sns_factor_plot = sns.factorplot(x="NumThreads", y="Speedup", hue="Algorithm", data=data, size=10, aspect=2, kind=plotType)
+        sns_factor_plot.fig.get_axes()[0].set_yscale('log', basey=2)
+        sns_factor_plot.savefig(filename = "C:/test/" + getOutputFileName(header, 'factorplot_' + plotType, 'png'))
 
-
-
-
+    #sns_box_plot = sns.boxplot(x = "numThreads", y = "duration", hue = "algorithm", data = data)
+    #sns_box_plot.savefig(filename = "C:/test/" + getOutputFileName(header, 'boxplot', 'png'))
 
 """
 This funciton will take the location of a file with timing values as an
@@ -122,7 +126,42 @@ This function parses a benchmark file from the csv format to a pandas dataframe
 def parseBenchmarkFile(benchmarkFilePath):
 
     header = pd.read_csv(benchmarkFilePath, nrows = 1)
-    data = pd.read_csv(benchmarkFilePath, comment = '#', skiprows = 2)
+    origData = pd.read_csv(benchmarkFilePath, comment = '#', skiprows = 2)
+    
+    shape = origData.shape
+    columnsNames = ["Speedup", "NumThreads", "Algorithm"]
+
+    data = pd.DataFrame(columns = columnsNames)
+    subDataFrames = []
+    sequentialScaler = 0
+
+    for column in range(0, shape[1]):
+        # iterate over columns
+
+        numThreadsStr = origData.columns.values[column]
+        numThreadsInt = int(numThreadsStr)
+        durationsArray = origData[numThreadsStr]
+
+        newMatrix = []
+        for row in range(0, len(durationsArray)):            
+            if row == 0:
+                # Remove cold start
+                continue
+            if column > 0:
+                scaled = sequentialScaler / durationsArray[row]
+            else:
+                scaled = 1
+            newMatrix.append([scaled, numThreadsInt, header["Algorithm"].get_values()[0]])
+
+        subDataFrame = pd.DataFrame(data=newMatrix, columns = columnsNames)
+        subDataFrames.append(subDataFrame)
+
+        if column == 0:
+            subArray = data[data.NumThreads == 1]["Speedup"]
+            sequentialScaler = np.average(subArray)
+
+         
+    data = pd.concat(subDataFrames, ignore_index = True)
 
     return (header, data)
 
@@ -158,7 +197,25 @@ def plotBenchmark(benchmarkDict):
 
     fileName = benchmarkDict['Algorithm'] + '_' + benchmarkDict['GraphName'] + '_' + dateStr
 
-    pass
+"""
+Builds the filename given from the header dataframe
+"""
+def getOutputFileName(header, plotStyle = "", extension = ""):
+    dateStr = header['TimeStamp'].get_values()[0]
+    dateStruct = time.strptime(dateStr, "%Y-%m-%d_%H%M%S")
+    dateStr = time.strftime("%Y%m%d_%H%M%S", dateStruct)
+
+    algoStr = header['Algorithm'].get_values()[0]
+
+    graphStr = header['GraphName'].get_values()[0]
+
+    fileName = algoStr + '_' + graphStr + '_' + dateStr + '_' + plotStyle
+
+    if not extension is "":
+        fileName = fileName + '.' + extension
+
+    return fileName
+
 
 #df = pd.DataFrame()
 
