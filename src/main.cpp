@@ -250,14 +250,215 @@ void compareInitialMatching(const Graph& g, const Vertex first_right) {
 }
 
 void printMatchings(size_t matchingSize, const VertexVector& mates, const Graph& g) {
-	cout << "Max Matching has cardinality: " << matchingSize << endl;
-	cout << "Matchings: " << endl;
+	std::cout << "Max Matching has cardinality: " << matchingSize << endl;
+	std::cout << "Matchings: " << endl;
 	VertexIterator start, end;
 	for (tie(start, end) = vertices(g); start != end; start++) {
 		Vertex u = *start;
 		Vertex v = mates[u];
-		if (v != g.null_vertex() && u < v) cout << "(" << u << " " << v << ")" << endl;
+		if (v != g.null_vertex() && u < v) std::cout << "(" << u << " " << v << ")" << endl;
 	}
+}
+
+void runBenchmarks(const std::string& graphName) {
+	std::cout << "#Reading Graph" << endl;
+
+	Vertex first_right;
+	Graph g;
+	GraphHelper::readGraphFromFile(g, first_right, graphName);
+	vertex_size_t n = num_vertices(g);
+	vertex_size_t e = num_edges(g);
+	std::cout << "#vertices: " << n << " edges: " << e << endl;
+
+	std::cout << "#Verifying if bipartite" << endl;
+	verify_bipartite(g);
+
+	std::cout << "#Run karp sipser to get initial matching" << endl;
+	Timer t = Timer();
+	VertexVector initialMatchingKS(n);
+	karp_sipser(g, first_right, initialMatchingKS);
+	double el = t.elapsed();
+	vertex_size_t matching_size_ks = boost::matching_size(g, &initialMatchingKS[0]);
+	std::cout << "#karp sipser matching took: " << el << ", size = " << matching_size_ks << endl;
+
+
+	std::cout << "#Run greedy to get initial matching" << endl;
+	t = Timer();
+	VertexVector initialMatchingGreedy(n);
+	simple_greedy_matching(g, initialMatchingGreedy);
+	el = t.elapsed();
+	vertex_size_t matching_size_greedy = boost::matching_size(g, &initialMatchingGreedy[0]);
+	std::cout << "#greedy matching took: " << el << ", size = " << matching_size_greedy << endl;
+
+	std::cout << "#Computing Solution with pf" << endl;
+	VertexVector solution_mates = matching_size_greedy < matching_size_ks ? initialMatchingKS : initialMatchingGreedy;
+	pf(g, first_right, solution_mates);
+	vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
+
+	std::cout << "#Karp Sipser Initial Matching: " << (float)matching_size_ks / (float)matching_size_solution << "% optimal" << endl;
+	std::cout << "#Greedy Initial Matching: " << (float)matching_size_greedy / (float)matching_size_solution << "% optimal" << endl;
+
+	char buff[20];
+	time_t now;
+	BenchmarkResult result;
+
+	int actualIter;
+
+	std::vector<int> numThreads;
+	std::vector < std::vector<double>> durations;
+	std::vector<double> durationsPerRun;
+
+	VertexVector mates;
+
+	std::cout << "#Run ppf3 with Karp Sipser" << endl;
+	now = time(NULL);
+	strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
+
+	result.algorithm = "ppf3_KS";
+	result.graphName = GraphHelper::getGraphNameFromPath(graphName);
+	result.numEdges = num_edges(g);
+	result.numVertices = num_vertices(g);
+	result.timeStamp = std::string(buff);
+	result.iter = 101;
+
+	for (int nOfThreads = 1; nOfThreads < 251; nOfThreads++) {
+
+		actualIter = nOfThreads * 10 + 1;
+		if (actualIter < result.iter) { actualIter = result.iter; }
+			
+		for (int run = 0; run < actualIter; run++) {
+			mates = initialMatchingKS;
+			t = Timer();
+			ppf3(g, first_right, mates, nOfThreads);
+
+			double elapsed = t.elapsed();
+			durationsPerRun.push_back(elapsed);
+		}
+
+		numThreads.push_back(nOfThreads);
+		durations.push_back(durationsPerRun);
+	}
+
+	result.numThreads = numThreads;
+	result.durations = durations;
+
+	GraphHelper::printOutput(result, "");
+
+	numThreads.clear();
+	durations.clear();
+	durationsPerRun.clear();
+	mates.clear();
+
+
+
+	std::cout << "#Run ppf3 with Greedy" << endl;
+	now = time(NULL);
+	strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
+
+	result.algorithm = "ppf3_Greedy";
+	result.graphName = GraphHelper::getGraphNameFromPath(graphName);
+	result.numEdges = num_edges(g);
+	result.numVertices = num_vertices(g);
+	result.timeStamp = std::string(buff);
+	result.iter = 101;
+
+	for (int nOfThreads = 1; nOfThreads < 251; nOfThreads++) {
+
+		actualIter = nOfThreads * 10 + 1;
+		if (actualIter < result.iter) { actualIter = result.iter; }
+
+		for (int run = 0; run < actualIter; run++) {
+			mates = initialMatchingKS;
+			t = Timer();
+			ppf3(g, first_right, mates, nOfThreads);
+
+			double elapsed = t.elapsed();
+			durationsPerRun.push_back(elapsed);
+		}
+
+		numThreads.push_back(nOfThreads);
+		durations.push_back(durationsPerRun);
+	}
+
+	result.numThreads = numThreads;
+	result.durations = durations;
+
+	GraphHelper::printOutput(result, "");	
+	
+	numThreads.clear();
+	durations.clear();
+	durationsPerRun.clear();
+	mates.clear();
+
+
+
+
+	std::cout << "#Run pf with KS" << endl;
+	now = time(NULL);
+	strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
+
+	result.algorithm = "pf_KS";
+	result.graphName = GraphHelper::getGraphNameFromPath(graphName);
+	result.numEdges = num_edges(g);
+	result.numVertices = num_vertices(g);
+	result.timeStamp = std::string(buff);
+	result.iter = 11;
+
+
+	for (int run = 0; run < result.iter; run++) {
+		mates = initialMatchingKS;
+		t = Timer();
+		pf(g, first_right, mates);
+
+		double elapsed = t.elapsed();
+		durationsPerRun.push_back(elapsed);
+	}
+
+	numThreads.push_back(1);
+	durations.push_back(durationsPerRun);
+
+	result.numThreads = numThreads;
+	result.durations = durations;
+
+	GraphHelper::printOutput(result, "");
+
+	numThreads.clear();
+	durations.clear();
+	durationsPerRun.clear();
+	mates.clear();
+
+
+
+
+	std::cout << "#Run pf with Greedy" << endl;
+	now = time(NULL);
+	strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
+
+	result.algorithm = "pf_Greedy";
+	result.graphName = GraphHelper::getGraphNameFromPath(graphName);
+	result.numEdges = num_edges(g);
+	result.numVertices = num_vertices(g);
+	result.timeStamp = std::string(buff);
+	result.iter = 11;
+
+
+	for (int run = 0; run < result.iter; run++) {
+		mates = initialMatchingKS;
+		t = Timer();
+		pf(g, first_right, mates);
+
+		double elapsed = t.elapsed();
+		durationsPerRun.push_back(elapsed);
+	}
+
+	numThreads.push_back(1);
+	durations.push_back(durationsPerRun);
+
+	result.numThreads = numThreads;
+	result.durations = durations;
+
+	GraphHelper::printOutput(result, "");
+
 }
 
 int main(int argc, char* argv[]) {
@@ -269,6 +470,10 @@ int main(int argc, char* argv[]) {
 	}
 
 	try {
+		
+		runBenchmarks(argv[1]);
+		return 0;
+
 		cout << "#Reading Graph" << endl;
 
 		Vertex first_right;
@@ -361,7 +566,8 @@ int main(int argc, char* argv[]) {
 		GraphHelper::printOutput(result, "C:\\dphpc-test\\");
 
 		 */
-
+		
+		
 //		cout << "#Run unsync_ppf" << endl;
 //		for (int i = 1; i < 251; i = i + 20) runUnsyncParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i);
 	}
