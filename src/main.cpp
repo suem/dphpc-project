@@ -325,6 +325,8 @@ void runBenchmarks(const std::string& graphName) {
 
 		actualIter = nOfThreads * 10 + 1;
 		if (actualIter < result.iter) { actualIter = result.iter; }
+
+		std::cout << "#Run " << actualIter << " times with " << nOfThreads << " threads" << std::endl;
 			
 		for (int run = 0; run < actualIter; run++) {
 			mates = initialMatchingKS;
@@ -367,8 +369,10 @@ void runBenchmarks(const std::string& graphName) {
 		actualIter = nOfThreads * 10 + 1;
 		if (actualIter < result.iter) { actualIter = result.iter; }
 
+		std::cout << "#Run " << actualIter << " times with " << nOfThreads << " threads" << std::endl;
+
 		for (int run = 0; run < actualIter; run++) {
-			mates = initialMatchingKS;
+			mates = initialMatchingGreedy;
 			t = Timer();
 			ppf3(g, first_right, mates, nOfThreads);
 
@@ -406,6 +410,7 @@ void runBenchmarks(const std::string& graphName) {
 
 
 	for (int run = 0; run < result.iter; run++) {
+		std::cout << "#Run " << result.iter << " times with " << 1 << " threads" << std::endl;
 		mates = initialMatchingKS;
 		t = Timer();
 		pf(g, first_right, mates);
@@ -443,7 +448,8 @@ void runBenchmarks(const std::string& graphName) {
 
 
 	for (int run = 0; run < result.iter; run++) {
-		mates = initialMatchingKS;
+		std::cout << "#Run " << result.iter << " times with " << 1 << " threads" << std::endl;
+		mates = initialMatchingGreedy;
 		t = Timer();
 		pf(g, first_right, mates);
 
@@ -471,8 +477,8 @@ int main(int argc, char* argv[]) {
 
 	try {
 		
-		runBenchmarks(argv[1]);
-		return 0;
+		//runBenchmarks(argv[1]);
+		//return 0;
 
 		cout << "#Reading Graph" << endl;
 
