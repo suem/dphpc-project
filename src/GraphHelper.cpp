@@ -122,14 +122,15 @@ void GraphHelper::printOutput(const BenchmarkResult& resultStruct, const std::st
 
 	std::cout << "Duration,NumThreads,Algorithm" << std::endl;
     
-	/*New format*/
+	/*New format
 	for (int nOfThreads : resultStruct.numThreads) {
 		for (int i : resultStruct.durations[nOfThreads]) {
 			std::cout << i << nOfThreads << resultStruct.algorithm << std::endl;
 		}
 	}
+    */
 
-	/* Old format
+	/* Old format */
     // Data
 	std::string temp;
 	for (int i : resultStruct.numThreads)
@@ -146,7 +147,6 @@ void GraphHelper::printOutput(const BenchmarkResult& resultStruct, const std::st
         }
 		std::cout << temp.substr(0, temp.size() - 1) << std::endl;
     } 
-	*/
 	//std::cout << "CSV Filepath: " << filePath<< std::endl;
 }
 

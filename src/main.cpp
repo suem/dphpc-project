@@ -323,8 +323,9 @@ void runBenchmarks(const std::string& graphName) {
 
 	for (int nOfThreads = 1; nOfThreads < 251; nOfThreads++) {
 
-		actualIter = nOfThreads * 10 + 1;
-		if (actualIter < result.iter) { actualIter = result.iter; }
+		//actualIter = nOfThreads * 10 + 1;
+		//if (actualIter > result.iter) { actualIter = result.iter; }
+		actualIter = result.iter;
 
 		std::cout << "#Run " << actualIter << " times with " << nOfThreads << " threads" << std::endl;
 			
@@ -366,8 +367,9 @@ void runBenchmarks(const std::string& graphName) {
 
 	for (int nOfThreads = 1; nOfThreads < 251; nOfThreads++) {
 
-		actualIter = nOfThreads * 10 + 1;
-		if (actualIter < result.iter) { actualIter = result.iter; }
+		//actualIter = nOfThreads * 10 + 1;
+		//if (actualIter > result.iter) { actualIter = result.iter; }
+		actualIter = result.iter;
 
 		std::cout << "#Run " << actualIter << " times with " << nOfThreads << " threads" << std::endl;
 
@@ -406,7 +408,7 @@ void runBenchmarks(const std::string& graphName) {
 	result.numEdges = num_edges(g);
 	result.numVertices = num_vertices(g);
 	result.timeStamp = std::string(buff);
-	result.iter = 11;
+	result.iter = 101;
 
 
 	for (int run = 0; run < result.iter; run++) {
@@ -444,7 +446,7 @@ void runBenchmarks(const std::string& graphName) {
 	result.numEdges = num_edges(g);
 	result.numVertices = num_vertices(g);
 	result.timeStamp = std::string(buff);
-	result.iter = 11;
+	result.iter = 101;
 
 
 	for (int run = 0; run < result.iter; run++) {
@@ -544,34 +546,6 @@ int main(int argc, char* argv[]) {
 		runPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 2);
 
 		for (int i = 10; i < 251; i = i + 20) runParallelPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 10, i);
-
-		/*
-		char buff[20];
-		time_t now = time(NULL);
-		strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
-
-		BenchmarkResult result;
-		result.algorithm = "parallel pothen fan";
-		result.graphName = GraphHelper::getGraphNameFromPath(argv[1]);
-		result.numEdges = num_edges(g);
-		result.numVertices = num_vertices(g);
-		result.timeStamp = std::string(buff);
-		result.iter = NO_RUNS;
-
-		cout << "#Run ppf" << endl;
-		std::vector<int> numThreads;
-		std::vector < std::vector<double>> durations;
-		for (int i = 10; i < 251; i = i + 20) {
-			numThreads.push_back(i);
-			durations.push_back(runParallelPothenFan(argv[1], g, first_right, n, matching_size_solution, initialMatching, i));
-		}
-
-		result.numThreads = numThreads;
-		result.durations = durations;
-
-		GraphHelper::printOutput(result, "C:\\dphpc-test\\");
-
-		 */
 		
 		
 //		cout << "#Run unsync_ppf" << endl;
