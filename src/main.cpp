@@ -14,6 +14,7 @@
 #include "ppf2.h"
 #include "ppf3.h"
 #include "ppf4.h"
+#include "ppf5.h"
 #include "tree_grafting.h"
 #include "unsync_pothen_fan.h"
 #include "Timer.h" 
@@ -44,12 +45,13 @@ void runParallelPothenFan(
 		VertexVector mates = initialMatching;
 
 		Timer t = Timer();
-//		ppf1(g, first_right, mates, numThreads);
+		//ppf1(g, first_right, mates, numThreads);
 //		ppf2(g, first_right, mates, numThreads);
-		ppf3(g, first_right, mates, numThreads); // best version so far
+		//ppf3(g, first_right, mates, numThreads); // best version so far
+		ppf5(g, first_right, mates, numThreads);
 
         /*
-        // ppf4 ---
+        // ppf4 --- not that good
         vector<MateVisited> matchingVisited(initialMatching.size());
         for (Vertex v = 0; v < num_vertices(g); v++) {
             matchingVisited[v].iteration = 0;
@@ -491,14 +493,13 @@ int main(int argc, char* argv[]) {
 
 	try {
 		
-		runBenchmarks(argv[1]);
-		return 0;
+		//runBenchmarks(argv[1]);
+		//return 0;
 
 		cout << "#Reading Graph" << endl;
 
 		Vertex first_right;
 		Graph g;
-		//g = GraphHelper::generateRandomGraph(10000, 0.0001f, first_right);
 		GraphHelper::readGraphFromFile(g, first_right, argv[1]);
 		vertex_size_t n = num_vertices(g);
 		vertex_size_t e = num_edges(g);
@@ -509,16 +510,12 @@ int main(int argc, char* argv[]) {
 
 		cout << "#Run karp sipser to get initial matching" << endl;
         Timer t = Timer();
-		//VertexVector initialMatching = GraphHelper::karpSipser(g);
-		//VertexVector initialMatching = GraphHelper::greedyMatching(g);
-		//VertexVector initialMatching = GraphHelper::ks(g);
         VertexVector initialMatchingKS(n);
         karp_sipser(g, first_right, initialMatchingKS);
 
         double el = t.elapsed();
 		vertex_size_t matching_size_ks = boost::matching_size(g, &initialMatchingKS[0]);
 		cout << "#karp sipser matching took: " << el << ", size = " << matching_size_ks << endl;
-
 
 		cout << "#Run greedy to get initial matching" << endl;
 		t = Timer();
@@ -542,8 +539,14 @@ int main(int argc, char* argv[]) {
 
 		cout << "#Karp Sipser Initial Matching: " << (float) matching_size_ks / (float) matching_size_solution << "% optimal" << endl;
 		cout << "#Greedy Initial Matching: " << (float) matching_size_greedy / (float) matching_size_solution << "% optimal" << endl;
-		
-		
+
+
+		runPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 2);
+
+		runParallelPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 10, 20);
+		//for (int i = 10; i < 251; i = i + 20) runParallelPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 10, i);
+
+        /*
 		cout << "run tree grafting" << std::endl;
 		for (int i = 1; i < 9; ++i) {
 			cout << i << " threads" << std::endl;
@@ -553,17 +556,9 @@ int main(int argc, char* argv[]) {
 		cout << i << " threads" << std::endl;
 		runTreeGrafting(GraphHelper::getGraphNameFromPath(argv[1]), g, first_right, n, matching_size_solution, initialMatching, i);
 		}
-		return 0;
+         */
 
-		runPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 2);
-
-		for (int i = 10; i < 251; i = i + 20) runParallelPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 10, i);
-		
-		
-//		cout << "#Run unsync_ppf" << endl;
-//		for (int i = 1; i < 251; i = i + 20) runUnsyncParallelPothenFan(argv[1], g, first_right, n, /*matching_size_solution,*/ initialMatching, i);
-	}
-	catch (const char* error) {
+	} catch (const char* error) {
 		cerr << "Error: " << error << endl;
 		return -1;
 	}
