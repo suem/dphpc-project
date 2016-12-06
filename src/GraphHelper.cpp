@@ -139,9 +139,11 @@ void GraphHelper::printOutput(const BenchmarkResult& resultStruct, const std::st
 	std::cout << temp.substr(0, temp.size() - 1) << std::endl;
 
     for (int i = 0; i < resultStruct.iter; ++i) {
+		// loop over iterations
         int pos = 0;
 		temp.clear();
         for (int nThreads : resultStruct.numThreads) {
+			// loop over number of threads
 			temp += std::to_string(resultStruct.durations[pos][i]) + ",";
             ++pos;
         }

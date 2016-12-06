@@ -301,6 +301,7 @@ void runBenchmarks(const std::string& graphName) {
 	char buff[20];
 	time_t now;
 	BenchmarkResult result;
+	double elapsed;
 
 	int actualIter;
 
@@ -321,6 +322,7 @@ void runBenchmarks(const std::string& graphName) {
 	result.timeStamp = std::string(buff);
 	result.iter = 101;
 
+
 	for (int nOfThreads = 1; nOfThreads < 251; nOfThreads++) {
 
 		//actualIter = nOfThreads * 10 + 1;
@@ -334,7 +336,7 @@ void runBenchmarks(const std::string& graphName) {
 			t = Timer();
 			ppf3(g, first_right, mates, nOfThreads);
 
-			double elapsed = t.elapsed();
+			elapsed = t.elapsed();
 			durationsPerRun.push_back(elapsed);
 		}
 
@@ -378,7 +380,7 @@ void runBenchmarks(const std::string& graphName) {
 			t = Timer();
 			ppf3(g, first_right, mates, nOfThreads);
 
-			double elapsed = t.elapsed();
+			elapsed = t.elapsed();
 			durationsPerRun.push_back(elapsed);
 		}
 
@@ -410,14 +412,13 @@ void runBenchmarks(const std::string& graphName) {
 	result.timeStamp = std::string(buff);
 	result.iter = 101;
 
-
+	std::cout << "#Run " << result.iter << " times with " << 1 << " threads" << std::endl;
 	for (int run = 0; run < result.iter; run++) {
-		std::cout << "#Run " << result.iter << " times with " << 1 << " threads" << std::endl;
 		mates = initialMatchingKS;
 		t = Timer();
 		pf(g, first_right, mates);
 
-		double elapsed = t.elapsed();
+		elapsed = t.elapsed();
 		durationsPerRun.push_back(elapsed);
 	}
 
@@ -449,13 +450,13 @@ void runBenchmarks(const std::string& graphName) {
 	result.iter = 101;
 
 
+	std::cout << "#Run " << result.iter << " times with " << 1 << " threads" << std::endl;
 	for (int run = 0; run < result.iter; run++) {
-		std::cout << "#Run " << result.iter << " times with " << 1 << " threads" << std::endl;
 		mates = initialMatchingGreedy;
 		t = Timer();
 		pf(g, first_right, mates);
 
-		double elapsed = t.elapsed();
+		elapsed = t.elapsed();
 		durationsPerRun.push_back(elapsed);
 	}
 
@@ -479,8 +480,8 @@ int main(int argc, char* argv[]) {
 
 	try {
 		
-		//runBenchmarks(argv[1]);
-		//return 0;
+		runBenchmarks(argv[1]);
+		return 0;
 
 		cout << "#Reading Graph" << endl;
 
