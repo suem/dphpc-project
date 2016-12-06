@@ -15,7 +15,6 @@
 #include "ppf2.h"
 #include "ppf3.h"
 #include "ppf4.h"
-#include "ppf5.h"
 #include "tree_grafting.h"
 #include "unsync_pothen_fan.h"
 #include "Timer.h" 
@@ -49,7 +48,6 @@ void runParallelPothenFan(
 		//ppf1(g, first_right, mates, numThreads);
 //		ppf2(g, first_right, mates, numThreads);
 		//ppf3(g, first_right, mates, numThreads); // best version so far
-		ppf5(g, first_right, mates, numThreads);
 
         /*
         // ppf4 --- not that good
@@ -494,8 +492,8 @@ int main(int argc, char* argv[]) {
 
 	try {
 		
-		//runBenchmarks(argv[1]);
-		//return 0;
+		runBenchmarks(argv[1]);
+		return 0;
 
 		cout << "#Reading Graph" << endl;
 

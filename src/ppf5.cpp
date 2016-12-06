@@ -1,7 +1,5 @@
-// Parallel Pothen fan with reduced working set and atomic swap for visited array, no need to clear visited array
-// Matching for left vertices is updated at the end and not during the algorithm
-// added lockfree queue to access unmatched vertices
 
+// this is just for measurements: nothing new is accomplised here
 
 #include <iostream>
 #include <stack>
@@ -186,7 +184,6 @@ void ppf5(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads
             }
 
             num_matched[omp_get_thread_num()] = (ns/tot)*100;
-
         }
 
 
