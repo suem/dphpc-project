@@ -298,6 +298,9 @@ void runBenchmarks(const std::string& graphName) {
 	std::cout << "#Karp Sipser Initial Matching: " << (float)matching_size_ks / (float)matching_size_solution << "% optimal" << endl;
 	std::cout << "#Greedy Initial Matching: " << (float)matching_size_greedy / (float)matching_size_solution << "% optimal" << endl;
 
+	int nOfRunsDefault = 101;
+	int nOfMaxThreads = 31;
+
 	char buff[20];
 	time_t now;
 	BenchmarkResult result;
@@ -320,10 +323,12 @@ void runBenchmarks(const std::string& graphName) {
 	result.numEdges = num_edges(g);
 	result.numVertices = num_vertices(g);
 	result.timeStamp = std::string(buff);
-	result.iter = 101;
+	result.iter = nOfRunsDefault;
+
+	durationsPerRun.resize(result.iter);
 
 
-	for (int nOfThreads = 1; nOfThreads < 251; nOfThreads++) {
+	for (int nOfThreads = 1; nOfThreads < nOfMaxThreads; nOfThreads++) {
 
 		//actualIter = nOfThreads * 10 + 1;
 		//if (actualIter > result.iter) { actualIter = result.iter; }
@@ -337,7 +342,7 @@ void runBenchmarks(const std::string& graphName) {
 			ppf3(g, first_right, mates, nOfThreads);
 
 			elapsed = t.elapsed();
-			durationsPerRun.push_back(elapsed);
+			durationsPerRun[run] = elapsed;
 		}
 
 		numThreads.push_back(nOfThreads);
@@ -365,9 +370,11 @@ void runBenchmarks(const std::string& graphName) {
 	result.numEdges = num_edges(g);
 	result.numVertices = num_vertices(g);
 	result.timeStamp = std::string(buff);
-	result.iter = 101;
+	result.iter = nOfRunsDefault;
 
-	for (int nOfThreads = 1; nOfThreads < 251; nOfThreads++) {
+	durationsPerRun.resize(result.iter);
+
+	for (int nOfThreads = 1; nOfThreads < nOfMaxThreads; nOfThreads++) {
 
 		//actualIter = nOfThreads * 10 + 1;
 		//if (actualIter > result.iter) { actualIter = result.iter; }
@@ -381,7 +388,7 @@ void runBenchmarks(const std::string& graphName) {
 			ppf3(g, first_right, mates, nOfThreads);
 
 			elapsed = t.elapsed();
-			durationsPerRun.push_back(elapsed);
+			durationsPerRun[run] = elapsed;
 		}
 
 		numThreads.push_back(nOfThreads);
@@ -410,7 +417,9 @@ void runBenchmarks(const std::string& graphName) {
 	result.numEdges = num_edges(g);
 	result.numVertices = num_vertices(g);
 	result.timeStamp = std::string(buff);
-	result.iter = 101;
+	result.iter = nOfRunsDefault;
+
+	durationsPerRun.resize(result.iter);
 
 	std::cout << "#Run " << result.iter << " times with " << 1 << " threads" << std::endl;
 	for (int run = 0; run < result.iter; run++) {
@@ -419,7 +428,7 @@ void runBenchmarks(const std::string& graphName) {
 		pf(g, first_right, mates);
 
 		elapsed = t.elapsed();
-		durationsPerRun.push_back(elapsed);
+		durationsPerRun[run] = elapsed;
 	}
 
 	numThreads.push_back(1);
@@ -447,7 +456,9 @@ void runBenchmarks(const std::string& graphName) {
 	result.numEdges = num_edges(g);
 	result.numVertices = num_vertices(g);
 	result.timeStamp = std::string(buff);
-	result.iter = 101;
+	result.iter = nOfRunsDefault;
+
+	durationsPerRun.resize(result.iter);
 
 
 	std::cout << "#Run " << result.iter << " times with " << 1 << " threads" << std::endl;
@@ -457,7 +468,7 @@ void runBenchmarks(const std::string& graphName) {
 		pf(g, first_right, mates);
 
 		elapsed = t.elapsed();
-		durationsPerRun.push_back(elapsed);
+		durationsPerRun[run] = elapsed;
 	}
 
 	numThreads.push_back(1);
