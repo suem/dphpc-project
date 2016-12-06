@@ -7,7 +7,6 @@
 #include <stack>
 #include <omp.h>
 #include <atomic>
-#include <boost/lockfree/queue.hpp>
 #include "graphtypes.h"
 #include "ppf3.h"
 

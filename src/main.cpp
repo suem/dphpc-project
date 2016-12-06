@@ -3,6 +3,7 @@
 #include "graphtypes.h"
 #include <boost/graph/bipartite.hpp>
 #include <boost/graph/max_cardinality_matching.hpp>
+#include <omp.h>
 
 #include "verifier.h"
 #include "GraphHelper.h"
@@ -543,7 +544,7 @@ int main(int argc, char* argv[]) {
 
 		runPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 2);
 
-		runParallelPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 10, 20);
+		runParallelPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 10, omp_get_max_threads());
 		//for (int i = 10; i < 251; i = i + 20) runParallelPothenFan(argv[1], g, first_right, matching_size_solution, initialMatching, 10, i);
 
         /*
