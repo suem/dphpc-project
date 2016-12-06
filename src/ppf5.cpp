@@ -148,7 +148,7 @@ void ppf5(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads
     size_t unmatched_size = unmatched.size();
     std::vector<std::vector<PathElement>> stacks(nt);
 
-    std::vector<int> num_matched(nt);
+    std::vector<float> num_matched(nt);
 
     do {
         path_found = false;
@@ -161,15 +161,18 @@ void ppf5(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads
 
 #pragma omp parallel num_threads(nt)
         {
-            int nm = 0;
+            float ns = 0;
+            float tot = 0;
             std::vector<PathElement> &stack = stacks[omp_get_thread_num()];
 #pragma omp for
             for (int i = 0; i < unmatched_size; i++) {
                 auto &urv = unmatched[i];
 
+                tot++;
+
                 // skip if vertex is already matched
                 if (!urv.unmatched) {
-                    nm++;
+                    ns++;
                     continue;
                 }
 
@@ -182,16 +185,14 @@ void ppf5(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads
                 }
             }
 
-            num_matched[omp_get_thread_num()] = nm;
+            num_matched[omp_get_thread_num()] = (ns/tot)*100;
+
         }
 
 
-        float nm_sum = 0;
-        for (int i : num_matched) nm_sum++;
-
         std::cout << "iteration" << iteration << ": ";
-        for (int i = 0; i < num_matched.size(); i++) {
-            std::cout << ((float) num_matched[i] / nm_sum) << "% ";
+        for (float i : num_matched) {
+            std::cout << i << "% ";
         }
         std::cout << std::endl;
 
