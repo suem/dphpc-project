@@ -8,7 +8,7 @@
 #include "verifier.h"
 #include "GraphHelper.h"
 #include "pothen_fan.h"
-#include "karpsipser.h"
+#include "InitialMatching.h"
 #include "greedy.h"
 #include "pf.h"
 #include "ppf1.h"
@@ -38,7 +38,7 @@ void runBenchmarks(const std::string& graphName) {
 	std::cout << "#Run karp sipser to get initial matching" << endl;
 	Timer t = Timer();
 	VertexVector initialMatchingKS(n);
-	karp_sipser(g, first_right, initialMatchingKS);
+	InitialMatching::karp_sipser(g, first_right, initialMatchingKS);
 	double el = t.elapsed();
 	vertex_size_t matching_size_ks = boost::matching_size(g, &initialMatchingKS[0]);
 	std::cout << "#karp sipser matching took: " << el << ", size = " << matching_size_ks << endl;
@@ -75,8 +75,6 @@ void runBenchmarks(const std::string& graphName) {
 	std::vector<double> durationsPerRun;
 
 	VertexVector mates;
-
-
 
   // --------------------------------------------------------------------------------------------------------------------------
   // PPF 1
