@@ -28,5 +28,6 @@ class GraphHelper {
         static void writeGraphToFile(const std::string& filePath, const Graph& g, const Vertex& first_right);
         static bool isMaximumMatching(const VertexVector& matching, const Graph& g); 
         static void printOutput(const BenchmarkResult& result, const std::string& outPath);
-		static std::string getGraphNameFromPath(const std::string& graphPath);
+	static std::string getGraphNameFromPath(const std::string& graphPath);
+        static float getAverageVertexDegree(const Graph& g);
 };

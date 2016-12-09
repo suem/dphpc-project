@@ -150,3 +150,11 @@ std::string GraphHelper::getGraphNameFromPath(const std::string& graphPath) {
 	std::getline(ss2, token, '.');
 	return token;
 }
+
+float GraphHelper::getAverageVertexDegree(const Graph& g) {
+    float result = 0.0;
+    for (auto v = boost::vertices(g).first; v != boost::vertices(g).second; ++v) {
+        result += boost::degree(*v, g);
+    }
+    return result / boost::num_vertices(g);    
+}
