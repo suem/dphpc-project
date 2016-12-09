@@ -22,7 +22,22 @@
 using namespace boost;
 using namespace std;
 
+typedef void (*run) (const Graph&, Vertex, VertexVector&, int);
+
+void runPTG(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads) {
+	TreeGrafting(g, first_right, mate, numThreads);
+}
+
 void runBenchmarks(const std::string& graphName) {
+	std::vector<std::pair<run, std::string>> functionArray;
+
+	functionArray.push_back(std::make_pair(&ppf1, "ppf1"));
+	functionArray.push_back(std::make_pair(&ppf2, "ppf2"));
+	functionArray.push_back(std::make_pair(&ppf3, "ppf3"));
+	functionArray.push_back(std::make_pair(&runPTG, "ptg"));
+
+	bool run_pf = true;
+
 	std::cout << "#Reading Graph" << endl;
 
 	Vertex first_right;
@@ -60,8 +75,10 @@ void runBenchmarks(const std::string& graphName) {
 	std::cout << "#Karp Sipser Initial Matching: " << (float)matching_size_ks / (float)matching_size_solution << "% optimal" << endl;
 	std::cout << "#Greedy Initial Matching: " << (float)matching_size_greedy / (float)matching_size_solution << "% optimal" << endl;
 
-	int nOfRunsDefault = 101;
+	int nOfRunsDefault = 55;
+	int nOfMinThreads = 1;
 	int nOfMaxThreads = 251;
+	int lengthStride = 1;
 
 	char buff[20];
 	time_t now;
@@ -76,558 +93,163 @@ void runBenchmarks(const std::string& graphName) {
 
 	VertexVector mates;
 
-  // --------------------------------------------------------------------------------------------------------------------------
-  // PPF 1
-  // --------------------------------------------------------------------------------------------------------------------------
-	std::cout << "#Run ppf1 with Karp Sipser" << endl;
-	now = time(NULL);
-	strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
-
-	result.algorithm = "ppf1_KS";
-	result.graphName = GraphHelper::getGraphNameFromPath(graphName);
-	result.numEdges = num_edges(g);
-	result.numVertices = num_vertices(g);
-	result.timeStamp = std::string(buff);
-	result.iter = nOfRunsDefault;
-
-	durationsPerRun.resize(result.iter);
-
-
-	for (int nOfThreads = 1; nOfThreads < nOfMaxThreads; nOfThreads++) {
-
-		//actualIter = nOfThreads * 10 + 1;
-		//if (actualIter > result.iter) { actualIter = result.iter; }
-		actualIter = result.iter;
-
-		std::cout << "#Run " << actualIter << " times with " << nOfThreads << " threads" << std::endl;
-			
-		for (int run = 0; run < actualIter; run++) {
-			mates = initialMatchingKS;
-			t = Timer();
-			ppf1(g, first_right, mates, nOfThreads);
-
-			elapsed = t.elapsed();
-			durationsPerRun[run] = elapsed;
-		}
-
-		numThreads.push_back(nOfThreads);
-		durations.push_back(durationsPerRun);
-	}
-
-	result.numThreads = numThreads;
-	result.durations = durations;
-
-	GraphHelper::printOutput(result, "");
-
-	numThreads.clear();
-	durations.clear();
-	durationsPerRun.clear();
-	mates.clear();
-
-
-	std::cout << "#Run ppf1 with Greedy" << endl;
-	now = time(NULL);
-	strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
-
-	result.algorithm = "ppf1_Greedy";
-	result.graphName = GraphHelper::getGraphNameFromPath(graphName);
-	result.numEdges = num_edges(g);
-	result.numVertices = num_vertices(g);
-	result.timeStamp = std::string(buff);
-	result.iter = nOfRunsDefault;
-
-	durationsPerRun.resize(result.iter);
-
-	for (int nOfThreads = 1; nOfThreads < nOfMaxThreads; nOfThreads++) {
-
-		//actualIter = nOfThreads * 10 + 1;
-		//if (actualIter > result.iter) { actualIter = result.iter; }
-		actualIter = result.iter;
-
-		std::cout << "#Run " << actualIter << " times with " << nOfThreads << " threads" << std::endl;
-
-		for (int run = 0; run < actualIter; run++) {
-			mates = initialMatchingGreedy;
-			t = Timer();
-			ppf1(g, first_right, mates, nOfThreads);
-
-			elapsed = t.elapsed();
-			durationsPerRun[run] = elapsed;
-		}
-
-		numThreads.push_back(nOfThreads);
-		durations.push_back(durationsPerRun);
-	}
-
-	result.numThreads = numThreads;
-	result.durations = durations;
-
-	GraphHelper::printOutput(result, "");	
-	
-	numThreads.clear();
-	durations.clear();
-	durationsPerRun.clear();
-	mates.clear();
-
-  // --------------------------------------------------------------------------------------------------------------------------
-  // PPF 2
-  // --------------------------------------------------------------------------------------------------------------------------
-	std::cout << "#Run ppf2 with Karp Sipser" << endl;
-	now = time(NULL);
-	strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
-
-	result.algorithm = "ppf2_KS";
-	result.graphName = GraphHelper::getGraphNameFromPath(graphName);
-	result.numEdges = num_edges(g);
-	result.numVertices = num_vertices(g);
-	result.timeStamp = std::string(buff);
-	result.iter = nOfRunsDefault;
-
-	durationsPerRun.resize(result.iter);
-
-
-	for (int nOfThreads = 1; nOfThreads < nOfMaxThreads; nOfThreads++) {
-
-		//actualIter = nOfThreads * 10 + 1;
-		//if (actualIter > result.iter) { actualIter = result.iter; }
-		actualIter = result.iter;
-
-		std::cout << "#Run " << actualIter << " times with " << nOfThreads << " threads" << std::endl;
-			
-		for (int run = 0; run < actualIter; run++) {
-			mates = initialMatchingKS;
-			t = Timer();
-			ppf2(g, first_right, mates, nOfThreads);
-
-			elapsed = t.elapsed();
-			durationsPerRun[run] = elapsed;
-		}
-
-		numThreads.push_back(nOfThreads);
-		durations.push_back(durationsPerRun);
-	}
-
-	result.numThreads = numThreads;
-	result.durations = durations;
-
-	GraphHelper::printOutput(result, "");
-
-	numThreads.clear();
-	durations.clear();
-	durationsPerRun.clear();
-	mates.clear();
-
-	std::cout << "#Run ppf2 with Greedy" << endl;
-	now = time(NULL);
-	strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
-
-	result.algorithm = "ppf2_Greedy";
-	result.graphName = GraphHelper::getGraphNameFromPath(graphName);
-	result.numEdges = num_edges(g);
-	result.numVertices = num_vertices(g);
-	result.timeStamp = std::string(buff);
-	result.iter = nOfRunsDefault;
-
-	durationsPerRun.resize(result.iter);
-
-	for (int nOfThreads = 1; nOfThreads < nOfMaxThreads; nOfThreads++) {
-
-		//actualIter = nOfThreads * 10 + 1;
-		//if (actualIter > result.iter) { actualIter = result.iter; }
-		actualIter = result.iter;
-
-		std::cout << "#Run " << actualIter << " times with " << nOfThreads << " threads" << std::endl;
-
-		for (int run = 0; run < actualIter; run++) {
-			mates = initialMatchingGreedy;
-			t = Timer();
-			ppf2(g, first_right, mates, nOfThreads);
-
-			elapsed = t.elapsed();
-			durationsPerRun[run] = elapsed;
-		}
-
-		numThreads.push_back(nOfThreads);
-		durations.push_back(durationsPerRun);
-	}
-
-	result.numThreads = numThreads;
-	result.durations = durations;
-
-	GraphHelper::printOutput(result, "");	
-	
-	numThreads.clear();
-	durations.clear();
-	durationsPerRun.clear();
-	mates.clear();
- 
- 
-   // --------------------------------------------------------------------------------------------------------------------------
-  // PPF 3
-  // --------------------------------------------------------------------------------------------------------------------------
-	std::cout << "#Run ppf3 with Karp Sipser" << endl;
-	now = time(NULL);
-	strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
-
-	result.algorithm = "ppf3_KS";
-	result.graphName = GraphHelper::getGraphNameFromPath(graphName);
-	result.numEdges = num_edges(g);
-	result.numVertices = num_vertices(g);
-	result.timeStamp = std::string(buff);
-	result.iter = nOfRunsDefault;
-
-	durationsPerRun.resize(result.iter);
-
-
-	for (int nOfThreads = 1; nOfThreads < nOfMaxThreads; nOfThreads++) {
-
-		//actualIter = nOfThreads * 10 + 1;
-		//if (actualIter > result.iter) { actualIter = result.iter; }
-		actualIter = result.iter;
-
-		std::cout << "#Run " << actualIter << " times with " << nOfThreads << " threads" << std::endl;
-			
-		for (int run = 0; run < actualIter; run++) {
-			mates = initialMatchingKS;
-			t = Timer();
-			ppf3(g, first_right, mates, nOfThreads);
-
-			elapsed = t.elapsed();
-			durationsPerRun[run] = elapsed;
-		}
-
-		numThreads.push_back(nOfThreads);
-		durations.push_back(durationsPerRun);
-	}
-
-	result.numThreads = numThreads;
-	result.durations = durations;
-
-	GraphHelper::printOutput(result, "");
-
-	numThreads.clear();
-	durations.clear();
-	durationsPerRun.clear();
-	mates.clear();
-
-	std::cout << "#Run ppf3 with Greedy" << endl;
-	now = time(NULL);
-	strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
-
-	result.algorithm = "ppf3_Greedy";
-	result.graphName = GraphHelper::getGraphNameFromPath(graphName);
-	result.numEdges = num_edges(g);
-	result.numVertices = num_vertices(g);
-	result.timeStamp = std::string(buff);
-	result.iter = nOfRunsDefault;
-
-	durationsPerRun.resize(result.iter);
-
-	for (int nOfThreads = 1; nOfThreads < nOfMaxThreads; nOfThreads++) {
-
-		//actualIter = nOfThreads * 10 + 1;
-		//if (actualIter > result.iter) { actualIter = result.iter; }
-		actualIter = result.iter;
-
-		std::cout << "#Run " << actualIter << " times with " << nOfThreads << " threads" << std::endl;
-
-		for (int run = 0; run < actualIter; run++) {
-			mates = initialMatchingGreedy;
-			t = Timer();
-			ppf3(g, first_right, mates, nOfThreads);
-
-			elapsed = t.elapsed();
-			durationsPerRun[run] = elapsed;
-		}
-
-		numThreads.push_back(nOfThreads);
-		durations.push_back(durationsPerRun);
-	}
-
-	result.numThreads = numThreads;
-	result.durations = durations;
-
-	GraphHelper::printOutput(result, "");	
-	
-	numThreads.clear();
-	durations.clear();
-	durationsPerRun.clear();
-	mates.clear();
- 
-  // --------------------------------------------------------------------------------------------------------------------------
-  // PPF 4
-  // --------------------------------------------------------------------------------------------------------------------------
-	std::cout << "#Run ppf4 with Karp Sipser" << endl;
-	now = time(NULL);
-	strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
-
-	result.algorithm = "ppf4_KS";
-	result.graphName = GraphHelper::getGraphNameFromPath(graphName);
-	result.numEdges = num_edges(g);
-	result.numVertices = num_vertices(g);
-	result.timeStamp = std::string(buff);
-	result.iter = nOfRunsDefault;
-
-	durationsPerRun.resize(result.iter);
-
-
-	for (int nOfThreads = 1; nOfThreads < nOfMaxThreads; nOfThreads++) {
-
-		//actualIter = nOfThreads * 10 + 1;
-		//if (actualIter > result.iter) { actualIter = result.iter; }
-		actualIter = result.iter;
-
-		std::cout << "#Run " << actualIter << " times with " << nOfThreads << " threads" << std::endl;
-			
-		for (int run = 0; run < actualIter; run++) {
-			vector<MateVisited> matchingVisited(initialMatchingKS.size());
-      			for (Vertex v = 0; v < num_vertices(g); v++) {
-				matchingVisited[v].iteration = 0;
-			        matchingVisited[v].mate = initialMatchingKS[v];
-			}	
-			t = Timer();
-			ppf4(g, first_right, matchingVisited, nOfThreads);
-
-			elapsed = t.elapsed();
-			durationsPerRun[run] = elapsed;
-		}
-
-		numThreads.push_back(nOfThreads);
-		durations.push_back(durationsPerRun);
-	}
-
-	result.numThreads = numThreads;
-	result.durations = durations;
-
-	GraphHelper::printOutput(result, "");
-
-	numThreads.clear();
-	durations.clear();
-	durationsPerRun.clear();
-	mates.clear();
-
-	std::cout << "#Run ppf4 with Greedy" << endl;
-	now = time(NULL);
-	strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
-
-	result.algorithm = "ppf4_Greedy";
-	result.graphName = GraphHelper::getGraphNameFromPath(graphName);
-	result.numEdges = num_edges(g);
-	result.numVertices = num_vertices(g);
-	result.timeStamp = std::string(buff);
-	result.iter = nOfRunsDefault;
-
-	durationsPerRun.resize(result.iter);
-
-	for (int nOfThreads = 1; nOfThreads < nOfMaxThreads; nOfThreads++) {
-
-		//actualIter = nOfThreads * 10 + 1;
-		//if (actualIter > result.iter) { actualIter = result.iter; }
-		actualIter = result.iter;
-
-		std::cout << "#Run " << actualIter << " times with " << nOfThreads << " threads" << std::endl;
-
-		for (int run = 0; run < actualIter; run++) {
-			vector<MateVisited> matchingVisited(initialMatchingGreedy.size());
-      			for (Vertex v = 0; v < num_vertices(g); v++) {
-				matchingVisited[v].iteration = 0;
-				matchingVisited[v].mate = initialMatchingGreedy[v];
+	VertexVector initialMatching(n);
+
+	std::vector<std::string> initialMatchingDesc(2);
+	initialMatchingDesc[0] = "KS";
+	initialMatchingDesc[1] = "Greedy";
+	// loop over given algorithms
+	for (auto descPair : functionArray) {
+		run functionPointer = descPair.first;
+		std::string algoName = descPair.second;
+
+		// loop over initial matching
+		for (std::string initialMatchingName : initialMatchingDesc) {
+			if (initialMatchingName == "KS") {
+				initialMatching = initialMatchingKS;
 			}
-			t = Timer();
-			ppf4(g, first_right, matchingVisited, nOfThreads);
-
-			elapsed = t.elapsed();
-			durationsPerRun[run] = elapsed;
-		}
-
-		numThreads.push_back(nOfThreads);
-		durations.push_back(durationsPerRun);
-	}
-
-	result.numThreads = numThreads;
-	result.durations = durations;
-
-	GraphHelper::printOutput(result, "");	
-	
-	numThreads.clear();
-	durations.clear();
-	durationsPerRun.clear();
-	mates.clear();
-
-  // --------------------------------------------------------------------------------------------------------------------------
-  // PPF 5
-  // --------------------------------------------------------------------------------------------------------------------------
-  /*
-	std::cout << "#Run ppf5 with Karp Sipser" << endl;
-	now = time(NULL);
-	strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
-
-	result.algorithm = "ppf5_KS";
-	result.graphName = GraphHelper::getGraphNameFromPath(graphName);
-	result.numEdges = num_edges(g);
-	result.numVertices = num_vertices(g);
-	result.timeStamp = std::string(buff);
-	result.iter = nOfRunsDefault;
-
-	durationsPerRun.resize(result.iter);
-
-
-	for (int nOfThreads = 1; nOfThreads < nOfMaxThreads; nOfThreads++) {
-
-		//actualIter = nOfThreads * 10 + 1;
-		//if (actualIter > result.iter) { actualIter = result.iter; }
-		actualIter = result.iter;
-
-		std::cout << "#Run " << actualIter << " times with " << nOfThreads << " threads" << std::endl;
-			
-		for (int run = 0; run < actualIter; run++) {
-			vector<MateVisited> matchingVisited(initialMatchingKS.size());
-			for (Vertex v = 0; v < num_vertices(g); v++) {
-				matchingVisited[v].iteration = 0;
-				matchingVisited[v].mate = initialMatchingKS[v];
+			else if (initialMatchingName == "Greedy") {
+				initialMatching = initialMatchingGreedy;
 			}
-			t = Timer();
-			ppf5(g, first_right, mates, nOfThreads);
-
-			elapsed = t.elapsed();
-			durationsPerRun[run] = elapsed;
-		}
-
-		numThreads.push_back(nOfThreads);
-		durations.push_back(durationsPerRun);
-	}
-
-	result.numThreads = numThreads;
-	result.durations = durations;
-
-	GraphHelper::printOutput(result, "");
-
-	numThreads.clear();
-	durations.clear();
-	durationsPerRun.clear();
-	mates.clear();
-
-	std::cout << "#Run ppf5 with Greedy" << endl;
-	now = time(NULL);
-	strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
-
-	result.algorithm = "ppf5_Greedy";
-	result.graphName = GraphHelper::getGraphNameFromPath(graphName);
-	result.numEdges = num_edges(g);
-	result.numVertices = num_vertices(g);
-	result.timeStamp = std::string(buff);
-	result.iter = nOfRunsDefault;
-
-	durationsPerRun.resize(result.iter);
-
-	for (int nOfThreads = 1; nOfThreads < nOfMaxThreads; nOfThreads++) {
-
-		//actualIter = nOfThreads * 10 + 1;
-		//if (actualIter > result.iter) { actualIter = result.iter; }
-		actualIter = result.iter;
-
-		std::cout << "#Run " << actualIter << " times with " << nOfThreads << " threads" << std::endl;
-
-		for (int run = 0; run < actualIter; run++) {
-			vector<MateVisited> matchingVisited(initialMatchingGreedy.size());
-			for (Vertex v = 0; v < num_vertices(g); v++) {
-				matchingVisited[v].iteration = 0;
-				matchingVisited[v].mate = initialMatchingGreedy[v];
+			else {
+				throw "Invalid initial matching given";
 			}
-			t = Timer();
-			ppf5(g, first_right, mates, nOfThreads);
 
-			elapsed = t.elapsed();
-			durationsPerRun[run] = elapsed;
+			std::cout << "#Run " << algoName << " with " << initialMatchingName << std::endl;
+			now = time(NULL);
+			strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
+
+			result.algorithm = algoName + "_" + initialMatchingName;
+			result.graphName = GraphHelper::getGraphNameFromPath(graphName);
+			result.numEdges = num_edges(g);
+			result.numVertices = num_vertices(g);
+			result.timeStamp = std::string(buff);
+			result.iter = nOfRunsDefault;
+
+			durationsPerRun.resize(result.iter);
+
+			for (int nOfThreads = nOfMinThreads; nOfThreads < nOfMaxThreads; nOfThreads+=lengthStride) {
+
+				//actualIter = nOfThreads * 10 + 1;
+				//if (actualIter > result.iter) { actualIter = result.iter; }
+				actualIter = result.iter;
+
+				//std::cout << "#Run " << actualIter << " times with " << nOfThreads << " threads" << std::endl;
+
+				std::cout << "# " << nOfThreads;
+
+				for (int run = 0; run < actualIter; run++) {
+					mates = initialMatchingKS;
+					t = Timer();
+					functionPointer(g, first_right, mates, nOfThreads);
+
+					elapsed = t.elapsed();
+					durationsPerRun[run] = elapsed;
+					std::cout << "," << elapsed << std::flush;
+				}
+				std::cout << std::endl;
+
+				numThreads.push_back(nOfThreads);
+				durations.push_back(durationsPerRun);
+			}
+
+			result.numThreads = numThreads;
+			result.durations = durations;
+
+			GraphHelper::printOutput(result, "");
+
+			numThreads.clear();
+			durations.clear();
+			durationsPerRun.clear();
+			mates.clear();
 		}
-
-		numThreads.push_back(nOfThreads);
-		durations.push_back(durationsPerRun);
 	}
 
-	result.numThreads = numThreads;
-	result.durations = durations;
-
-	GraphHelper::printOutput(result, "");	
-	
-	numThreads.clear();
-	durations.clear();
-	durationsPerRun.clear();
-	mates.clear();
-
-*/
   // --------------------------------------------------------------------------------------------------------------------------
   // PF
   // --------------------------------------------------------------------------------------------------------------------------
 
-	std::cout << "#Run pf with KS" << endl;
-	now = time(NULL);
-	strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
+	if (run_pf) {
+		std::cout << "#Run pf with KS" << endl;
+		now = time(NULL);
+		strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
 
-	result.algorithm = "pf_KS";
-	result.graphName = GraphHelper::getGraphNameFromPath(graphName);
-	result.numEdges = num_edges(g);
-	result.numVertices = num_vertices(g);
-	result.timeStamp = std::string(buff);
-	result.iter = nOfRunsDefault;
+		result.algorithm = "pf_KS";
+		result.graphName = GraphHelper::getGraphNameFromPath(graphName);
+		result.numEdges = num_edges(g);
+		result.numVertices = num_vertices(g);
+		result.timeStamp = std::string(buff);
+		result.iter = nOfRunsDefault;
 
-	durationsPerRun.resize(result.iter);
+		durationsPerRun.resize(result.iter);
 
-	std::cout << "#Run " << result.iter << " times with " << 1 << " threads" << std::endl;
-	for (int run = 0; run < result.iter; run++) {
-		mates = initialMatchingKS;
-		t = Timer();
-		pf(g, first_right, mates);
+		std::cout << "# " << "1";
 
-		elapsed = t.elapsed();
-		durationsPerRun[run] = elapsed;
+		//std::cout << "#Run " << result.iter << " times with " << 1 << " threads" << std::endl;
+		for (int run = 0; run < result.iter; run++) {
+			mates = initialMatchingKS;
+			t = Timer();
+			pf(g, first_right, mates);
+
+			elapsed = t.elapsed();
+			durationsPerRun[run] = elapsed;
+			std::cout << "," << elapsed << std::flush;
+		}
+		std::cout << std::endl;
+
+		numThreads.push_back(1);
+		durations.push_back(durationsPerRun);
+
+		result.numThreads = numThreads;
+		result.durations = durations;
+
+		GraphHelper::printOutput(result, "");
+
+		numThreads.clear();
+		durations.clear();
+		durationsPerRun.clear();
+		mates.clear();
+
+
+		std::cout << "#Run pf with Greedy" << endl;
+		now = time(NULL);
+		strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
+
+		result.algorithm = "pf_Greedy";
+		result.graphName = GraphHelper::getGraphNameFromPath(graphName);
+		result.numEdges = num_edges(g);
+		result.numVertices = num_vertices(g);
+		result.timeStamp = std::string(buff);
+		result.iter = nOfRunsDefault;
+
+		durationsPerRun.resize(result.iter);
+
+		std::cout << "# " << "1";
+		//std::cout << "#Run " << result.iter << " times with " << 1 << " threads" << std::endl;
+		for (int run = 0; run < result.iter; run++) {
+			mates = initialMatchingGreedy;
+			t = Timer();
+			pf(g, first_right, mates);
+
+			elapsed = t.elapsed();
+			durationsPerRun[run] = elapsed;
+			std::cout << "," << elapsed << std::flush;
+		}
+		std::cout << std::endl;
+
+		numThreads.push_back(1);
+		durations.push_back(durationsPerRun);
+
+		result.numThreads = numThreads;
+		result.durations = durations;
+
+		GraphHelper::printOutput(result, "");
+
+		numThreads.clear();
+		durations.clear();
+		durationsPerRun.clear();
+		mates.clear();
 	}
-
-	numThreads.push_back(1);
-	durations.push_back(durationsPerRun);
-
-	result.numThreads = numThreads;
-	result.durations = durations;
-
-	GraphHelper::printOutput(result, "");
-
-	numThreads.clear();
-	durations.clear();
-	durationsPerRun.clear();
-	mates.clear();
-
-
-	std::cout << "#Run pf with Greedy" << endl;
-	now = time(NULL);
-	strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
-
-	result.algorithm = "pf_Greedy";
-	result.graphName = GraphHelper::getGraphNameFromPath(graphName);
-	result.numEdges = num_edges(g);
-	result.numVertices = num_vertices(g);
-	result.timeStamp = std::string(buff);
-	result.iter = nOfRunsDefault;
-
-	durationsPerRun.resize(result.iter);
-
-
-	std::cout << "#Run " << result.iter << " times with " << 1 << " threads" << std::endl;
-	for (int run = 0; run < result.iter; run++) {
-		mates = initialMatchingGreedy;
-		t = Timer();
-		pf(g, first_right, mates);
-
-		elapsed = t.elapsed();
-		durationsPerRun[run] = elapsed;
-	}
-
-	numThreads.push_back(1);
-	durations.push_back(durationsPerRun);
-
-	result.numThreads = numThreads;
-	result.durations = durations;
-
-	GraphHelper::printOutput(result, "");
 
 }
 
@@ -640,7 +262,6 @@ int main(int argc, char* argv[]) {
 	}
 
 	try {
-		
 		runBenchmarks(argv[1]);
 		return 0;
 
