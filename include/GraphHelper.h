@@ -27,12 +27,6 @@ class GraphHelper {
         static void readGraphFromFile(Graph& g, Vertex& first_right, const std::string& filePath);
         static void writeGraphToFile(const std::string& filePath, const Graph& g, const Vertex& first_right);
         static bool isMaximumMatching(const VertexVector& matching, const Graph& g); 
-		// karp sipser using samuels matching method 
-        static VertexVector karpSipser(const Graph& g);
-		// kind of karp sipser very fast but no break
-        static VertexVector ks(const Graph& g);
-        static VertexVector parallelKarpSipser(const Graph& g, Vertex first_right); 
-        static VertexVector greedyMatching(const Graph& g);
         static void printOutput(const BenchmarkResult& result, const std::string& outPath);
 		static std::string getGraphNameFromPath(const std::string& graphPath);
 };
