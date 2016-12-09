@@ -36,3 +36,9 @@ build
 
 # boost
 boost_1_62_0/**
+
+# Plot test output
+./plot/output/test
+
+# Python IDE files
+./plot/scripts/.r*
