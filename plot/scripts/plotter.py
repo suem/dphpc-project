@@ -4,7 +4,10 @@
 # The value line holds the values in the same order as the description line for the benchmark seperated by commatas
 # The last entry of the description is "Durations" which may have an arbitrary number of values
 
+import matplotlib as mpl
+mpl.use("Agg")
 
+from matplotlib.ticker import FormatStrFormatter
 import pandas as pd
 import random
 import matplotlib.pyplot as plt
@@ -46,7 +49,7 @@ def main():
     # iterate through speedup plots files and process the files
     speedupPath = os.path.join(DATA_PATH, "speedup")
     for subdir, dirs, files in os.walk(speedupPath):
-        for file in files: 
+        for file in files:
             processSpeedupFile(os.path.join(subdir, file));
 
 
@@ -55,17 +58,17 @@ This function will take the location of a file with speedup values as an
 argument and will convert the file content to a speedup plot diagram
 """
 def processSpeedupFile(filePath):
-    print("Process Speedup file: ") 
+    print("Process Speedup file: ")
     print(filePath)
 
     (header, data) = parseBenchmarkFile(filePath)
 
-
-
     # set up seaborn plot
     sns.set_style("whitegrid")
+    sns.set_context("talk")
     fig = plt.figure(figsize=(30,200))
     ax = fig.add_subplot(111)
+
 
     # set up labels
     ax.set_xlabel("Number of threads", fontsize = 20)
@@ -77,7 +80,8 @@ def processSpeedupFile(filePath):
     for plotType in [ 'box', 'violin', 'strip']:
         sns_factor_plot = sns.factorplot(x="NumThreads", y="Speedup", hue="Algorithm", data=data, size=10, aspect=2, kind=plotType)
         sns_factor_plot.fig.get_axes()[0].set_yscale('log', basey=2)
-        sns_factor_plot.savefig(filename = "C:/test/" + getOutputFileName(header, 'factorplot_' + plotType, 'png'))
+        sns_factor_plot.ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
+        sns_factor_plot.savefig(filename = OUTPUT_DIR + "/test/" + getOutputFileName(header, 'factorplot_' + plotType, 'png'))
 
     #sns_box_plot = sns.boxplot(x = "numThreads", y = "duration", hue = "algorithm", data = data)
     #sns_box_plot.savefig(filename = "C:/test/" + getOutputFileName(header, 'boxplot', 'png'))
@@ -90,14 +94,14 @@ def processTimingFile(filePath):
     pass
 
 """
-This function will take the location of a file as an argument and will 
+This function will take the location of a file as an argument and will
 convert the file content to a plot diagram
 """
 def processFile(filePath):
 
     # a list of all lines in the file
-    lines = []    
-    
+    lines = []
+
     # open file and iterate over lines
     with open(filePath) as fp:
         for line in fp:
@@ -127,7 +131,7 @@ def parseBenchmarkFile(benchmarkFilePath):
 
     header = pd.read_csv(benchmarkFilePath, nrows = 1)
     origData = pd.read_csv(benchmarkFilePath, comment = '#', skiprows = 2)
-    
+
     shape = origData.shape
     columnsNames = ["Speedup", "NumThreads", "Algorithm"]
 
@@ -143,7 +147,7 @@ def parseBenchmarkFile(benchmarkFilePath):
         durationsArray = origData[numThreadsStr]
 
         newMatrix = []
-        for row in range(0, len(durationsArray)):            
+        for row in range(0, len(durationsArray)):
             if row == 0:
                 # Remove cold start
                 continue
@@ -160,7 +164,7 @@ def parseBenchmarkFile(benchmarkFilePath):
             subArray = data[data.NumThreads == 1]["Speedup"]
             sequentialScaler = np.average(subArray)
 
-         
+
     data = pd.concat(subDataFrames, ignore_index = True)
 
     return (header, data)
@@ -183,7 +187,7 @@ def parseBenchmarkFile(benchmarkFilePath):
     # special treatment for durations as there may be arbitrary many
     benchmarkDict[descriptionList[index]] = valueList[index:]
 
-    return benchmarkDict    
+    return benchmarkDict
     """
 
 """
@@ -227,10 +231,10 @@ def getOutputFileName(header, plotStyle = "", extension = ""):
 #sns.set_stype('whitegrid')
 
 #sns_plot = sns.lmplot('x', 'y', data=df, fit_reg=False)
-#sns_plot.savefig('output.png')    
+#sns_plot.savefig('output.png')
 
 #df = pd.DataFrame()
-    
+
 #df = sns.load_dataset("exercise")
 
 #g = sns.factorplot(x="time", y="pulse", hue="kind", col="diet", data=df,
