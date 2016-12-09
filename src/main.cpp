@@ -75,9 +75,9 @@ void runBenchmarks(const std::string& graphName) {
 	std::cout << "#Karp Sipser Initial Matching: " << (float)matching_size_ks / (float)matching_size_solution << "% optimal" << endl;
 	std::cout << "#Greedy Initial Matching: " << (float)matching_size_greedy / (float)matching_size_solution << "% optimal" << endl;
 
-	int nOfRunsDefault = 55;
+	int nOfRunsDefault = 5;
 	int nOfMinThreads = 1;
-	int nOfMaxThreads = 251;
+	int nOfMaxThreads = 5;
 	int lengthStride = 1;
 
 	char buff[20];
@@ -95,9 +95,9 @@ void runBenchmarks(const std::string& graphName) {
 
 	VertexVector initialMatching(n);
 
-	std::vector<std::string> initialMatchingDesc(2);
-	initialMatchingDesc[0] = "KS";
-	initialMatchingDesc[1] = "Greedy";
+	std::vector<std::string> initialMatchingDesc;
+	initialMatchingDesc.push_back("KS");
+	initialMatchingDesc.push_back("Greedy");
 	// loop over given algorithms
 	for (auto descPair : functionArray) {
 		run functionPointer = descPair.first;
@@ -144,6 +144,9 @@ void runBenchmarks(const std::string& graphName) {
 					functionPointer(g, first_right, mates, nOfThreads);
 
 					elapsed = t.elapsed();
+
+					verify_matching(g, mates, matching_size_solution);
+
 					durationsPerRun[run] = elapsed;
 					std::cout << "," << elapsed << std::flush;
 				}
@@ -168,89 +171,64 @@ void runBenchmarks(const std::string& graphName) {
   // --------------------------------------------------------------------------------------------------------------------------
   // PF
   // --------------------------------------------------------------------------------------------------------------------------
-
 	if (run_pf) {
-		std::cout << "#Run pf with KS" << endl;
-		now = time(NULL);
-		strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
+		// loop over initial matching
+		for (std::string initialMatchingName : initialMatchingDesc) {
+			if (initialMatchingName == "KS") {
+				initialMatching = initialMatchingKS;
+			}
+			else if (initialMatchingName == "Greedy") {
+				initialMatching = initialMatchingGreedy;
+			}
+			else {
+				throw "Invalid initial matching given";
+			}
 
-		result.algorithm = "pf_KS";
-		result.graphName = GraphHelper::getGraphNameFromPath(graphName);
-		result.numEdges = num_edges(g);
-		result.numVertices = num_vertices(g);
-		result.timeStamp = std::string(buff);
-		result.iter = nOfRunsDefault;
+			std::cout << "#Run pf with " << initialMatchingName << std::endl;
+			now = time(NULL);
+			strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
 
-		durationsPerRun.resize(result.iter);
+			result.algorithm = "pf_" + initialMatchingName;
+			result.graphName = GraphHelper::getGraphNameFromPath(graphName);
+			result.numEdges = num_edges(g);
+			result.numVertices = num_vertices(g);
+			result.timeStamp = std::string(buff);
+			result.iter = nOfRunsDefault;
 
-		std::cout << "# " << "1";
+			durationsPerRun.resize(result.iter);
 
-		//std::cout << "#Run " << result.iter << " times with " << 1 << " threads" << std::endl;
-		for (int run = 0; run < result.iter; run++) {
-			mates = initialMatchingKS;
-			t = Timer();
-			pf(g, first_right, mates);
+			actualIter = result.iter;
 
-			elapsed = t.elapsed();
-			durationsPerRun[run] = elapsed;
-			std::cout << "," << elapsed << std::flush;
+			std::cout << "# 1";
+
+			for (int run = 0; run < actualIter; run++) {
+				mates = initialMatchingKS;
+				t = Timer();
+				pf(g, first_right, mates);
+
+				elapsed = t.elapsed();
+
+				verify_matching(g, mates, matching_size_solution);
+
+				durationsPerRun[run] = elapsed;
+				std::cout << "," << elapsed << std::flush;
+			}
+			std::cout << std::endl;
+
+			numThreads.push_back(1);
+			durations.push_back(durationsPerRun);
+
+			result.numThreads = numThreads;
+			result.durations = durations;
+
+			GraphHelper::printOutput(result, "");
+
+			numThreads.clear();
+			durations.clear();
+			durationsPerRun.clear();
+			mates.clear();
 		}
-		std::cout << std::endl;
-
-		numThreads.push_back(1);
-		durations.push_back(durationsPerRun);
-
-		result.numThreads = numThreads;
-		result.durations = durations;
-
-		GraphHelper::printOutput(result, "");
-
-		numThreads.clear();
-		durations.clear();
-		durationsPerRun.clear();
-		mates.clear();
-
-
-		std::cout << "#Run pf with Greedy" << endl;
-		now = time(NULL);
-		strftime(buff, 20, "%Y-%m-%d_%H%M%S", localtime(&now));
-
-		result.algorithm = "pf_Greedy";
-		result.graphName = GraphHelper::getGraphNameFromPath(graphName);
-		result.numEdges = num_edges(g);
-		result.numVertices = num_vertices(g);
-		result.timeStamp = std::string(buff);
-		result.iter = nOfRunsDefault;
-
-		durationsPerRun.resize(result.iter);
-
-		std::cout << "# " << "1";
-		//std::cout << "#Run " << result.iter << " times with " << 1 << " threads" << std::endl;
-		for (int run = 0; run < result.iter; run++) {
-			mates = initialMatchingGreedy;
-			t = Timer();
-			pf(g, first_right, mates);
-
-			elapsed = t.elapsed();
-			durationsPerRun[run] = elapsed;
-			std::cout << "," << elapsed << std::flush;
-		}
-		std::cout << std::endl;
-
-		numThreads.push_back(1);
-		durations.push_back(durationsPerRun);
-
-		result.numThreads = numThreads;
-		result.durations = durations;
-
-		GraphHelper::printOutput(result, "");
-
-		numThreads.clear();
-		durations.clear();
-		durationsPerRun.clear();
-		mates.clear();
 	}
-
 }
 
 int main(int argc, char* argv[]) {
