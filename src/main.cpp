@@ -75,9 +75,9 @@ void runBenchmarks(const std::string& graphName) {
 	std::cout << "#Karp Sipser Initial Matching: " << (float)matching_size_ks / (float)matching_size_solution << "% optimal" << endl;
 	std::cout << "#Greedy Initial Matching: " << (float)matching_size_greedy / (float)matching_size_solution << "% optimal" << endl;
 
-	int nOfRunsDefault = 5;
+	int nOfRunsDefault = 55;
 	int nOfMinThreads = 1;
-	int nOfMaxThreads = 5;
+	int nOfMaxThreads = 251;
 	int lengthStride = 1;
 
 	char buff[20];
