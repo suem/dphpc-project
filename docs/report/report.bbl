@@ -1,0 +1,24 @@
+\begin{thebibliography}{1}
+
+\bibitem{Pothen:1990}
+Alex Pothen and Chin-Ju Fan,
+\newblock ``Computing the block triangular form of a sparse matrix,''
+\newblock {\em ACM Trans. Math. Softw.}, vol. 16, no. 4, pp. 303--324, Dec.
+  1990.
+
+\bibitem{Azad:2012}
+A.~Azad, M.~Halappanavar, S.~Rajamanickam, E.~G. Boman, A.~Khan, and A.~Pothen,
+\newblock ``Multithreaded algorithms for maximum matching in bipartite
+  graphs,''
+\newblock in {\em 2012 IEEE 26th International Parallel and Distributed
+  Processing Symposium}, May 2012, pp. 860--872.
+
+\bibitem{Azad:2015}
+Ariful Azad, Aydin Buluç, and Alex Pothen,
+\newblock ``A parallel tree grafting algorithm for maximum cardinality matching
+  in bipartite graphs,''
+\newblock in {\em Proceedings of the 2015 IEEE International Parallel and
+  Distributed Processing Symposium}, Washington, DC, USA, 2015, IPDPS '15, pp.
+  1075--1084, IEEE Computer Society.
+
+\end{thebibliography}
