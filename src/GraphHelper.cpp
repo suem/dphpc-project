@@ -33,7 +33,7 @@ Graph GraphHelper::generateRandomGraph(int numNodes, float density, Vertex& firs
     return g;
 }
 
-void GraphHelper::readGraphFromFile(Graph& g, Vertex& first_right, const std::string& filePath) {
+void GraphHelper::readGraphFromFile(Graph& g, Vertex& first_right, vertex_size_t& matching_size_soluton, const std::string& filePath) {
     std::ifstream inFile(filePath);
     if (inFile.fail()) std::cerr << "Error while reading from file" << std::endl;
 
@@ -41,6 +41,7 @@ void GraphHelper::readGraphFromFile(Graph& g, Vertex& first_right, const std::st
 
     inFile >> numNodes;
     inFile >> first_right;
+	inFile >> matching_size_soluton;
     g = Graph(numNodes);
 
     while (inFile >> u >> v) boost::add_edge(u, v, g);

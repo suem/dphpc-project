@@ -41,9 +41,10 @@ void runBenchmarks(const std::string& graphName) {
 
 	std::cout << "#Reading Graph" << endl;
 
+	vertex_size_t matching_size_solution;
 	Vertex first_right;
 	Graph g;
-	GraphHelper::readGraphFromFile(g, first_right, graphName);
+	GraphHelper::readGraphFromFile(g, first_right, matching_size_solution, graphName);
 	vertex_size_t n = num_vertices(g);
 	vertex_size_t e = num_edges(g);
 	std::cout << "#vertices: " << n << " edges: " << e << endl;
@@ -59,7 +60,6 @@ void runBenchmarks(const std::string& graphName) {
 	vertex_size_t matching_size_ks = boost::matching_size(g, &initialMatchingKS[0]);
 	std::cout << "#karp sipser matching took: " << el << ", size = " << matching_size_ks << endl;
 
-
 	std::cout << "#Run greedy to get initial matching" << endl;
 	t = Timer();
 	VertexVector initialMatchingGreedy(n);
@@ -68,13 +68,9 @@ void runBenchmarks(const std::string& graphName) {
 	vertex_size_t matching_size_greedy = boost::matching_size(g, &initialMatchingGreedy[0]);
 	std::cout << "#greedy matching took: " << el << ", size = " << matching_size_greedy << endl;
 
-	std::cout << "#Computing Solution with pf" << endl;
-	VertexVector solution_mates = matching_size_greedy < matching_size_ks ? initialMatchingKS : initialMatchingGreedy;
-	pf(g, first_right, solution_mates);
-	vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
-
-	std::cout << "#Karp Sipser Initial Matching: " << (float)matching_size_ks / (float)matching_size_solution << "% optimal" << endl;
-	std::cout << "#Greedy Initial Matching: " << (float)matching_size_greedy / (float)matching_size_solution << "% optimal" << endl;
+	std::cout << "#Maximum Matching Size:" << matching_size_solution << endl;
+	std::cout << "#Karp Sipser Initial Matching: " << 100.0 * (float)matching_size_ks / (float)matching_size_solution << "% optimal" << endl;
+	std::cout << "#Greedy Initial Matching: " << 100.0 * (float)matching_size_greedy / (float)matching_size_solution << "% optimal" << endl;
 
 	int nOfRunsDefault = 55;
 	int nOfMinThreads = 1;
@@ -229,6 +225,47 @@ void runBenchmarks(const std::string& graphName) {
 	}
 }
 
+void getMatchingSizeSolution(const std::string& graphName) {
+	std::cout << "#Reading Graph" << endl;
+
+	vertex_size_t matching_size_solution_dummy;
+	Vertex first_right;
+	Graph g;
+	GraphHelper::readGraphFromFile(g, first_right, matching_size_solution_dummy, graphName);
+	vertex_size_t n = num_vertices(g);
+	vertex_size_t e = num_edges(g);
+	std::cout << "#vertices: " << n << " edges: " << e << endl;
+
+	std::cout << "#Verifying if bipartite" << endl;
+	verify_bipartite(g);
+
+	std::cout << "#Run karp sipser to get initial matching" << endl;
+	Timer t = Timer();
+	VertexVector initialMatchingKS(n);
+	InitialMatching::karp_sipser(g, first_right, initialMatchingKS);
+	double el = t.elapsed();
+	vertex_size_t matching_size_ks = boost::matching_size(g, &initialMatchingKS[0]);
+	std::cout << "#karp sipser matching took: " << el << ", size = " << matching_size_ks << endl;
+
+	std::cout << "#Run greedy to get initial matching" << endl;
+	t = Timer();
+	VertexVector initialMatchingGreedy(n);
+	simple_greedy_matching(g, initialMatchingGreedy);
+	el = t.elapsed();
+	vertex_size_t matching_size_greedy = boost::matching_size(g, &initialMatchingGreedy[0]);
+	std::cout << "#greedy matching took: " << el << ", size = " << matching_size_greedy << endl;
+
+	std::cout << "#Computing Solution with pf" << endl;
+	VertexVector solution_mates = matching_size_greedy < matching_size_ks ? initialMatchingKS : initialMatchingGreedy;
+	pf(g, first_right, solution_mates);
+	vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
+
+	std::cout << "#Maximum Matching Size:" << matching_size_solution << endl;
+	std::cout << "#Karp Sipser Initial Matching: " << 100.0 * (float)matching_size_ks / (float)matching_size_solution << "% optimal" << endl;
+	std::cout << "#Greedy Initial Matching: " << 100.0 * (float)matching_size_greedy / (float)matching_size_solution << "% optimal" << endl;
+
+}
+
 int main(int argc, char* argv[]) {
 	std::ios::sync_with_stdio(false);
 
@@ -239,6 +276,9 @@ int main(int argc, char* argv[]) {
 
 	try {
 		runBenchmarks(argv[1]);
+		return 0;
+
+		getMatchingSizeSolution(argv[1]);
 		return 0;
 
 	} catch (const char* error) {
