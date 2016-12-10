@@ -41,7 +41,7 @@ void runBenchmarks(const std::string& graphName) {
 
 	std::cout << "#Reading Graph" << endl;
 
-	vertex_size_t matching_size_solution;
+	unsigned long matching_size_solution;
 	Vertex first_right;
 	Graph g;
 	GraphHelper::readGraphFromFile(g, first_right, matching_size_solution, graphName);
@@ -61,7 +61,7 @@ void runBenchmarks(const std::string& graphName) {
 	VertexVector initialMatchingKS(n);
 	InitialMatching::karp_sipser(g, first_right, initialMatchingKS);
 	double el = t.elapsed();
-	vertex_size_t matching_size_ks = boost::matching_size(g, &initialMatchingKS[0]);
+	unsigned long matching_size_ks = boost::matching_size(g, &initialMatchingKS[0]);
 	std::cout << "#karp sipser matching took: " << el << "s, size = " << matching_size_ks << endl;
 
 	std::cout << "#Run greedy to get initial matching" << endl;
@@ -69,12 +69,12 @@ void runBenchmarks(const std::string& graphName) {
 	VertexVector initialMatchingGreedy(n);
 	simple_greedy_matching(g, initialMatchingGreedy);
 	el = t.elapsed();
-	vertex_size_t matching_size_greedy = boost::matching_size(g, &initialMatchingGreedy[0]);
+	unsigned long matching_size_greedy = boost::matching_size(g, &initialMatchingGreedy[0]);
 	std::cout << "#greedy matching took: " << el << "s, size = " << matching_size_greedy << endl;
 
 	std::cout << "#Maximum Matching Size: " << matching_size_solution << " edges" << endl;
-	std::cout << "#Karp Sipser Initial Matching: " << 100.0 * (float)matching_size_ks / (float)matching_size_solution << "% optimal" << endl;
-	std::cout << "#Greedy Initial Matching: " << 100.0 * (float)matching_size_greedy / (float)matching_size_solution << "% optimal" << endl;
+	std::cout << "#Karp Sipser Initial Matching: " << 100.0 * (double) matching_size_ks / (double) matching_size_solution << "% optimal" << endl;
+	std::cout << "#Greedy Initial Matching: " << 100.0 * (double) matching_size_greedy / (double) matching_size_solution << "% optimal" << endl;
 
 	int nOfRunsDefault = 55;
 	int nOfMinThreads = 1;

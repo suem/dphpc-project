@@ -14,8 +14,8 @@ inline void verify_bipartite(const Graph& g) {
     if (!bp) throw "Graph not bipartite";
 }
 
-inline void verify_matching(const Graph& g, const VertexVector& mate, size_t max_matching_size) {
-    vertex_size_t matching_size = boost::matching_size(g, &mate[0]);
+inline void verify_matching(const Graph& g, const VertexVector& mate, unsigned long max_matching_size) {
+    unsigned long matching_size = boost::matching_size(g, &mate[0]);
 
     VertexIterator start, end;
     for (std::tie(start, end) = boost::vertices(g); start != end; start++) {

@@ -33,7 +33,7 @@ Graph GraphHelper::generateRandomGraph(int numNodes, float density, Vertex& firs
     return g;
 }
 
-void GraphHelper::readGraphFromFile(Graph& g, Vertex& first_right, vertex_size_t& matching_size_soluton, const std::string& filePath) {
+void GraphHelper::readGraphFromFile(Graph& g, Vertex& first_right, unsigned long& matching_size_soluton, const std::string& filePath) {
     std::ifstream inFile(filePath);
     if (inFile.fail()) std::cerr << "Error while reading from file" << std::endl;
 
@@ -65,7 +65,7 @@ bool GraphHelper::isMaximumMatching(const VertexVector& matching, const Graph& g
         vertex_size_t n = num_vertices(g);
         VertexVector solution_mates(n);
         boost::edmonds_maximum_cardinality_matching(g, &solution_mates[0]);
-        vertex_size_t matching_size_solution = boost::matching_size(g, &solution_mates[0]);
+        unsigned long matching_size_solution = boost::matching_size(g, &solution_mates[0]);
         verify_matching(g, matching, matching_size_solution);
     }
     catch (std::string error) {
