@@ -16,8 +16,8 @@
 #include "ppf3.h"
 #include "ppf4.h"
 #include "tree_grafting.h"
-#include "unsync_pothen_fan.h"
-#include "Timer.h" 
+#include "pothen_fan.h"
+#include "Timer.h"
 
 using namespace boost;
 using namespace std;
@@ -31,7 +31,8 @@ void runPTG(const Graph& g, Vertex first_right, VertexVector& mate, int numThrea
 void runBenchmarks(const std::string& graphName) {
 	std::vector<std::pair<run, std::string>> functionArray;
 
-	functionArray.push_back(std::make_pair(&ppf1, "ppf1"));
+	//functionArray.push_back(std::make_pair(&ppf1, "ppf1")); // dont use this, currently incorrect
+	functionArray.push_back(std::make_pair(&parallel_pothen_fan, "ppf1"));
 	functionArray.push_back(std::make_pair(&ppf2, "ppf2"));
 	functionArray.push_back(std::make_pair(&ppf3, "ppf3"));
 	functionArray.push_back(std::make_pair(&runPTG, "ptg"));
