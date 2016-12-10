@@ -161,5 +161,10 @@ void ppf1(const Graph& g, Vertex first_right, VertexVector& mate, int numThreads
 
 	} while (path_found);
 
+#pragma omp parallel num_threads(nt)
+#pragma omp for
+	// update matchings for left vertices
+	for (int y = first_right; y < n; y++) if (is_matched(y, mate)) mate[mate[y]] = static_cast<int>(y);
+
 }
 

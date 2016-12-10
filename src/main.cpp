@@ -31,13 +31,17 @@ void runPTG(const Graph& g, Vertex first_right, VertexVector& mate, int numThrea
 void runBenchmarks(const std::string& graphName) {
 	std::vector<std::pair<run, std::string>> functionArray;
 
-	//functionArray.push_back(std::make_pair(&ppf1, "ppf1")); // dont use this, currently incorrect
-	functionArray.push_back(std::make_pair(&parallel_pothen_fan, "ppf1"));
+	functionArray.push_back(std::make_pair(&ppf1, "ppf1"));
 	functionArray.push_back(std::make_pair(&ppf2, "ppf2"));
 	functionArray.push_back(std::make_pair(&ppf3, "ppf3"));
 	functionArray.push_back(std::make_pair(&runPTG, "ptg"));
 
+	//bool run_pf = false;
 	bool run_pf = true;
+
+	//bool verify_solution = false;
+	bool verify_solution = true;
+
 
 	std::cout << "#Reading Graph" << endl;
 
@@ -145,7 +149,9 @@ void runBenchmarks(const std::string& graphName) {
 
 					elapsed = t.elapsed();
 
-					verify_matching(g, mates, matching_size_solution);
+					if (verify_solution) {
+						verify_matching(g, mates, matching_size_solution);
+					}
 
 					durationsPerRun[run] = elapsed;
 					std::cout << "," << elapsed << std::flush;
@@ -206,7 +212,9 @@ void runBenchmarks(const std::string& graphName) {
 
 				elapsed = t.elapsed();
 
-				verify_matching(g, mates, matching_size_solution);
+				if (verify_solution) {
+					verify_matching(g, mates, matching_size_solution);
+				}
 
 				durationsPerRun[run] = elapsed;
 				std::cout << "," << elapsed << std::flush;

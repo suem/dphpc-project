@@ -27,10 +27,16 @@ inline void verify_matching(const Graph& g, const VertexVector& mate, unsigned l
     }
 
     if (matching_size < max_matching_size) {
-		std::cout << matching_size << " < " << max_matching_size << std::endl;
+        std::cout <<  " Matching too small  " << std::endl;
+		std::cout << matching_size  << std::endl;
+        std::cout << " < "<< std::endl;
+        std::cout << max_matching_size << std::endl;
 		throw "matching not maximal";
     } else if (matching_size > max_matching_size) {
-		std::cout << matching_size << " > " << max_matching_size << std::endl;
+        std::cout <<  " Matching too large  " << std::endl;
+		std::cout << matching_size << std::endl;
+        std::cout << " > " << std::endl;
+        std::cout << max_matching_size << std::endl;
         throw "matching incorrect, too large";
     }
 }
