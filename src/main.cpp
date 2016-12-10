@@ -93,7 +93,6 @@ void runBenchmarks(const std::string& graphName) {
 
 	VertexVector mates;
 
-	VertexVector initialMatching(n);
 
 	std::vector<std::string> initialMatchingDesc;
 	initialMatchingDesc.push_back("KS");
@@ -105,15 +104,6 @@ void runBenchmarks(const std::string& graphName) {
 
 		// loop over initial matching
 		for (std::string initialMatchingName : initialMatchingDesc) {
-			if (initialMatchingName == "KS") {
-				initialMatching = initialMatchingKS;
-			}
-			else if (initialMatchingName == "Greedy") {
-				initialMatching = initialMatchingGreedy;
-			}
-			else {
-				throw "Invalid initial matching given";
-			}
 
 			std::cout << "#Run " << algoName << " with " << initialMatchingName << std::endl;
 			now = time(NULL);
@@ -139,7 +129,16 @@ void runBenchmarks(const std::string& graphName) {
 				std::cout << "# " << nOfThreads;
 
 				for (int run = 0; run < actualIter; run++) {
-					mates = initialMatchingKS;
+
+					VertexVector mates;
+					if (initialMatchingName == "KS") {
+						mates = initialMatchingKS;
+					} else if (initialMatchingName == "Greedy") {
+						mates = initialMatchingGreedy;
+					} else {
+						throw "Invalid initial matching given";
+					}
+
 					t = Timer();
 					functionPointer(g, first_right, mates, nOfThreads);
 
@@ -174,15 +173,6 @@ void runBenchmarks(const std::string& graphName) {
 	if (run_pf) {
 		// loop over initial matching
 		for (std::string initialMatchingName : initialMatchingDesc) {
-			if (initialMatchingName == "KS") {
-				initialMatching = initialMatchingKS;
-			}
-			else if (initialMatchingName == "Greedy") {
-				initialMatching = initialMatchingGreedy;
-			}
-			else {
-				throw "Invalid initial matching given";
-			}
 
 			std::cout << "#Run pf with " << initialMatchingName << std::endl;
 			now = time(NULL);
@@ -202,7 +192,14 @@ void runBenchmarks(const std::string& graphName) {
 			std::cout << "# 1";
 
 			for (int run = 0; run < actualIter; run++) {
-				mates = initialMatchingKS;
+				VertexVector mates;
+				if (initialMatchingName == "KS") {
+					mates = initialMatchingKS;
+				} else if (initialMatchingName == "Greedy") {
+					mates = initialMatchingGreedy;
+				} else {
+					throw "Invalid initial matching given";
+				}
 				t = Timer();
 				pf(g, first_right, mates);
 
