@@ -24,7 +24,7 @@ struct BenchmarkResult {
 class GraphHelper {
     public:
         static Graph generateRandomGraph(int numNodes, float density, Vertex& first_right);
-        static void readGraphFromFile(Graph& g, Vertex& first_right, vertex_size_t& matching_size_solution, const std::string& filePath);
+        static void readGraphFromFile(Graph& g, Vertex& first_right, unsigned long& matching_size_solution, const std::string& filePath);
         static void writeGraphToFile(const std::string& filePath, const Graph& g, const Vertex& first_right);
         static bool isMaximumMatching(const VertexVector& matching, const Graph& g); 
         static void printOutput(const BenchmarkResult& result, const std::string& outPath);

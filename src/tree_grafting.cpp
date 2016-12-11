@@ -130,6 +130,8 @@ void TreeGrafting::ms_bfs_graft() {
 		}
 
 	} while (path_found);
+
+	delete[] lookahead;
 }
 
 void TreeGrafting::top_down_bfs(TSVertexVector& F) {

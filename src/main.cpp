@@ -31,9 +31,9 @@ void runPTG(const Graph& g, Vertex first_right, VertexVector& mate, int numThrea
 void runBenchmarks(const std::string& graphName) {
 	std::vector<std::pair<run, std::string>> functionArray;
 
-	functionArray.push_back(std::make_pair(&ppf1, "ppf1"));
-	functionArray.push_back(std::make_pair(&ppf2, "ppf2"));
-	functionArray.push_back(std::make_pair(&ppf3, "ppf3"));
+	//functionArray.push_back(std::make_pair(&ppf1, "ppf1"));
+	//functionArray.push_back(std::make_pair(&ppf2, "ppf2"));
+	//functionArray.push_back(std::make_pair(&ppf3, "ppf3"));
 	functionArray.push_back(std::make_pair(&runPTG, "ptg"));
 
 	//bool run_pf = false;
@@ -240,7 +240,7 @@ void runBenchmarks(const std::string& graphName) {
 void getMatchingSizeSolution(const std::string& graphName) {
 	std::cout << "#Reading Graph" << endl;
 
-	vertex_size_t matching_size_solution_dummy;
+	unsigned long matching_size_solution_dummy;
 	Vertex first_right;
 	Graph g;
 	GraphHelper::readGraphFromFile(g, first_right, matching_size_solution_dummy, graphName);
