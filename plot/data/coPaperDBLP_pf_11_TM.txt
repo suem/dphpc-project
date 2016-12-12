@@ -1,0 +1,45 @@
+#Reading Graph
+#vertices: 1080972 edges: 15245729
+#Verifying if bipartite
+#Run karp sipser to get initial matching
+#karp sipser matching took: 1.83964s, size = 476726
+#Run greedy to get initial matching
+#greedy matching took: 1.74162s, size = 486490
+#Maximum Matching Size: 490599 edges
+#Karp Sipser Initial Matching: 97.1722% optimal
+#Greedy Initial Matching: 99.1625% optimal
+#Run pf with KS
+# 1,89.6655,89.9848,87.8728,87.4723,86.6692,85.8912,85.4548,84.3304,83.5882,82.9167,82.6178
+TimeStamp,GraphName,NumVertices,NumEdges,Algorithm
+2016-12-12_101558,coPaperDBLP,1080972,15245729,pf_KS
+Duration,NumThreads,Algorithm
+1
+89.665489
+89.984823
+87.872807
+87.472335
+86.669215
+85.891165
+85.454796
+84.330429
+83.588176
+82.916661
+82.617765
+#Run pf with Greedy
+# 1,14.5376,14.5003,14.5032,14.5081,14.5098,14.5073,14.5069,14.5051,14.5049,14.5032,14.5044
+TimeStamp,GraphName,NumVertices,NumEdges,Algorithm
+2016-12-12_103145,coPaperDBLP,1080972,15245729,pf_Greedy
+Duration,NumThreads,Algorithm
+1
+14.537632
+14.500254
+14.503207
+14.508120
+14.509824
+14.507255
+14.506860
+14.505113
+14.504852
+14.503224
+14.504442
+
