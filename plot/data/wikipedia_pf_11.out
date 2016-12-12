@@ -1,0 +1,45 @@
+#Reading Graph
+#vertices: 7030396 edges: 45030389
+#Verifying if bipartite
+#Run karp sipser to get initial matching
+#karp sipser matching took: 20.4516s, size = 1980055
+#Run greedy to get initial matching
+#greedy matching took: 18.2785s, size = 1819799
+#Maximum Matching Size: 1972239 edges
+#Karp Sipser Initial Matching: 100.396% optimal
+#Greedy Initial Matching: 92.2707% optimal
+#Run pf with KS
+# 1,254.594,250.441,247.08,243.97,241.24,238.23,235.408,232.804,232.453,230.143,232.488
+TimeStamp,GraphName,NumVertices,NumEdges,Algorithm
+2016-12-11_122602,wikipedia,7030396,45030389,pf_KS
+Duration,NumThreads,Algorithm
+1
+254.593593
+250.441003
+247.080450
+243.970059
+241.239956
+238.229858
+235.408316
+232.804009
+232.453430
+230.143293
+232.488219
+#Run pf with Greedy
+# 1,869.085,869.649,874.158,883.007,875.63,874.525,871.167,875.768,873.169,871.199,871.272
+TimeStamp,GraphName,NumVertices,NumEdges,Algorithm
+2016-12-11_131002,wikipedia,7030396,45030389,pf_Greedy
+Duration,NumThreads,Algorithm
+1
+869.085208
+869.648889
+874.158437
+883.007362
+875.630019
+874.524852
+871.167214
+875.767656
+873.168541
+871.199392
+871.272429
+

@@ -39,8 +39,8 @@ void runBenchmarks(const std::string& graphName) {
 	//bool run_pf = false;
 	bool run_pf = true;
 
-	//bool verify_solution = false;
-	bool verify_solution = true;
+	bool verify_solution = false;
+	//bool verify_solution = true;
 
 
 	std::cout << "#Reading Graph" << endl;
@@ -80,10 +80,10 @@ void runBenchmarks(const std::string& graphName) {
 	std::cout << "#Karp Sipser Initial Matching: " << 100.0 * (double) matching_size_ks / (double) matching_size_solution << "% optimal" << endl;
 	std::cout << "#Greedy Initial Matching: " << 100.0 * (double) matching_size_greedy / (double) matching_size_solution << "% optimal" << endl;
 
-	int nOfRunsDefault = 55;
-	int nOfMinThreads = 1;
+	int nOfRunsDefault = 31;
+	int nOfMinThreads = 10;
 	int nOfMaxThreads = 251;
-	int lengthStride = 1;
+	int lengthStride = 10;
 
 	char buff[20];
 	time_t now;
