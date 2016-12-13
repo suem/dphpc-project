@@ -1,6 +1,5 @@
 TimeStamp,GraphName,NumVertices,NumEdges,Algorithm
 2016-12-09_122032,gnutella30_bi,73364,176656,pf_KS
-Duration,NumThreads,Algorithm,,
 1,,,,
 0.049292,,,,
 0.047522,,,,

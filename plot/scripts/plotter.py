@@ -79,8 +79,11 @@ def processSpeedupFile(filePath):
 
     for plotType in [ 'box', 'violin', 'strip']:
         sns_factor_plot = sns.factorplot(x="NumThreads", y="Speedup", hue="Algorithm", data=data, size=10, aspect=2, kind=plotType)
-        sns_factor_plot.fig.get_axes()[0].set_yscale('log', basey=2)
+        #sns_factor_plot.fig.get_axes()[0].set_yscale('log', basey=2)
+        sns_factor_plot.set(xticks=np.arange(8, 264, 8))
+        sns_factor_plot.set(xticklabels=np.arange(8, 264, 8))
         sns_factor_plot.ax.yaxis.set_major_formatter(FormatStrFormatter('%d'))
+        sns_factor_plot.ax.set_ylim(ymin=0)
         sns_factor_plot.savefig(filename = OUTPUT_DIR + "/test/" + getOutputFileName(header, 'factorplot_' + plotType, 'png'))
 
     #sns_box_plot = sns.boxplot(x = "numThreads", y = "duration", hue = "algorithm", data = data)
@@ -137,7 +140,7 @@ def parseBenchmarkFile(benchmarkFilePath):
 
     data = pd.DataFrame(columns = columnsNames)
     subDataFrames = []
-    sequentialScaler = 0
+    sequentialScaler = 0.11525239
 
     for column in range(0, shape[1]):
         # iterate over columns
@@ -151,10 +154,7 @@ def parseBenchmarkFile(benchmarkFilePath):
             if row == 0:
                 # Remove cold start
                 continue
-            if column > 0:
-                scaled = sequentialScaler / durationsArray[row]
-            else:
-                scaled = 1
+            scaled = sequentialScaler / durationsArray[row]
             newMatrix.append([scaled, numThreadsInt, header["Algorithm"].get_values()[0]])
 
         subDataFrame = pd.DataFrame(data=newMatrix, columns = columnsNames)
