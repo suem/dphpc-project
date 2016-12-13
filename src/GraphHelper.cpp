@@ -97,9 +97,9 @@ void GraphHelper::printOutput(const BenchmarkResult& resultStruct, const std::st
 	std::cout << resultStruct.numEdges << ",";
 	std::cout << resultStruct.algorithm << std::endl;
 
+	/*New format
 	std::cout << "Duration,NumThreads,Algorithm" << std::endl;
     
-	/*New format
 	for (int nOfThreads : resultStruct.numThreads) {
 		for (int i : resultStruct.durations[nOfThreads]) {
 			std::cout << i << nOfThreads << resultStruct.algorithm << std::endl;
