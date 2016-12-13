@@ -1,0 +1,42 @@
+#Reading Graph
+#vertices: 801454 edges: 3200440
+#Verifying if bipartite
+#Run karp sipser to get initial matching
+#karp sipser matching took: 0.172133s, size = 349431
+#Run greedy to get initial matching
+#greedy matching took: 0.129758s, size = 344958
+#Maximum Matching Size: 386624 edges
+#Karp Sipser Initial Matching: 90.3801% optimal
+#Greedy Initial Matching: 89.2231% optimal
+#Run pf with KS
+# 1,48.3352,47.9859,48.0072,48.0701,48.1104,48.0288,48.2119,48.5449,48.6294,48.3536,48.3066
+TimeStamp,GraphName,NumVertices,NumEdges,Algorithm
+2016-12-13_094746,amazon0312_bi,801454,3200440,pf_KS
+1
+48.335183
+47.985875
+48.007206
+48.070058
+48.110374
+48.028761
+48.211878
+48.544887
+48.629393
+48.353608
+48.306579
+#Run pf with Greedy
+# 1,55.1949,54.1246,53.1095,53.2621,53.264,53.0836,53.1977,53.227,53.0978,53.2022,53.2525
+TimeStamp,GraphName,NumVertices,NumEdges,Algorithm
+2016-12-13_095637,amazon0312_bi,801454,3200440,pf_Greedy
+1
+55.194941
+54.124600
+53.109465
+53.262074
+53.264022
+53.083570
+53.197667
+53.226978
+53.097818
+53.202235
+53.252539
