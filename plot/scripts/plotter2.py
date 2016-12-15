@@ -32,15 +32,19 @@ def plotSpeedUp(dataPath):
     data = pd.read_csv(dataPath, index_col=0)
 
     # Convert durations to speedup value
+    # Comment this out for timing plot
     data["Dur"] = BASELINE / data["Dur"].values
 
     # Select data to plot
-    algoName="ppf1_Greedy"
-    plotData = data[(data.Algo==algoName)]
+    # Syntax: plotData = data[(data.Cloumn==Value)]
+    # It's also possible to combine multiple conditions
+    # with & (and) and | (or):
+    # plotData = data[(data.Algo=="ppf1") | (data.Algo=="ppf2")]
+    plotData = data[(data.NThread<=64) & ((data.Algo=="ppf1_KS") | (data.Algo=="ppf1_Greedy"))]
 
     # Plot style
     sns.set_style("whitegrid")
-#    sns.set_context("talk")
+    sns.set_context("talk")
 
     # Plot
     v = sns.factorplot(x="NThread", y="Dur", hue="Algo",
@@ -56,7 +60,9 @@ def plotSpeedUp(dataPath):
     plt.title("Place holder", fontsize=24)
 
     # Save plot
-    v.savefig(filename=OUT_DIR + "gnutella30_" + algoName + ".png")
+    outFileName = OUT_DIR + "gnutella30_ppf1_KS_test.png"
+    v.savefig(filename=outFileName)
+    print("Saved plot to: " + outFileName)
 
 def buildPlotData(dirPath):
     plotData = pd.DataFrame(columns=["TS", "Algo", "Graph", "NThread", "Dur"])
