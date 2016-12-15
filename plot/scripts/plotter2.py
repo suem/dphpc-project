@@ -11,8 +11,8 @@ from os.path import isfile, join, exists
 # Constants
 REBUILD_DATA = False
 COLD_START = 1
-DATA_DIR = "../data/speedup/gnutella30/"
-OUT_DIR = "../output/speedup/gnutella30/"
+DATA_DIR = "../data/speedup/coPaper/"
+OUT_DIR = "../output/speedup/coPaper/"
 PLOT_DATA = "plotData.csv"
 BASELINE = 0.11525239
 
@@ -40,7 +40,7 @@ def plotSpeedUp(dataPath):
     # It's also possible to combine multiple conditions
     # with & (and) and | (or):
     # plotData = data[(data.Algo=="ppf1") | (data.Algo=="ppf2")]
-    plotData = data[(data.NThread<=64) & ((data.Algo=="ppf1_KS") | (data.Algo=="ppf1_Greedy"))]
+    plotData = data[(data.Algo=="ppf1_KS")]
 
     # Plot style
     sns.set_style("whitegrid")
@@ -60,7 +60,7 @@ def plotSpeedUp(dataPath):
     plt.title("Place holder", fontsize=24)
 
     # Save plot
-    outFileName = OUT_DIR + "gnutella30_ppf1_KS_test.png"
+    outFileName = OUT_DIR + "coPaper_pf_KS_test.png"
     v.savefig(filename=outFileName)
     print("Saved plot to: " + outFileName)
 
@@ -80,7 +80,7 @@ def buildPlotData(dirPath):
 
 def loadTransform(filePath):
     header = pd.read_csv(filePath, comment='#', nrows=1).dropna(axis=1)
-    data = pd.read_csv(filePath, comment='#', skiprows=2)
+    data = pd.read_csv(filePath, comment='#', skiprows=2).dropna(axis=1)
 
     newHeader = ["TS", "Algo", "Graph", "NThread", "Dur"]
     newData = pd.DataFrame(columns=newHeader)
