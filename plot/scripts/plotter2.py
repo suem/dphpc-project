@@ -5,16 +5,23 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
+from matplotlib.legend_handler import HandlerLine2D
 from os import listdir, remove
 from os.path import isfile, join, exists
 
+
 # Constants
-REBUILD_DATA = False
+
+GRAPH = "coPaperDBLP"
+#GRAPH = "wikipedia"
+SPEEDUP_PLOT = True
+# SPEEDUP_PLOT = False
+
+REBUILD_DATA = True
 COLD_START = 1
-DATA_DIR = "../data/speedup/coPaper/"
-OUT_DIR = "../output/speedup/coPaper/"
-PLOT_DATA = "plotData.csv"
-BASELINE = 0.11525239
+DATA_DIR = "../data/speedup/" + GRAPH + "/"
+OUT_DIR = "../output/speedup/" + GRAPH + "/"
+PLOT_DATA = "plotData" + GRAPH + ".csv"
 
 def main():
     # If REBUILD_DATA is True, delete old data
@@ -31,36 +38,96 @@ def main():
 def plotSpeedUp(dataPath):
     data = pd.read_csv(dataPath, index_col=0)
 
+
     # Convert durations to speedup value
     # Comment this out for timing plot
-    data["Dur"] = BASELINE / data["Dur"].values
+
+    baseline_ks = data[data['Algo'] == 'pf_KS']['Dur'].median()
+    print(baseline_ks)
+    baseline_greedy = data[data['Algo'] == 'pf_Greedy']['Dur'].median()
+    print(baseline_greedy)
+    if SPEEDUP_PLOT:
+        for index, row in data.iterrows():
+            if row['Algo'].endswith('KS'):
+                data.set_value(index, 'Dur', baseline_ks / data['Dur'][index])
+            if row['Algo'].endswith('Greedy'):
+                data.set_value(index, 'Dur', baseline_greedy / data['Dur'][index])
 
     # Select data to plot
     # Syntax: plotData = data[(data.Cloumn==Value)]
     # It's also possible to combine multiple conditions
     # with & (and) and | (or):
     # plotData = data[(data.Algo=="ppf1") | (data.Algo=="ppf2")]
-    plotData = data[(data.Algo=="ppf1_KS")]
+    #plotData = data[(data.Algo=="ppf3_KS")]
+
+
+    # plotData = data[(data.Algo=="ppfTAS_Greedy") | (data.Algo=="ppfTTAS_Greedy")]
+    # title = "TAS vs TTAS (coPaperDBLP)"
+    # outFileName = OUT_DIR + GRAPH + "TASvsTTAS.png"
+
+
+    # plotData = data[(data.Algo=="pf_Greedy_i7") | (data.Algo=="pf_Greedy") | (data.Algo=="ppfTTAS_Greedy")]
+    # title = "Runtimes (coPaperDBLP)"
+    # outFileName = OUT_DIR + GRAPH + "runtimes.png"
+
+
+    # plotData = data[(data.Algo=="ppfTTAS_Greedy")]
+    # title = "Speedup (coPaperDBLP)"
+    # outFileName = OUT_DIR + GRAPH + "speedup.png"
+
+
+    # plotData = data[(data.Algo=="ptg_Greedy") | (data.Algo=="ppfTTAS_Greedy")]
+    # title = "Speedup (coPaperDBLP)"
+    # outFileName = OUT_DIR + GRAPH + "speedup_tg.png"
+
+
+    # plotData = data[(data.Algo=="ppfTTAS_KS") | (data.Algo=="ppfTTAS_Greedy")]
+    # title = "Speedup (wikipedia)"
+    # outFileName = OUT_DIR + GRAPH + "speedup_matching.png"
+
+    plotData = data[(data.Algo=="ppfTTAS_KS") | (data.Algo=="ppfTTAS_Greedy")]
+    title = "Speedup (coPaperDBLP)"
+    outFileName = OUT_DIR + GRAPH + "speedup_matching.png"
+
+    # plotData = data[(data.Algo=="ppfTTAS_KS") | (data.Algo=="ppfTTAS_Greedy")]
+    # title = "Runtimes (coPaperDBLP)"
+    # outFileName = OUT_DIR + GRAPH + "runtimes_matching.png"
+
+    # plotData = data[(data.Algo=="ppfTTAS_KS") | (data.Algo=="ppfTTAS_Greedy")]
+    # title = "Runtimes (wikipedia)"
+    # outFileName = OUT_DIR + GRAPH + "runtimes_matching.png"
+
 
     # Plot style
     sns.set_style("whitegrid")
     sns.set_context("talk")
+    sns.set_style('whitegrid', {'legend.frameon': True})
 
     # Plot
-    v = sns.factorplot(x="NThread", y="Dur", hue="Algo",
-             data=plotData, size=10, aspect=2, kind="violin")
+    #kind = "violin"
+    kind = "point"
+    # kind = "box"
+    v = sns.factorplot(x="NThread", y="Dur", hue="Algo", data=plotData, size=10, aspect=2, kind=kind, legend_out=False)
+    plt.legend(loc='center right', fontsize='20')
+
+    # v.despine(left=True)
 
     # Graphical options
-    v.set(xticks=np.arange(8, 264, 8))
-    v.set(xticklabels=np.arange(8, 264, 8))
-    v.ax.yaxis.set_major_formatter(FormatStrFormatter("%d"))
+    #v.set(xticks=np.arange(8, 264, 8))
+    #v.set(xticklabels=np.arange(8, 264, 8))
+    formatStr = "%.2f"
+    label = "Runtime [s]"
+    if SPEEDUP_PLOT:
+        formatStr = "%d"
+        label = "Speedup"
+
+    v.ax.yaxis.set_major_formatter(FormatStrFormatter(formatStr))
     v.ax.set_ylim(ymin=0)
-    v.ax.set_xlabel("Number of threads", fontsize=20)
-    v.ax.set_ylabel("Speedup", fontsize=20)
-    plt.title("Place holder", fontsize=24)
+    v.ax.set_xlabel("Number of threads", fontsize=24)
+    v.ax.set_ylabel(label, fontsize=24)
+    plt.title(title, fontsize=32)
 
     # Save plot
-    outFileName = OUT_DIR + "coPaper_pf_KS_test.png"
     v.savefig(filename=outFileName)
     print("Saved plot to: " + outFileName)
 
