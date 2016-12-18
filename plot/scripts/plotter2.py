@@ -12,10 +12,11 @@ from os.path import isfile, join, exists
 
 # Constants
 
-GRAPH = "coPaperDBLP"
-#GRAPH = "wikipedia"
+# GRAPH = "amazon"
+# GRAPH = "coPaperDBLP"
+GRAPH = "wikipedia"
+# SPEEDUP_PLOT = True
 SPEEDUP_PLOT = True
-# SPEEDUP_PLOT = False
 
 REBUILD_DATA = True
 COLD_START = 1
@@ -53,6 +54,12 @@ def plotSpeedUp(dataPath):
             if row['Algo'].endswith('Greedy'):
                 data.set_value(index, 'Dur', baseline_greedy / data['Dur'][index])
 
+        # for i in range(10,250,10):
+        #     line = {"TS": 0, "Algo": "lin", "Graph": GRAPH, "NThread": i, "Dur": i}
+        #     print(line)
+        #     data = data.append(line, ignore_index=True)
+
+
     # Select data to plot
     # Syntax: plotData = data[(data.Cloumn==Value)]
     # It's also possible to combine multiple conditions
@@ -81,13 +88,27 @@ def plotSpeedUp(dataPath):
     # outFileName = OUT_DIR + GRAPH + "speedup_tg.png"
 
 
+    plotData = data[(data.Algo=="ppfTTAS_KS") | (data.Algo=="ppfTTAS_Greedy")]
+    title = "Speedup (wikipedia)"
+    outFileName = OUT_DIR + GRAPH + "speedup_matching.png"
+
     # plotData = data[(data.Algo=="ppfTTAS_KS") | (data.Algo=="ppfTTAS_Greedy")]
-    # title = "Speedup (wikipedia)"
+    # title = "Speedup (coPaperDBLP)"
     # outFileName = OUT_DIR + GRAPH + "speedup_matching.png"
 
-    plotData = data[(data.Algo=="ppfTTAS_KS") | (data.Algo=="ppfTTAS_Greedy")]
-    title = "Speedup (coPaperDBLP)"
-    outFileName = OUT_DIR + GRAPH + "speedup_matching.png"
+    # plotData = data[(data.Algo=="ppfTTAS_KS")]
+    # title = "Speedup (amazon)"
+    # outFileName = OUT_DIR + GRAPH + "speedupg.png"
+
+
+    # plotData = data[(data.Algo=="ppfTTAS_KS")]
+    # title = "Speedup (amazon)"
+    # outFileName = OUT_DIR + GRAPH + "speedupg.png"
+
+
+    # plotData = data[(data.Algo=="ppfTTAS_KS")]
+    # title = "Runtimes (amazon)"
+    # outFileName = OUT_DIR + GRAPH + "runtime.png"
 
     # plotData = data[(data.Algo=="ppfTTAS_KS") | (data.Algo=="ppfTTAS_Greedy")]
     # title = "Runtimes (coPaperDBLP)"
@@ -104,11 +125,13 @@ def plotSpeedUp(dataPath):
     sns.set_style('whitegrid', {'legend.frameon': True})
 
     # Plot
-    #kind = "violin"
+    # kind = "violin"
     kind = "point"
     # kind = "box"
     v = sns.factorplot(x="NThread", y="Dur", hue="Algo", data=plotData, size=10, aspect=2, kind=kind, legend_out=False)
-    plt.legend(loc='center right', fontsize='20')
+    plt.legend(loc='upper right', fontsize='20')
+    if SPEEDUP_PLOT:
+        plt.plot(np.linspace(0,24), np.linspace(10,250), 'k')
 
     # v.despine(left=True)
 
@@ -120,9 +143,13 @@ def plotSpeedUp(dataPath):
     if SPEEDUP_PLOT:
         formatStr = "%d"
         label = "Speedup"
+        v.ax.set_ylim(ymin=0, ymax=360)
+        # v.set(yticks=np.arange(0, 260, 10))
+    else:
+        v.ax.set_ylim(ymin=0)
+
 
     v.ax.yaxis.set_major_formatter(FormatStrFormatter(formatStr))
-    v.ax.set_ylim(ymin=0)
     v.ax.set_xlabel("Number of threads", fontsize=24)
     v.ax.set_ylabel(label, fontsize=24)
     plt.title(title, fontsize=32)
