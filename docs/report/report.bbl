@@ -21,4 +21,12 @@ Ariful Azad, Aydin Buluç, and Alex Pothen,
   Distributed Processing Symposium}, Washington, DC, USA, 2015, IPDPS '15, pp.
   1075--1084, IEEE Computer Society.
 
+\bibitem{Ramos:2013}
+S.~Ramos and T.~Hoefler,
+\newblock ``{Modeling Communication in Cache-Coherent SMP Systems - A
+  Case-Study with Xeon Phi},''
+\newblock in {\em Proceedings of the 22nd international symposium on
+  High-performance parallel and distributed computing}. Jun. 2013, pp. 97--108,
+  ACM.
+
 \end{thebibliography}

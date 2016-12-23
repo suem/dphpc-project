@@ -77,7 +77,11 @@ Bla bla
 
 \section{Background: Algorithms for Maximum Matching in Bipartite Graphs}\label{sec:background}
 
+\mypar{Maximum Matching}
+What is the problem?
 
+\mypar{State of the Art}
+Best algorithms to solve this at the moment (parallel and sequential), as well as O(..) considerations
 
 %Give a short, self-contained summary of necessary
 %background information. For example, assume you present an
@@ -111,7 +115,7 @@ Bla bla
 
 Focus on Pothen-Fan \cite{Azad:2012} but also report Tree Grafting \cite{Azad:2015} for completeness
 
-\subsection{Pothen-Fan}\label{sec:pfopt}
+\subsection{Pothen-Fan}\label{sec:pf}
 
 \mypar{Parallel Pothen-Fan} 
 Pseudocode for parallel ppf
@@ -125,6 +129,16 @@ number of operations, number of moves, what if whole graph fits into cache, etc
 \mypar{Optimizations}
 Test and Test and Set, Locality, Use only half of the visited array, set only half of the matching vector while setting the rest last, etc
 
+\subsection{Tree Grafting}\label{sec:tg}
+
+Paper \cite{Azad:2015} claims that PPF is not well suited for many thin cores.
+
+\mypar{Parallel Tree Grafting} 
+Pseudocode for parallel tg
+
+\mypar{Optimizations}
+Same optimizations as PPF version 3 for the augmenting paths. Non-blocking queue as a data structure. 
+
 \section{Experimental Results}\label{sec:exp}
 
 %Here you evaluate your work using experiments. You start again with a
@@ -135,12 +149,21 @@ Test and Test and Set, Locality, Use only half of the visited array, set only ha
 %as well as the compiler, version, and flags used. If your work is about performance, 
 %I strongly recommend that you play with optimization flags and consider also icc for additional potential speedup.
 
-Xeon Phi, GCC, -O3
+Xeon Phi (5110P), GCC, -O3, 60 simplified Intel CPU cores running at 1056 MHz and supports 4 threads per core, resulting in a total of 240 threads. Each core has a 32kb L1 data cache, a 32kb L1 instruction cache and a private 512 kb L2 unified cache. \cite{Ramos:2013}
 
 %Then explain what kind of benchmarks you ran. The idea is to give enough information so the experiments are reproducible by somebody else on his or her code.
 %For sorting you would talk about the input sizes. For a tool that performs NUMA optimization, you would specify the programs you ran.
+\mypar{Test Data}
 
-Benchmarks
+List our graphs
+
+\mypar{Benchmarks}
+
+Sequential Pothen-Fan
+
+\mypar{Verification}
+
+Boost Edmonds
 
 \mypar{Results}
 %Next divide the experiments into classes, one paragraph for each. In each class of experiments you typically pursue one questions that then is answered by a suitable plot or plots. For example, first you may want to investigate the performance behavior with changing input size, then how your code compares to external benchmarks.
@@ -166,7 +189,9 @@ Benchmarks
 
 \section{Conclusions}
 
-Super linear speedup because of caching effects
+Super linear speedup because of caching effects\\
+PPF scales well on Xeon Phi\\
+Tree Grafting results from the paper could not be reproduced.
 %
 %Here you need to summarize what you did and why this is
 %important. {\em Do not take the abstract} and put it in the past
