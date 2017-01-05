@@ -29,4 +29,9 @@ S.~Ramos and T.~Hoefler,
   High-performance parallel and distributed computing}. Jun. 2013, pp. 97--108,
   ACM.
 
+\bibitem{BoostEdmonds}
+``Boost edmonds: Maximum cardinality matching,''
+  \url{http://www.boost.org/doc/libs/1_36_0/libs/graph/doc/maximum_matching.html},
+\newblock Accessed: 2017-01-05.
+
 \end{thebibliography}

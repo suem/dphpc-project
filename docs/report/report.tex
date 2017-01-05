@@ -4,7 +4,7 @@
 % --------------------------------------------------------------------------
 
 \documentclass[letterpaper]{article}
-\usepackage{spconf,amsmath,amssymb,graphicx,epstopdf}
+\usepackage{spconf,amsmath,amssymb,graphicx,epstopdf,url,float}
 
 % Example definitions.
 % --------------------
@@ -38,17 +38,14 @@
 %in this order), and the main result.  The abstract has to be
 %self-contained and readable for a person in the general area. You
 %should write the abstract last.
-Maximum cardinality matching, focus on existing algorithms and optimize the parallel versions in a highly multithreaded environment. Focus on Pothen-Fan, reason about performance.
+Maximum cardinality matching, focus on existing algorithms and optimize the parallel versions in a highly multi-threaded environment. Focus on Pothen-Fan, reason about performance.
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
 
-Bla bla
+\mypar{Motivation} Graph matching has several applications in computer science, for example the marriage problem or computing the block triangular form (BTF) of a sparse matrix \cite{Pothen:1990}. Bipartite graph matching is also a special case of a network flow problem. As data gets bigger, we are interested in the performance of the algorithms that solve these problems.
 
-
-\mypar{Motivation} Graph matching has several applications in computer science, for example the marriage problem or computing the block triangular form (BTF) of a sparse matrix \cite{Pothen:1990}. As data gets bigger, the performance of algorithms that solve these problems gets more and more important. 
-
-\mypar{Related work} \cite{Azad:2012} \cite{Azad:2015} 
+\mypar{Related work} Two parallel algorithms that we are testing on Xeon Phi \cite{Azad:2012} \cite{Azad:2015} 
 
 %Do not start the introduction with the abstract or a slightly modified
 %version. It follows a possible structure of the introduction. 
@@ -78,10 +75,13 @@ Bla bla
 \section{Background: Algorithms for Maximum Matching in Bipartite Graphs}\label{sec:background}
 
 \mypar{Maximum Matching}
-What is the problem?
+Given a graph $G = (V, E)$, where $V$ are the vertices and $E$ the edges, a matching $M$ in the graph is a subset of its edges such that no edge in $M$ shares a vertex with another edge in $M$. A matching $M$ in $G$ is \textit{maximal} if there is no other matching $M' \neq M$ such that $M \subset M'$. A maximal matching $M$ is a \textit{maximum} matching of the graph, if there is no other matching $M'$ such that $\lvert M' \rvert > \lvert M \rvert$. 
 
 \mypar{State of the Art}
 Best algorithms to solve this at the moment (parallel and sequential), as well as O(..) considerations
+
+\mypar{Initial Matching}
+Explain greedy matching, enhanced greedy matching (ours) and karp-siper initial matching.
 
 %Give a short, self-contained summary of necessary
 %background information. For example, assume you present an
@@ -134,7 +134,7 @@ Test and Test and Set, Locality, Use only half of the visited array, set only ha
 Paper \cite{Azad:2015} claims that PPF is not well suited for many thin cores.
 
 \mypar{Parallel Tree Grafting} 
-Pseudocode for parallel tg
+Explain parallel tree grafting.
 
 \mypar{Optimizations}
 Same optimizations as PPF version 3 for the augmenting paths. Non-blocking queue as a data structure. 
@@ -154,16 +154,27 @@ Xeon Phi (5110P), GCC, -O3, 60 simplified Intel CPU cores running at 1056 MHz an
 %Then explain what kind of benchmarks you ran. The idea is to give enough information so the experiments are reproducible by somebody else on his or her code.
 %For sorting you would talk about the input sizes. For a tool that performs NUMA optimization, you would specify the programs you ran.
 \mypar{Test Data}
-
-List our graphs
-
+To test our algorithms, we have used several graphs from real-world examples. The graphs and their attributes are listed in \ref{table:testdata}. 
+\begin{table}
+\centering
+\begin{tabular}{ |l|l|l|l| }
+\hline
+ & $\lvert V \rvert$ & $\lvert E \rvert$ & Density \\ \hline
+coPaperDBLP & 1'080'872 & 15'245'732 & $5.22\mathrm{e}{-5}$ \\ \hline
+Wikipedia & 7'030'396 & 45'030'392 & $3.64\mathrm{e}{-6}$ \\ \hline
+Amazon0312 & 801'454 & 3'200'440 & $1.99\mathrm{e}{-5}$ \\ \hline
+Gnutella & 73'364 & 176'656 & $1.31\mathrm{e}{-4}$ \\ \hline
+\end{tabular}
+\caption{Test data used for benchmarks. $\lvert V \rvert$ is the number of vertices, $\lvert E \rvert$ the number of edges. The density describes the sparseness of the graph, where $0.0$ represents an empty graph and $1.0$ a fully connected bipartite graph.}
+\label{table:testdata}
+\end{table}
 \mypar{Benchmarks}
 
 Sequential Pothen-Fan
 
 \mypar{Verification}
 
-Boost Edmonds
+We use the \textit{Edmonds Maximum Cardinality Matching} algorithm \cite{BoostEdmonds} from the Boost Graph library  to verify the correctness of our implementations.
 
 \mypar{Results}
 %Next divide the experiments into classes, one paragraph for each. In each class of experiments you typically pursue one questions that then is answered by a suitable plot or plots. For example, first you may want to investigate the performance behavior with changing input size, then how your code compares to external benchmarks.
