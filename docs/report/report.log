@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9) (preloaded format=pdflatex 2016.6.21)  5 JAN 2017 17:12
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (MiKTeX 2.9) (preloaded format=pdflatex 2016.6.21)  8 JAN 2017 15:42
 entering extended mode
 **./report.tex
 (report.tex
@@ -244,6 +244,18 @@ Overfull \hbox (7.34795pt too wide) in paragraph at lines 126--128
 -ber of moves,
  []
 
+
+Overfull \hbox (16.2866pt too wide) in paragraph at lines 137--145
+\OT1/ptm/m/n/10 matched ver-tices and con-structs a for-est of al-ter-nat-ing (
+matched-
+ []
+
+
+Overfull \hbox (10.69698pt too wide) in paragraph at lines 137--145
+\OT1/ptm/m/n/10 fol-lows the im-ple-men-ta-tion de-scribed in the pa-per very c
+losely.
+ []
+
 [1{C:/ProgramData/MiKTeX/2.9/pdftex/config/pdftex.map}
 
 
@@ -265,9 +277,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 33--36
 \OT1/pcr/m/n/10 0 / libs / graph / doc / maximum _ matching .
  []
 
-) [2
-
-] (report.aux) ) 
+) [2] (report.aux) ) 
 Here is how much of TeX's memory you used:
  2637 strings out of 493335
  34644 string characters out of 3136686
@@ -276,16 +286,16 @@ Here is how much of TeX's memory you used:
  20289 words of font info for 54 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
  42i,10n,26p,485b,248s stack positions out of 5000i,500n,10000p,200000b,50000s
-{C:/Program Files (x86)/MiKTeX 2.9/fonts/enc/dvips/fontname/8r.
-enc}<C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pf
-b><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb><
-C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:
-/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/Pr
-ogram Files (x86)/MiKTeX 2.9/fonts/type1/urw/courier/ucrr8a.pfb><C:/Program Fil
-es (x86)/MiKTeX 2.9/fonts/type1/urw/times/utmb8a.pfb><C:/Program Files (x86)/Mi
-KTeX 2.9/fonts/type1/urw/times/utmr8a.pfb><C:/Program Files (x86)/MiKTeX 2.9/fo
-nts/type1/urw/times/utmri8a.pfb>
-Output written on report.pdf (2 pages, 104365 bytes).
+{C:/Program Files (x86)/MiKTeX 2.9/fonts/enc/dvips/fontname
+/8r.enc}<C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi1
+0.pfb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.p
+fb><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb
+><C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C
+:/Program Files (x86)/MiKTeX 2.9/fonts/type1/urw/courier/ucrr8a.pfb><C:/Program
+ Files (x86)/MiKTeX 2.9/fonts/type1/urw/times/utmb8a.pfb><C:/Program Files (x86
+)/MiKTeX 2.9/fonts/type1/urw/times/utmr8a.pfb><C:/Program Files (x86)/MiKTeX 2.
+9/fonts/type1/urw/times/utmri8a.pfb>
+Output written on report.pdf (2 pages, 105364 bytes).
 PDF statistics:
  42 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)

@@ -131,13 +131,17 @@ Test and Test and Set, Locality, Use only half of the visited array, set only ha
 
 \subsection{Tree Grafting}\label{sec:tg}
 
-Paper \cite{Azad:2015} claims that PPF is not well suited for many thin cores.
+The second algorithm we examined that solves the problem of maximum matching on bipartite graphs is the Tree Grafting algorithm, as described in \cite{Azad:2015}. One of the paper's conclusions is that Tree Grafting performs better over Pothen-Fan on architectures with many thin cores, which the Xeon Phi essentially is. \\
+We give a short overview of the algorithm we have implemented and on the optimizations we did.
 
 \mypar{Parallel Tree Grafting} 
-Explain parallel tree grafting.
-
+Parallel Tree Grafting (PTG) takes a bipartite graph and an initial matching $M $as input and returns a maximum matching by updating $M$.
+PTG is - like Pothen-Fan - a multi-source searching algorithm. It starts to search for augmenting paths from different unmatched vertices and constructs a forest of alternating (matched-unmatched) trees.\\
+The main difference to Pothen-Fan lies then in the reuse of already found trees. Pothen-Fan forgets about the trees it has previously found and starts again extending the augmenting paths with at most one vertex in every iteration. \\
+PTG however keeps track of augmenting trees which can still be extended (active trees) and then grafts other trees to the active trees to prolong the augmenting paths contained in them.\\
+For a more detailed explanation of the PTG algorithm including pseudocode, see \cite{Azad:2015}.\\
 \mypar{Optimizations}
-Same optimizations as PPF version 3 for the augmenting paths. Non-blocking queue as a data structure. 
+Our implementation of the PTG algorithm follows the implementation described in the paper very closely. To build the augmenting paths, we have used the same optimizations as already described in our best version of  PPF. To store the pointers to the root, leaf and other nodes the PTG algorithm utilizes, we have implemented our own version of a non-blocking queue as a data structure. 
 
 \section{Experimental Results}\label{sec:exp}
 
@@ -154,7 +158,7 @@ Xeon Phi (5110P), GCC, -O3, 60 simplified Intel CPU cores running at 1056 MHz an
 %Then explain what kind of benchmarks you ran. The idea is to give enough information so the experiments are reproducible by somebody else on his or her code.
 %For sorting you would talk about the input sizes. For a tool that performs NUMA optimization, you would specify the programs you ran.
 \mypar{Test Data}
-To test our algorithms, we have used several graphs from real-world examples. The graphs and their attributes are listed in \ref{table:testdata}. 
+To test our algorithms, we have used several graphs from real-world examples. The graphs and their attributes are listed in \ref{table:testdata}. \\
 \begin{table}
 \centering
 \begin{tabular}{ |l|l|l|l| }
