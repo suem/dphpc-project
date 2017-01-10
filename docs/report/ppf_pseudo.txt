@@ -1,0 +1,50 @@
+Input: 
+Bipartite graph G = (V = X + Y, E)
+Initial matching M'
+Output: maximum cardinality matching M
+
+procedure PPF(G=(V=X+Y,E), M'):
+    M[v] <- M'[v], v in V   //copy with provided initial matching
+    lookahead[v] <- first neighbor of i, i in X // initalize lookahead array
+    iteration <- 0
+    visited[y] <- iteration, y in Y // 
+    repeat
+        iteration <- iteration + 1 // increase iteration
+        path_found <- 0
+        for all unmatched vertices x in X in parallel do
+            found <- find_and_augment(x);
+            if found then
+                path_found <- 1
+    until path_found = 0
+    M[M[y]] <- y, y in Y, y not unmatched
+
+
+procedure find_and_augment(x):
+    // Lookahead Step
+    for all y in adj[x] starting at lookahead[x] do
+        lookahead[x] <- next neighbor of x
+        if y is umatched then
+            claimed <- claim(y)
+            if claimed then
+                M[y] <- x // make x the mate of y
+                return 1
+    // Recursive Step
+    for all y in adj[x] do
+        claimed <- claim(y)
+        if claimed then
+            success <- find_and_augment(M[y]) // recursive search
+            if success then
+                M[y] <- x
+                return 1
+    return 0
+
+        
+procedure claim_TAS(y):
+    return atomic_exchange(visited[y], iteration) < iteration
+
+
+procedure claim_TTAS(y):
+    if visited[y] < iteration then
+        return atomic_exchange(visited[y], iteration) < iteration
+    else
+        return 0

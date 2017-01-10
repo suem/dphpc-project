@@ -75,7 +75,7 @@ Maximum cardinality matching, focus on existing algorithms and optimize the para
 \section{Background: Algorithms for Maximum Matching in Bipartite Graphs}\label{sec:background}
 
 \mypar{Maximum Matching}
-Given a graph $G = (V, E)$, where $V$ are the vertices and $E$ the edges, a matching $M$ in the graph is a subset of its edges such that no edge in $M$ shares a vertex with another edge in $M$. A matching $M$ in $G$ is \textit{maximal} if there is no other matching $M' \neq M$ such that $M \subset M'$. A maximal matching $M$ is a \textit{maximum} matching of the graph, if there is no other matching $M'$ such that $\lvert M' \rvert > \lvert M \rvert$. 
+Given a bipartite graph $G = (X \cup Y, E)$, where $V = X \cup Y$ are the vertices and $E$ the edges. The vertex set $V$ is partitioned into two disjoint subsets $X$ and $Y$ such that there are only edges between $X$ and $Y$. A matching $M$ in the graph is a subset of its edges such that no edge in $M$ shares a vertex with another edge in $M$. A matching $M$ in $G$ is \textit{maximal} if there is no other matching $M' \neq M$ such that $M \subset M'$. A maximal matching $M$ is a \textit{maximum} matching of the graph, if there is no other matching $M'$ such that $\lvert M' \rvert > \lvert M \rvert$. 
 
 \mypar{State of the Art}
 Best algorithms to solve this at the moment (parallel and sequential), as well as O(..) considerations
@@ -116,9 +116,16 @@ Explain greedy matching, enhanced greedy matching (ours) and karp-siper initial 
 Focus on Pothen-Fan \cite{Azad:2012} but also report Tree Grafting \cite{Azad:2015} for completeness
 
 \subsection{Pothen-Fan}\label{sec:pf}
+The work on the Pothen-Fan algorithm is the main part of our project. 
+In this section we give a description of the algorithm based on \cite{Azad:2012} and present the
+details of our implementation with a focus on the techniques we used to increase performance. In addition we also give a brief technical analysis of the theoretical complexity using the PRAM model.
 
-\mypar{Parallel Pothen-Fan} 
-Pseudocode for parallel ppf
+
+\mypar{Parallel Pothen-Fan}
+The original Pothen-Fan algorithm \cite{Pothen:1990} computes the maximum cardinality matching by finding augmenting paths. Azad et al. \cite{Azad:2012} presented a parallel version of Pothen-Fan where multiple augmenting paths can be found in parallel. 
+
+
+
 
 \mypar{PRAM Analysis}
 Show DAG, worst case O(n), best case O(1) with n processors (n nodes), but real world graph are rather O(1)
