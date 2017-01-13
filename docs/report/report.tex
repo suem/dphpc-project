@@ -127,16 +127,49 @@ Explain greedy matching, enhanced greedy matching (ours) and karp-siper initial 
 %
 %Mention and cite any external resources that you used including libraries or other code.
 
-Focus on Pothen-Fan \cite{Azad:2012} but also report Tree Grafting \cite{Azad:2015} for completeness
+In this section, we describe how our PPF implementation works and how we optimized it. In addition to that, we 
+give a brief theoretical analysis of PPF using the PRAM model. Furthermore we also discuss our Tree Grafting implementation.
 
-\subsection{Pothen-Fan}\label{sec:pf}
-The work on the Pothen-Fan algorithm is the main part of our project. 
-In this section we give a description of the algorithm based on \cite{Azad:2012} and present the
-details of our implementation with a focus on the techniques we used to increase performance. In addition we also give a brief technical analysis of the theoretical complexity using the PRAM model.
 
+\subsection{Parallel-Pothen-Fan}\label{sec:pf}
+
+\mypar{Implementation}
+
+Azad et.\ al.~\cite{Azad:2012} only give a very abstract description of their PPF implementation. In addition to that there is no source code available. 
+Coming up with an efficient PPF implementation proofed to be challenging. 
+In this section we describe our PPF implementation with a focus on the practical techniques we used to match the performance of performance Azad et.\ al.\\
+
+PPF is computes the maximum cardinality matching by finding and inverting augmenting paths in parallel. 
+A detailed explanation of the principles of PPF can be found in \cite{Azad:2012}. 
+Our implementation is given in \texttt{PPF} (see algorithm~\ref{alg:ppf}). Functionally, the algorithm is equivalent to then one given by~\cite{Azad:2012} 
+but goes into more detail and has some optimizations compared to the original.\\
+
+The main loop iteratively performs multiple DFS searches in parallel to find augmenting paths. When a path is found, it is inverted to increase the matching.
+This DFS search is given in the recursive algorithm \texttt{FIND\_AND\_AUGMENT} (see algorithm~\ref{alg:fa}). Our implementation of the DFS search finds a path and then inverts the matching while returning from the recursion. 
+In practice, we used a stack based implementation of the recursive algorithm to avoid overflowing the stack as suggested by~\cite{Azad:2012}. 
+Note that our algorithm only updates the matching of nodes on the right side of the graph. The left side can be updated later, when the algorithm is done. 
+This saves unnecessary store instructions if an edge is added and removed from the matching multiple times.\\
+
+Each thread has to lock the vertices it visits. The original PPF uses a $visited$ array of boolean flags to lock a vertex. 
+All flags have to be reset after each iteration. This adds additional overhead because the resetting must be performed in the sequential phase of the algorithm.
+We solve this problem by storing the current iteration number in the $visited$ array instead of just a flag when locking a vertex. The iteration number is increasing, 
+therefore we know that a vertex is unvisited if the value in the $visited$ array is smaller than the current iteration. By using this technique, we do not have to clear
+the visited array in each iteration which saves us $|Y|$ store instructions in the sequential phase of the algorithm.\\
+
+Because all threads read and write the $visited$ array, all operations must be performed atomically to guarantee correctness because the algorithm. 
+This is a large bottleneck of the algorithm because threads are blocked by waiting for the store operations of other threads to complete. 
+In the original algorithm by Azad et.\ al.~\cite{Azad:2012}, Test-and-Set is used to claim the $visited$ array. 
+An equivalent implementation of this approach in our algorithm is given in \texttt{$CLAIM_{TAS}$} (see algorithm~\ref{alg:claim_tas}). 
+This is problematic however because Test-and-Set adds an unnecessary overhead to each failed attempt of claiming a vertex when there is no data race. 
+We solved this issue by using the Test-and-Test-and-Set approach to lock vertices (see \texttt{$CLAIM_{TTAS}$} in algorithm~\ref{alg:claim_tas}).
+Before using an atomic operation to lock a vertex, we first try a regular memory load. If the vertex is already locked we can omit the atomic operation. 
+This has the benefit of increased caching an reduced memory traffic. We experimentally verified that Test-and-Test-and-Set performs better than Test-and-Set in section XY (TODO ref).
+
+The source code of our PPF implementation is available online\footnote{\url{https://github.com/suem/dphpc-project}} for further details.
 
 \begin{algorithm}
     \caption{Parallel Pothen Fan}
+    \label{alg:ppf}
     \begin{algorithmic}[1]
         \Procedure{PPF}{$G=(V=X+Y,E), M$}
 
@@ -173,6 +206,7 @@ details of our implementation with a focus on the techniques we used to increase
 
 \begin{algorithm}
     \caption{Find and Augment}
+    \label{alg:fa}
     \begin{algorithmic}[1]
         \Procedure{find\_and\_augment}{$x$}
 
@@ -204,6 +238,7 @@ details of our implementation with a focus on the techniques we used to increase
 
 \begin{algorithm}
     \caption{Claim with Test-and-Set}
+    \label{alg:claim_tas}
     \begin{algorithmic}[1]
         \Procedure{$claim_{TAS}$}{$y$}
             \State $y\_iter \gets atomic\_exchange(visited[y], iter)$
@@ -215,6 +250,7 @@ details of our implementation with a focus on the techniques we used to increase
 
 \begin{algorithm}
     \caption{Claim with Test-and-Test-and-Set}
+    \label{alg:claim_ttas}
     \begin{algorithmic}[1]
         \Procedure{$claim_{TTAS}$}{$y$}
             \If {$visited[y] < iter$}
@@ -226,22 +262,12 @@ details of our implementation with a focus on the techniques we used to increase
     \end{algorithmic}
 \end{algorithm}
 
-
-
-\mypar{Parallel Pothen-Fan}
-The original Pothen-Fan algorithm \cite{Pothen:1990} computes the maximum cardinality matching by finding augmenting paths. Azad et al. \cite{Azad:2012} presented a parallel version of Pothen-Fan where multiple augmenting paths can be found in parallel. 
-
-
-
-
 \mypar{PRAM Analysis}
 Show DAG, worst case O(n), best case O(1) with n processors (n nodes), but real world graph are rather O(1)
 
-\mypar{Roofline Model}
-number of operations, number of moves, what if whole graph fits into cache, etc
-
-\mypar{Optimizations}
-Test and Test and Set, Locality, Use only half of the visited array, set only half of the matching vector while setting the rest last, etc
+% TODO: what do we say here?
+% \mypar{Roofline Model}
+% number of operations, number of moves, what if whole graph fits into cache, etc
 
 \subsection{Tree Grafting}\label{sec:tg}
 
