@@ -5,6 +5,20 @@
 
 \documentclass[letterpaper]{article}
 \usepackage{spconf,amsmath,amssymb,graphicx,epstopdf,url,float}
+\usepackage{algpseudocode} 
+\usepackage{algorithm}
+\usepackage{mathtools}
+
+\algnewcommand\algorithmicforeach{\textbf{for each}}
+\algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
+
+\algdef{S}[FOR]{ForEachParallel}[1]{\algorithmicforeach\ #1\ \algorithmicdo \textbf{\ parallel} }
+
+\algnewcommand{\LineComment}[1]{\State \(\triangleright\) #1}
+
+\algnewcommand\True{\textbf{true}\space}
+\algnewcommand\False{\textbf{false}\space}
+\algnewcommand\Continue{\textbf{continue}\space}
 
 % Example definitions.
 % --------------------
@@ -119,6 +133,99 @@ Focus on Pothen-Fan \cite{Azad:2012} but also report Tree Grafting \cite{Azad:20
 The work on the Pothen-Fan algorithm is the main part of our project. 
 In this section we give a description of the algorithm based on \cite{Azad:2012} and present the
 details of our implementation with a focus on the techniques we used to increase performance. In addition we also give a brief technical analysis of the theoretical complexity using the PRAM model.
+
+
+\begin{algorithm}
+    \caption{Parallel Pothen Fan}
+    \begin{algorithmic}[1]
+        \Procedure{PPF}{$G=(V=X+Y,E), M$}
+
+        \LineComment{Initialization}
+        \State $lookahead[x] \gets \text{first neighbor of x}$ \Comment{$x \in X$}
+        \State $iter \gets 0$
+        \State $visited[y] \gets iter$ \Comment{$y \in Y$}
+        \State $unmatched \gets \{x \in X, x \ \text{unmatched}\}$
+
+        \LineComment{Discover augmenting paths}
+        \Repeat 
+            \State $iter \gets iter + 1$        
+            \State $path\_found \gets \False$        
+        \ForEachParallel{$x \in unmatched$}
+            \If {$x$ matched}
+                \State \Continue \Comment{skip $x$ if already matched}
+            \EndIf
+            \State $found \gets find\_and\_augment(x)$        
+            \If {found}
+                \State $path\_found \gets \True$        
+            \EndIf
+        \EndFor
+        \Until{$path\_found = \False$}
+
+        \LineComment{Complete matching}
+        \ForEachParallel{$y \in Y$, $y$ matched}
+            \State $M[M[y] \gets y$        
+        \EndFor
+        
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}
+    \caption{Find and Augment}
+    \begin{algorithmic}[1]
+        \Procedure{find\_and\_augment}{$x$}
+
+            \LineComment{Lookahead Step}
+
+            \ForEach{$y \in adj[x]$, starting at $lookahead[x]$}
+                \State $lookahead[x] \gets \text{next neighbor of}\ x$
+                \If {$y$ is unmatched}
+                    \If {$claim(y)$}
+                        \State $M[y] \gets x$ \Comment{make $x$ the mate of $y$}
+                        \State \textbf{return} \True
+                    \EndIf
+                \EndIf
+            \EndFor
+            
+            \LineComment{Recursive Path Search}
+            \ForEach{$y \in adj[x]$}
+                \If {$claim(y)$}
+                    \State $success \gets find\_and\_augment(M[y])$
+                    \If {$success$}
+                        \State $M[y] \gets x$ \Comment{make $x$ the mate of $y$}
+                        \State \textbf{return} \True
+                    \EndIf
+                \EndIf
+            \EndFor
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+    \caption{Claim with Test-and-Set}
+    \begin{algorithmic}[1]
+        \Procedure{$claim_{TAS}$}{$y$}
+            \State $y\_iter \gets atomic\_exchange(visited[y], iter)$
+            \State \textbf{return} $y\_iter < iter$
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
+
+
+\begin{algorithm}
+    \caption{Claim with Test-and-Test-and-Set}
+    \begin{algorithmic}[1]
+        \Procedure{$claim_{TTAS}$}{$y$}
+            \If {$visited[y] < iter$}
+                \State $y\_iter \gets atomic\_exchange(visited[y], iter)$
+                \State \textbf{return} $y\_iter < iter$
+            \EndIf
+            \State \textbf{return} \False
+        \EndProcedure
+    \end{algorithmic}
+\end{algorithm}
+
 
 
 \mypar{Parallel Pothen-Fan}
