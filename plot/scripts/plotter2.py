@@ -13,7 +13,7 @@ from os.path import isfile, join, exists
 # Constants
 
 # GRAPH = "amazon"
-# GRAPH = "coPaperDBLP"
+#GRAPH = "coPaperDBLP"
 GRAPH = "wikipedia"
 # SPEEDUP_PLOT = True
 SPEEDUP_PLOT = True
@@ -34,7 +34,60 @@ def main():
 
         buildPlotData(DATA_DIR)
 
-    plotSpeedUp(DATA_DIR + PLOT_DATA)
+#   plotSpeedUp(DATA_DIR + PLOT_DATA)
+    plotBoxplot(DATA_DIR + PLOT_DATA)
+
+def plotBoxplot(dataPath):
+    data = pd.read_csv(dataPath, index_col=0)
+
+    # Speedup
+    baselineGreedy = data[(data.Algo=='pf_Greedy')].Dur.median()
+    data.loc[data['Algo']=='ppfTTAS_Greedy', 'Dur'] = baselineGreedy / data[
+            (data.Algo== 'ppfTTAS_Greedy')].Dur.get_values()
+    baselineKS = data[(data.Algo=='pf_KS')].Dur.median()
+    data.loc[data['Algo']=='ppfTTAS_KS', 'Dur'] = baselineKS / data[
+            (data.Algo=='ppfTTAS_KS')].Dur.get_values()
+
+    # Select data to plot
+    plotData = data[(data.Algo=='ppfTTAS_Greedy') |
+                    (data.Algo=='ppfTTAS_KS')]
+
+    # Plot style
+    sns.set_style("whitegrid")
+    sns.set_context("talk")
+    sns.set_style('whitegrid', {'legend.frameon': True})
+    fig = plt.figure(figsize=(30,15))
+    plt.title('Wikipedia graph', fontsize=32)
+
+
+    # Plot boxplot
+    b = sns.boxplot(x='NThread', y='Dur', hue='Algo', data=plotData,
+            notch=True, bootstrap=5000, width=0.8)
+
+    # Plot medians
+    ksData = plotData[(plotData.Algo=='ppfTTAS_KS')]
+    x_data = np.arange(0, len(ksData.NThread.unique())) + 0.195
+    y_data = ksData.groupby('NThread').Dur.median().get_values()
+    b.plot(x_data, y_data, c='g', marker='o', ls='')
+
+    grData = plotData[(plotData.Algo=='ppfTTAS_Greedy')]
+    x_data = np.arange(0, len(grData.NThread.unique())) - 0.195
+    y_data = grData.groupby('NThread').Dur.median().get_values()
+    b.plot(x_data, y_data, c='b', marker='o', ls='')
+
+    # Plot baseline
+    # b.axhline(y=baselineKS, label='pf_KS', ls='dotted', c='c')
+    # b.axhline(y=baselineGreedy, label='pf_Greedy', ls='dotted', c='r')
+
+    # Figure aesthetics
+    b.set_ylim(bottom=0)
+    b.set_xlabel('Number of threads', fontsize=22)
+    b.set_ylabel('Speedup', fontsize=22)
+    b.legend(title='Algorithm', prop={'size':22})
+    b.tick_params(labelsize=18)
+
+    plt.savefig('../output/test/' + GRAPH + '_GREEDYvsKS.png')
+    plt.close(fig)
 
 def plotSpeedUp(dataPath):
     data = pd.read_csv(dataPath, index_col=0)
