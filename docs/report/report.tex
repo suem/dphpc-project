@@ -263,11 +263,17 @@ The source code of our PPF implementation is available online\footnote{\url{http
 \end{algorithm}
 
 \mypar{PRAM Analysis}
+
 Show DAG, worst case O(n), best case O(1) with n processors (n nodes), but real world graph are rather O(1)
 
-% TODO: what do we say here?
-% \mypar{Roofline Model}
-% number of operations, number of moves, what if whole graph fits into cache, etc
+\begin{figure}
+    \begin{center}
+  \includegraphics[height=5cm, trim={2.5cm 8cm 4cm 1cm}, clip]{PRAM.pdf}
+  \end{center}
+  \caption{DAG for PRAM analysis of PPF}
+  \label{fig:pram}
+\end{figure}
+
 
 \subsection{Tree Grafting}\label{sec:tg}
 
