@@ -35,7 +35,7 @@
 %
 % Single address.
 % ---------------
-\name{Samuel Ueltschi, Conradin Roffler, Thomas Meier, Isabelle Roesch} 
+\name{Thomas Meier, Isabelle Roesch, Conradin Roffler, Samuel Ueltschi} 
 \address{Department of Computer Science\\ ETH Z\"urich\\Z\"urich, Switzerland}
 
 \begin{document}
@@ -48,11 +48,9 @@
 %or use other tricks to squeeze. This pdf is formatted in the American letter format, so the spacing may look a bit strange when printed out.
 
 \begin{abstract}
-%Describe in concise words what you do, why you do it (not necessarily
-%in this order), and the main result.  The abstract has to be
-%self-contained and readable for a person in the general area. You
-%should write the abstract last.
+
 Maximum cardinality matching, focus on existing algorithms and optimize the parallel versions in a highly multi-threaded environment. Focus on Pothen-Fan, reason about performance.
+
 \end{abstract}
 
 \section{Introduction}\label{sec:intro}
@@ -61,75 +59,39 @@ Maximum cardinality matching, focus on existing algorithms and optimize the para
 
 \mypar{Related work} Two parallel algorithms that we are testing on Xeon Phi \cite{Azad:2012} \cite{Azad:2015} 
 
-%Do not start the introduction with the abstract or a slightly modified
-%version. It follows a possible structure of the introduction. 
-%Note that the structure can be modified, but the
-%content should be the same. Introduction and abstract should fill at most the first page, better less.
-%
-%\mypar{Motivation} The first task is to motivate what you do.  You can
-%start general and zoom in one the specific problem you consider.  In
-%the process you should have explained to the reader: what you are doing,
-%why you are doing, why it is important (order is usually reversed).
-%
-%For example, if my result is the fastest sorting implementation ever, one
-%could roughly go as follows. First explain why sorting is important
-%(used everywhere with a few examples) and why performance matters (large datasets,
-%realtime). Then explain that fast implementations are very hard and
-%expensive to get (memory hierarchy, vector, parallel). 
-%
-%Now you state what you do in this paper. In our example: 
-%presenting a sorting implementation that is
-%faster for some sizes as all the other ones.
-%
-%\mypar{Related work} Next, you have to give a brief overview of
-%related work. For a report like this, anywhere between 2 and 8
-%references. Briefly explain what they do. In the end contrast to what
-%you do to make now precisely clear what your contribution is.
 
 \section{Background: Algorithms for Maximum Matching in Bipartite Graphs}\label{sec:background}
 
-\mypar{Maximum Matching}
-Given a bipartite graph $G = (X \cup Y, E)$, where $V = X \cup Y$ are the vertices and $E$ the edges. The vertex set $V$ is partitioned into two disjoint subsets $X$ and $Y$ such that there are only edges between $X$ and $Y$. A matching $M$ in the graph is a subset of its edges such that no edge in $M$ shares a vertex with another edge in $M$. A matching $M$ in $G$ is \textit{maximal} if there is no other matching $M' \neq M$ such that $M \subset M'$. A maximal matching $M$ is a \textit{maximum} matching of the graph, if there is no other matching $M'$ such that $\lvert M' \rvert > \lvert M \rvert$. 
+\mypar{Maximum Cardinality Matching in Bipartite Graphs}
+Given a bipartite graph $G = (V = X \cup Y, E)$.
+A matching $M[\cdot]: |V| \rightarrow |V| \cup \{v_{null}\}$ is a mapping that assigns each node $v$ a unique mate $M[v]$ s.t. 
+$\forall v \in V.\ M[v] \neq v_{null} \implies v = M[M[v]] \wedge \{v, M[v]\} \in E$.
+Each vertex can have at most one mate. A vertex $v$ is matched if $M[v] \neq v_{null}$. An edge is matched if its vertices are matched. 
+We call a matching a maximum cardinality matching if it maximizes the number of edges expressed by $M$. See~\cite{intro_alg} for a detailed introduction.
 
-\mypar{State of the Art}
-Best algorithms to solve this at the moment (parallel and sequential), as well as O(..) considerations
+\mypar{Augmenting Path based Algorithms}
+The algorithms presented in this report are based on augmenting paths. 
+There are other classes of algorithms for this problem, namely push-relabel~\cite{GoldbergT88} and auction based~\cite{Bertsekas}. 
+These however are not the focus of this report. 
+
+The best known sequential algorithm for bipartite maximum cardinality matching was discovered by Hopcroft and Karp~\cite{HK:1973}
+and runs in $O(|E|\cdot \sqrt{|V|})$. Another algorithm which runs in $O(|E|\cdot|V|)$ was discovered by Pothen and Fan~\cite{Pothen:1990}.
+Although this algorithm asymptotically performs worse, in practice it performs better when parallelized according to Azad et.\ al.~\cite{Azad:2012}.
+
+The core idea of both algorithm is to find so called augmenting paths. An augmenting path is a path where the edges alternate between matched an unmatched an where the first 
+and last edge are unmatched. An augmenting path can be inverted by adding every unmatched edge to the matching and removing every matched edge from the matching. 
+This will increase the size of the matching by one. 
+Augmenting path based algorithms try to find and invert such paths. If there is no more augmenting path in a graph then the matching is maximal.
 
 \mypar{Initial Matching}
-Explain greedy matching, enhanced greedy matching (ours) and karp-siper initial matching.
-
-%Give a short, self-contained summary of necessary
-%background information. For example, assume you present an
-%implementation of sorting algorithms. You could organize into sorting
-%definition, algorithms considered, and asymptotic runtime statements. The goal of the
-%background section is to make the paper self-contained for an audience
-%as large as possible. As in every section
-%you start with a very brief overview of the section. Here it could be as follows: In this section 
-%we formally define the sorting problem we consider and introduce the algorithms we use
-%including a cost analysis.
-%
-%\mypar{Sorting}
-%Precisely define sorting problem you consider.
-%
-%\mypar{Sorting algorithms}
-%Explain the algorithm you use including their costs.
-%
-%As an aside, don't talk about "the complexity of the algorithm.'' It's incorrect,
-%problems have a complexity, not algorithms.
-
+Augmenting path based algorithms benefit from starting with an initial matching. 
+A good algorithm for finding a good initial matching was discovered by Karp and Sipser~\cite{KarpS81}.
+We use Karp-Sipser and an augmented greedy version based on Karp-Sipser to get an initial matching. 
 
 \section{Algorithms and Optimizations}\label{sec:pfopt}
-%
-%Now comes the ``beef'' of the report, where you explain what you
-%did. Again, organize it in paragraphs with titles. As in every section
-%you start with a very brief overview of the section.
-%
-%In this section, structure is very important so one can follow the technical content.
-%
-%Mention and cite any external resources that you used including libraries or other code.
 
 In this section, we describe how our PPF implementation works and how we optimized it. In addition to that, we 
 give a brief theoretical analysis of PPF using the PRAM model. Furthermore we also discuss our Tree Grafting implementation.
-
 
 \subsection{Parallel-Pothen-Fan}\label{sec:pf}
 
@@ -165,7 +127,7 @@ We solved this issue by using the Test-and-Test-and-Set approach to lock vertice
 Before using an atomic operation to lock a vertex, we first try a regular memory load. If the vertex is already locked we can omit the atomic operation. 
 This has the benefit of increased caching an reduced memory traffic. We experimentally verified that Test-and-Test-and-Set performs better than Test-and-Set in section XY (TODO ref).
 
-The source code of our PPF implementation is available online\footnote{\url{https://github.com/suem/dphpc-project}} for further details.
+The source code of our PPF implementation is available online\footnote{\url{https://github.com/suem/dphpc-project}} for further details.\\
 
 \begin{algorithm}
     \caption{Parallel Pothen Fan}
@@ -264,7 +226,27 @@ The source code of our PPF implementation is available online\footnote{\url{http
 
 \mypar{PRAM Analysis}
 
-Show DAG, worst case O(n), best case O(1) with n processors (n nodes), but real world graph are rather O(1)
+The original authors of PPF did not provide a theoretical analysis of the runtime of the algorithm.
+Doing such an analysis is non-trivial as the runtime of the algorithm mainly depends on the structure of the provided
+input graph. If a graph has many non overlapping augmenting paths, then PPF performs well as there are no inter-thread conflicts. 
+However if there are many overlaps then the threads will block each other often and the algorithm can only make little progress.
+In this section we give a brief analysis of PPF using the PRAM model to illustrate the average parallelism of PPF for the best and worst case
+scenario. \\
+
+The work PPF has to perform is $O(|V|\cdot|E|)$. Finding an augmenting path requires a DFS of length at most $|E|$. 
+This has to be performed for all $|V|$ vertices. Note that PPF might perform useless work that does not contribute to the solution
+if it is blocked by another thread and has to abort the DFS. 
+The PTG algorithm described in section XY (TODO ref) attempts to mitigate this problem.\\
+
+Figure~\ref{fig:pram} illustrates the two program DAGs of PPF for the best case scenario (left) and the worst case (right).
+
+In the best case scenario, the input graph only consists of non overlapping augmenting paths. 
+Therefore all augmenting paths can be found in parallel. This is illustrated by the vertical gray node paths in the DAG.
+Therefore the maximal depth of the DAG is $|E|$, the length of a DFS. Hence PPF as an average parallelism of $O(|V|)$ in the best case.\\
+
+In the worst possible scenario, the input graph is consists of augmenting paths that always overlap. 
+Therefore only one thread will succeed per operation and the other threads can't perform any work. This is indicated by the white nodes on
+the DAG on the right. Therefore the depth of this DAG is the same as the work, yielding an average parallelism of $O(1)$.\\
 
 \begin{figure}
     \begin{center}
@@ -274,6 +256,8 @@ Show DAG, worst case O(n), best case O(1) with n processors (n nodes), but real 
   \label{fig:pram}
 \end{figure}
 
+The average parallelism of PPF lies between $O(1)$ and $O(n)$ depending on the input graph. 
+In section XY (TODO ref) we show that for real-world input data PPF achieves a speedup that is close to the optimal average parallelism
 
 \subsection{Tree Grafting}\label{sec:tg}
 
