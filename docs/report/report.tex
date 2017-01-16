@@ -49,7 +49,7 @@
 
 \begin{abstract}
 
-Maximum cardinality matching, focus on existing algorithms and optimize the parallel versions in a highly multi-threaded environment. Focus on Pothen-Fan, reason about performance.
+Maximum cardinality matching, focus on existing algorithms and optimize the parallel versions in a highly multi-threaded environment. Focus on Pothen-Fan, reason about performance, give a theoretical analysis of the runtime
 
 \end{abstract}
 
@@ -64,14 +64,14 @@ on architectures with few fat cores. In the second paper a novel Parallel Tree G
 that is designed to perform better on architectures with many thin cores. 
 They also claim that PPF is not suited for architectures of this kind.\\
 
-In this project we were able to recreate the result of the first paper (\cite{Azad:2012}) by writing an implementation of PPF
+In this project we were able to recreate the result of the first paper \cite{Azad:2012} by writing an implementation of PPF
 that matches the performance stated in the original paper. We give a detailed insight into our implementation and explain
 implementation details and tricks that were omitted by the original authors of the algorithm. 
-Furthermore we were able to improve upon the original algorithm by reducing the synchronization overhead of PPF (see section XY TODO ref).\\
+Furthermore we were able to improve upon the original algorithm by reducing the synchronization overhead of PPF (see section \ref{sec:pfopt}).\\
 
 We also implemented the PTG algorithm but were not able to reproduce the results of the original paper. 
 Because we could not invest enough time to properly optimize the algorithm, we are not able to make any statements concerning this algorithm.
-Nevertheless we give a brief introduction into PTG in section XY (TODO ref).\\
+Nevertheless we give a brief introduction into PTG in section \ref{sec:tg}.\\
 
 To verify the claim that PPF does not perform well on many thin cores, we conducted a series of experiments on the Xeon Phi platform~\cite{XeonPhi} (see section XY TODO ref). 
 Our experiments show that PPF does in fact scale well on this platform by using our improvements to PPF. We also discovered that PPF
@@ -103,8 +103,8 @@ Augmenting path based algorithms try to find and invert such paths. If there is 
 
 \mypar{Initial Matching}
 Augmenting path based algorithms benefit from starting with an initial matching. 
-A good algorithm for finding a good initial matching was discovered by Karp and Sipser~\cite{KarpS81}.
-We use Karp-Sipser and an augmented greedy version based on Karp-Sipser to get an initial matching. 
+A good algorithm for finding a suitable initial matching was discovered by Karp and Sipser~\cite{KarpS81}.
+We use both Karp-Sipser and an augmented greedy version based on Karp-Sipser to get our initial matchings. 
 
 \section{Algorithms and Optimizations}\label{sec:pfopt}
 
@@ -115,11 +115,11 @@ give a brief theoretical analysis of PPF using the PRAM model. Furthermore we al
 
 \mypar{Implementation}
 
-Azad et.\ al.~\cite{Azad:2012} only give a very abstract description of their PPF implementation. In addition to that there is no source code available. 
-Coming up with an efficient PPF implementation proofed to be challenging. 
-In this section we describe our PPF implementation with a focus on the practical techniques we used to match the performance of performance Azad et.\ al.\\
+Azad et.\ al.~\cite{Azad:2012} only give a very abstract description of their PPF implementation with no source code available. 
+Coming up with an efficient PPF implementation proved to be challenging. 
+In this section we describe our PPF implementation with a focus on the practical techniques we used to match the performance of Azad et.\ al.\\
 
-PPF is computes the maximum cardinality matching by finding and inverting augmenting paths in parallel. 
+PPF computes the maximum cardinality matching by finding and inverting augmenting paths in parallel. 
 A detailed explanation of the principles of PPF can be found in \cite{Azad:2012}. 
 Our implementation is given in \texttt{PPF} (see algorithm~\ref{alg:ppf}). Functionally, the algorithm is equivalent to then one given by~\cite{Azad:2012} 
 but goes into more detail and has some optimizations compared to the original.\\
@@ -136,8 +136,8 @@ We solve this problem by storing the current iteration number in the $visited$ a
 therefore we know that a vertex is unvisited if the value in the $visited$ array is smaller than the current iteration. By using this technique, we do not have to clear
 the visited array in each iteration which saves us $|Y|$ store instructions in the sequential phase of the algorithm.\\
 
-Because all threads read and write the $visited$ array, all operations must be performed atomically to guarantee correctness because the algorithm. 
-This is a large bottleneck of the algorithm because threads are blocked by waiting for the store operations of other threads to complete. 
+Because all threads read and write the $visited$ array, all operations must be performed atomically to guarantee correctness. 
+This is a large bottleneck of the algorithm because threads have to wait for the store operations of other threads to complete. 
 In the original algorithm by Azad et.\ al.~\cite{Azad:2012}, Test-and-Set is used to claim the $visited$ array. 
 An equivalent implementation of this approach in our algorithm is given in \texttt{$CLAIM_{TAS}$} (see algorithm~\ref{alg:claim_tas}). 
 This is problematic however because Test-and-Set adds an unnecessary overhead to each failed attempt of claiming a vertex when there is no data race. 
@@ -254,17 +254,14 @@ scenario. \\
 The work PPF has to perform is $O(|V|\cdot|E|)$. Finding an augmenting path requires a DFS of length at most $|E|$. 
 This has to be performed for all $|V|$ vertices. Note that PPF might perform useless work that does not contribute to the solution
 if it is blocked by another thread and has to abort the DFS. 
-The PTG algorithm described in section XY (TODO ref) attempts to mitigate this problem.\\
+The PTG algorithm described in section \ref{sec:tg} attempts to mitigate this problem.\\
 
 Figure~\ref{fig:pram} illustrates the two program DAGs of PPF for the best case scenario (left) and the worst case (right).
 
-In the best case scenario, the input graph only consists of non overlapping augmenting paths. 
-Therefore all augmenting paths can be found in parallel. This is illustrated by the vertical gray node paths in the DAG.
-Therefore the maximal depth of the DAG is $|E|$, the length of a DFS. Hence PPF as an average parallelism of $O(|V|)$ in the best case.\\
+In the best case scenario, the input graph only consists of non overlapping augmenting paths, which can then all be found in parallel. This is illustrated by the vertical gray node paths in the DAG.
+Therefore the maximal depth of the DAG is $|E|$, matching the length of a DFS. Hence PPF as an average parallelism of $O(|V|)$ in the best case.\\
 
-In the worst possible scenario, the input graph is consists of augmenting paths that always overlap. 
-Therefore only one thread will succeed per operation and the other threads can't perform any work. This is indicated by the white nodes on
-the DAG on the right. Therefore the depth of this DAG is the same as the work, yielding an average parallelism of $O(1)$.\\
+In the worst possible scenario, the input graph is consists of augmenting paths that always overlap. In this case, only one thread will succeed per operation and the other threads can't perform any work. This is indicated by the white nodes on the DAG on the right. Therefore the depth of this DAG is the same as the work, resulting in an average parallelism of $O(1)$.\\
 
 \begin{figure}
     \begin{center}
@@ -275,7 +272,7 @@ the DAG on the right. Therefore the depth of this DAG is the same as the work, y
 \end{figure}
 
 The average parallelism of PPF lies between $O(1)$ and $O(n)$ depending on the input graph. 
-In section XY (TODO ref) we show that for real-world input data PPF achieves a speedup that is close to the optimal average parallelism
+In section XY (TODO ref) we show that for real-world input data PPF achieves a speedup that is close to the optimal average parallelism.
 
 \subsection{Tree Grafting}\label{sec:tg}
 
@@ -283,7 +280,7 @@ The second algorithm we examined that solves the problem of maximum matching on 
 We give a short overview of the algorithm we have implemented and on the optimizations we did.
 
 \mypar{Parallel Tree Grafting} 
-Parallel Tree Grafting (PTG) takes a bipartite graph and an initial matching $M $as input and returns a maximum matching by updating $M$.
+Parallel Tree Grafting (PTG) takes a bipartite graph and an initial matching $M$ as input and returns a maximum matching by updating $M$.
 PTG is - like Pothen-Fan - a multi-source searching algorithm. It starts to search for augmenting paths from different unmatched vertices and constructs a forest of alternating (matched-unmatched) trees.\\
 The main difference to Pothen-Fan lies then in the reuse of already found trees. Pothen-Fan forgets about the trees it has previously found and starts again extending the augmenting paths with at most one vertex in every iteration. \\
 PTG however keeps track of augmenting trees which can still be extended (active trees) and then grafts other trees to the active trees to prolong the augmenting paths contained in them.\\
