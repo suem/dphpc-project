@@ -55,10 +55,28 @@ Maximum cardinality matching, focus on existing algorithms and optimize the para
 
 \section{Introduction}\label{sec:intro}
 
-\mypar{Motivation} Graph matching has several applications in computer science, for example the marriage problem or computing the block triangular form (BTF) of a sparse matrix \cite{Pothen:1990}. Bipartite graph matching is also a special case of a network flow problem. As data gets bigger, we are interested in the performance of the algorithms that solve these problems.
+Matching in bipartite graphs has several applications in computer science, for example the marriage problem or computing the block triangular 
+form (BTF) of a sparse matrix \cite{Pothen:1990}.\\
 
-\mypar{Related work} Two parallel algorithms that we are testing on Xeon Phi \cite{Azad:2012} \cite{Azad:2015} 
+Two recent publications by Azad et.\ al.\ are concerned with solving the maximum cardinality matching problem in parallel. 
+The first paper~\cite{Azad:2012} presents a parallel version of the Pothen-Algorithm (PPF) that achieves good performance 
+on architectures with few fat cores. In the second paper a novel Parallel Tree Grafting (PTG) algorithm is presented 
+that is designed to perform better on architectures with many thin cores. 
+They also claim that PPF is not suited for architectures of this kind.\\
 
+In this project we were able to recreate the result of the first paper (\cite{Azad:2012}) by writing an implementation of PPF
+that matches the performance stated in the original paper. We give a detailed insight into our implementation and explain
+implementation details and tricks that were omitted by the original authors of the algorithm. 
+Furthermore we were able to improve upon the original algorithm by reducing the synchronization overhead of PPF (see section XY TODO ref).\\
+
+We also implemented the PTG algorithm but were not able to reproduce the results of the original paper. 
+Because we could not invest enough time to properly optimize the algorithm, we are not able to make any statements concerning this algorithm.
+Nevertheless we give a brief introduction into PTG in section XY (TODO ref).\\
+
+To verify the claim that PPF does not perform well on many thin cores, we conducted a series of experiments on the Xeon Phi platform~\cite{XeonPhi} (see section XY TODO ref). 
+Our experiments show that PPF does in fact scale well on this platform by using our improvements to PPF. We also discovered that PPF
+performs especially well when starting with a bad initial matching (see section XY TODO ref). 
+By doing so we achieved superlinear speedup with PPF.
 
 \section{Background: Algorithms for Maximum Matching in Bipartite Graphs}\label{sec:background}
 
