@@ -290,6 +290,7 @@ Our implementation of the PTG algorithm follows the implementation described in 
 
 \section{Experimental Results}\label{sec:exp}
 
+In this section we explain the benchmarking process. We first describe the experimental setup on which we perform our benchmarks on. Then we explain the input data we use. We then proceed to describe which test cases we benchmark. Finally, we discuss the results form our benchmarks.
 %Here you evaluate your work using experiments. You start again with a
 %very short summary of the section. The typical structure follows.
 
@@ -297,13 +298,17 @@ Our implementation of the PTG algorithm follows the implementation described in 
 %Specify the platform (processor, frequency, maybe OS, maybe cache sizes)
 %as well as the compiler, version, and flags used. If your work is about performance, 
 %I strongly recommend that you play with optimization flags and consider also icc for additional potential speedup.
-
-Xeon Phi (5110P), GCC, -O3, 60 simplified Intel CPU cores running at 1056 MHz and supports 4 threads per core, resulting in a total of 240 threads. Each core has a 32kb L1 data cache, a 32kb L1 instruction cache and a private 512 kb L2 unified cache. \cite{Ramos:2013}
+We execute our benchmarks on a Intel Xeon Phi coprocessor (7120 Series) which is based on the Intel MIC architecture. The Xeon Phi has a total of 61 cores which run at a frequency of 1.24 GHz. Each core can run up to four threads, which gives us a total of 244 threads. The Xeon Phi coprocessor has a fully coherent L2 cache with a size of 30.5 MB. To compile our code we use the Intel icpc compiler with the following flags: -openmp, -std=c++11, -Wall, -O3, -mmic, -lrt, and -DNDEBUG.
+% Xeon Phi (5110P), GCC, -O3, 60 simplified Intel CPU cores running at 1056 MHz and supports 4 threads  per core, resulting in a total of 240 threads. Each core has a 32kb L1 data cache, a 32kb L1 instruction cache and a private 512 kb L2 unified cache. \cite{Ramos:2013}
 
 %Then explain what kind of benchmarks you ran. The idea is to give enough information so the experiments are reproducible by somebody else on his or her code.
 %For sorting you would talk about the input sizes. For a tool that performs NUMA optimization, you would specify the programs you ran.
+
 \mypar{Test Data}
-To test our algorithms, we have used several graphs from real-world examples. The graphs and their attributes are listed in \ref{table:testdata}. \\
+To test our algorithms, we use several real world graphs. The graphs and their attributes are listed in \ref{table:testdata}. 
+%TODO Describe how to bipartitify
+%TODO Reference graph source
+\\
 \begin{table}
 \centering
 \begin{tabular}{ |l|l|l|l| }
@@ -317,13 +322,12 @@ Gnutella & 73'364 & 176'656 & $1.31\mathrm{e}{-4}$ \\ \hline
 \caption{Test data used for benchmarks. $\lvert V \rvert$ is the number of vertices, $\lvert E \rvert$ the number of edges. The density describes the sparseness of the graph, where $0.0$ represents an empty graph and $1.0$ a fully connected bipartite graph.}
 \label{table:testdata}
 \end{table}
-\mypar{Benchmarks}
 
-Sequential Pothen-Fan
+\mypar{Benchmarks}
+We measure the execution times of the algorithms specified in section \ref{sec:pfopt} on different graphs and with different initial matchings. We compare the execution times of the different algorithms for three reasons: To verify the impact of our optimizations, to reproduce the results of \cite{Azad:2012} and [?], and to observe the impact of different initial matchings onto the execution times. As a baseline for the speed-up we use the sequential Pothen-Fan algorithm executed on a single core of the Xeon Phi.
 
 \mypar{Verification}
-
-We use the \textit{Edmonds Maximum Cardinality Matching} algorithm \cite{BoostEdmonds} from the Boost Graph library  to verify the correctness of our implementations.
+In order to verify the correctness of our implementations, we compare our results to a matching obtained with the \textit{Edmonds Maximum Cardinality Matching} algorithm \cite{BoostEdmonds} from the Boost Graph library.
 
 \mypar{Results}
 %Next divide the experiments into classes, one paragraph for each. In each class of experiments you typically pursue one questions that then is answered by a suitable plot or plots. For example, first you may want to investigate the performance behavior with changing input size, then how your code compares to external benchmarks.
