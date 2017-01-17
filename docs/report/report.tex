@@ -290,7 +290,7 @@ Our implementation of the PTG algorithm follows the implementation described in 
 
 \section{Experimental Results}\label{sec:exp}
 
-In this section we explain the benchmarking process. We first describe the experimental setup on which we perform our benchmarks on. Then we explain the input data we use. We then proceed to describe which test cases we benchmark. Finally, we discuss the results form our benchmarks.
+In this section we explain the benchmarking process. We first describe the experimental setup on which we perform our benchmarks on. Then we explain the input data we use. We then proceed to describe which test cases we benchmark. Finally, we discuss the results form our benchmarks.\\
 %Here you evaluate your work using experiments. You start again with a
 %very short summary of the section. The typical structure follows.
 
@@ -298,7 +298,7 @@ In this section we explain the benchmarking process. We first describe the exper
 %Specify the platform (processor, frequency, maybe OS, maybe cache sizes)
 %as well as the compiler, version, and flags used. If your work is about performance, 
 %I strongly recommend that you play with optimization flags and consider also icc for additional potential speedup.
-We execute our benchmarks on a Intel Xeon Phi coprocessor (7120 Series) which is based on the Intel MIC architecture. The Xeon Phi has a total of 61 cores which run at a frequency of 1.24 GHz. Each core can run up to four threads, which gives us a total of 244 threads. The Xeon Phi coprocessor has a fully coherent L2 cache with a size of 30.5 MB. To compile our code we use the Intel icpc compiler with the following flags: -openmp, -std=c++11, -Wall, -O3, -mmic, -lrt, and -DNDEBUG.
+We execute our benchmarks on a Intel Xeon Phi coprocessor (7120 Series) which is based on the Intel MIC architecture. The Xeon Phi has a total of 61 cores which run at a frequency of 1.24 GHz. Each core can run up to four threads, which gives us a total of 244 threads. The Xeon Phi coprocessor has a fully coherent L2 cache with a size of 30.5 MB. To compile our code we use the Intel icpc compiler with the following flags: -openmp, -std=c++11, -Wall, -O3, -mmic, -lrt, and -DNDEBUG.\\
 % Xeon Phi (5110P), GCC, -O3, 60 simplified Intel CPU cores running at 1056 MHz and supports 4 threads  per core, resulting in a total of 240 threads. Each core has a 32kb L1 data cache, a 32kb L1 instruction cache and a private 512 kb L2 unified cache. \cite{Ramos:2013}
 
 %Then explain what kind of benchmarks you ran. The idea is to give enough information so the experiments are reproducible by somebody else on his or her code.
@@ -324,12 +324,41 @@ Gnutella & 73'364 & 176'656 & $1.31\mathrm{e}{-4}$ \\ \hline
 \end{table}
 
 \mypar{Benchmarks}
-We measure the execution times of the algorithms specified in section \ref{sec:pfopt} on different graphs and with different initial matchings. We compare the execution times of the different algorithms for three reasons: To verify the impact of our optimizations, to reproduce the results of \cite{Azad:2012} and [?], and to observe the impact of different initial matchings onto the execution times. As a baseline for the speed-up we use the sequential Pothen-Fan algorithm executed on a single core of the Xeon Phi.
+We measure the execution times of the algorithms specified in section \ref{sec:pfopt} on different graphs and with different initial matchings. We compare the execution times of the different algorithms for three reasons: To verify the impact of our optimizations, to reproduce the results of \cite{Azad:2012} and \cite{Azad:2015}, and to observe the impact of different initial matchings onto the execution times. As a baseline for the speed-up we use the sequential Pothen-Fan algorithm executed on a single core of the Xeon Phi.\\
 
 \mypar{Verification}
-In order to verify the correctness of our implementations, we compare our results to a matching obtained with the \textit{Edmonds Maximum Cardinality Matching} algorithm \cite{BoostEdmonds} from the Boost Graph library.
+In order to verify the correctness of our implementations, we compare our results to a matching obtained with the \textit{Edmonds Maximum Cardinality Matching} algorithm \cite{BoostEdmonds} from the Boost Graph library.\\
 
 \mypar{Results}
+\begin{figure*}
+	\caption{Execution time of the PPF implementation from Azad et al. compared with the execution time of the optimized implementation introduced in this report. Both implementations use the Karp-Sipser heuristic for the initial matching.}
+	\label{fig:tasvsttas}
+	\includegraphics[width=\textwidth]{../../plot/output/report/coPaperDBLP_PPFTASvsPPFTTAS.png}
+\end{figure*}
+First, we compare the PPF implementation from Azad et al. with our optimized implementation. Figure \ref{fig:tasvsttas} shows the runtime of both implementations on the CopaperDBLP graph. Initially, the runtime of both implementations is similar. However, the more threads we use, the better our implementation performs compared with the implementation of Azad et al. The reason for this is that with a higher number of threads working on the graph, the contention on the $visited$ array is higher and thus the  implementation of Azad et al., which uses TAS as opposed to TTAS in our implementation, does invalidate a cache-line with each attempt to lock a vertex.\\
+
+\begin{figure*}
+	\caption{Execution time of our PTG implementation compared with our PPF implementation. Both implementations use the Karp-Sipser heuristic for the initial matching.}
+	\label{fig:tgvsppf}
+	\includegraphics[width=\textwidth]{../../plot/output/report/coPaperDBLP_TGvsPPFTTAS.png}
+\end{figure*}
+
+Next, we compare our implementation of the PTG algorithm with our implementation of the PPF algorithm on the CopaperDBLP graph. (Figure \ref{fig:tgvsppf}). As we can see, even though the PTG algorithm scales up to 240 threads, it is still outperformed by the PPF algorithm. As a consequence of that, we cannot confirm the claim of Azad et al. that the PTG algorithm is better suited for an architecture consisting out of thin cores than the PPF algorithm. A possible reason for this would be that our implementation of the PTG algorithm is not optimal.\\
+
+\begin{figure*}
+	\caption{}
+	\label{fig:ksvsgreedy}
+	\includegraphics[width=\textwidth]{../../plot/output/report/wikipedia_PFvsPPFTTAS.png}
+\end{figure*}
+%TODO Insert matching sizes
+Finally, we look at how the initial matching impacts the performance of our PPF implementation. Figure \ref{fig:ksvsgreedy} shows the execution times of our PPF implementation using both the Greedy and the Karp-Sipser initial matching, as well as the execution times of the sequential PF using both strategies for the initial matching. For the PPF, the impact of the initial matching onto the execution time is very small. For the sequential version however, the difference is much bigger. This leads to a substantial difference in the speedup, as we can see in Figure \ref{fig:ksvsgreedy_s}. 
+
+\begin{figure*}
+	\caption{}
+	\label{fig:ksvsgreedy_s}
+	\includegraphics[width=\textwidth]{../../plot/output/report/wikipedia_GREEDYvsKS.png}
+\end{figure*}
+
 %Next divide the experiments into classes, one paragraph for each. In each class of experiments you typically pursue one questions that then is answered by a suitable plot or plots. For example, first you may want to investigate the performance behavior with changing input size, then how your code compares to external benchmarks.
 %
 %For some tips on benchmarking including how to create a decent viewgraph see pages 22--27 in \cite{Pueschel:10}.
