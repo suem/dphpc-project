@@ -49,7 +49,7 @@
 
 \begin{abstract}
 
-Maximum cardinality matching, focus on existing algorithms and optimize the parallel versions in a highly multi-threaded environment. Focus on Pothen-Fan, reason about performance, give a theoretical analysis of the runtime
+We implement and optimize two existing parallel algorithms that solve the problem of maximum cardinality matching in bipartite graphs: Parallel Pothen-Fan (PPF) and Parallel Tree Grafting (PTG). Our work is mainly focused on the analysis and possible optimizations of the PPF algorithm. We reason about the theoretical performance of PPF using the PRAM model and give a detailed description of the additional optimizations we implemented. We benchmark and test our implementations in a highly multi-threaded environment using a Xeon Phi multicore processor. The results confirm that our optimizations of the PPF are an improvement upon the original algorithm. Both our optimized PFF algorithm as well as our PTG implementation scale up to 240 threads. 
 
 \end{abstract}
 
@@ -287,8 +287,8 @@ PTG however keeps track of augmenting trees which can still be extended (active 
 For a more detailed explanation of the PTG algorithm including pseudocode, see \cite{Azad:2015}.\\
 
 \mypar{Optimizations}
-Our implementation of the PTG algorithm follows the implementation described in the paper very closely. To build the augmenting paths, we have used the same optimizations as already described in our best version of  PPF. To store the pointers to the root, leaf and other nodes the PTG algorithm utilizes, we have implemented our own version of a non-blocking queue as a data structure. 
-
+Our implementation of the PTG algorithm follows the implementation described in the paper very closely. To build the augmenting paths, we have used the same optimizations as already described in our best version of  PPF. To store the pointers to the root, leaf and other nodes the PTG algorithm utilizes, we have implemented our own version of a non-blocking queue as a data structure. \\
+The source code of our PTG implementation is available online\footnote{\url{https://github.com/suem/dphpc-project}} for further details.
 \section{Experimental Results}\label{sec:exp}
 
 In this section we explain the benchmarking process. We first describe the experimental setup on which we perform our benchmarks on. Then we explain the input data we use. We then proceed to describe which test cases we benchmark. Finally, we discuss the results from our benchmarks.\\
