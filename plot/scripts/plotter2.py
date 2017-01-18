@@ -42,11 +42,11 @@ def plotBoxplot(dataPath):
 
     # Speedup
     baselineGreedy = data[(data.Algo=='pf_Greedy')].Dur.median()
-    # data.loc[data['Algo']=='ppfTTAS_Greedy', 'Dur'] = baselineGreedy / data[
-    #         (data.Algo== 'ppfTTAS_Greedy')].Dur.get_values()
+    data.loc[data['Algo']=='ppfTTAS_Greedy', 'Dur'] = baselineGreedy / data[
+            (data.Algo== 'ppfTTAS_Greedy')].Dur.get_values()
     baselineKS = data[(data.Algo=='pf_KS')].Dur.median()
-    # data.loc[data['Algo']=='ppfTTAS_KS', 'Dur'] = baselineKS / data[
-    #         (data.Algo=='ppfTTAS_KS')].Dur.get_values()
+    data.loc[data['Algo']=='ppfTTAS_KS', 'Dur'] = baselineKS / data[
+            (data.Algo=='ppfTTAS_KS')].Dur.get_values()
 
     # Select data to plot
     plotData = data[(data.Algo=='ppfTTAS_Greedy') |
@@ -56,8 +56,8 @@ def plotBoxplot(dataPath):
     sns.set_style("whitegrid")
     sns.set_context("talk")
     sns.set_style('whitegrid', {'legend.frameon': True})
-    fig = plt.figure(figsize=(30,15))
-    plt.title('Wikipedia graph', fontsize=32)
+    fig = plt.figure(figsize=(20,15))
+    plt.title('CopaperDBLP graph', fontsize=32)
 
 
     # Plot boxplot
@@ -76,17 +76,16 @@ def plotBoxplot(dataPath):
     b.plot(x_data, y_data, c='b', marker='o', ls='')
 
     # Plot baseline
-    b.axhline(y=baselineKS, label='pf_KS', ls='dotted', c='c')
-    b.axhline(y=baselineGreedy, label='pf_Greedy', ls='dotted', c='r')
+    # b.axhline(y=baselineKS, label='pf_KS', ls='dotted', c='c')
+    # b.axhline(y=baselineGreedy, label='pf_Greedy', ls='dotted', c='r')
 
     # Figure aesthetics
-    b.set_ylim(bottom=1)
-    b.set_yscale('log', basey=2)
-    b.yaxis.set_major_formatter(FormatStrFormatter('%d'))
+    b.set_ylim(bottom=0)
+    # b.yaxis.set_major_formatter(FormatStrFormatter('%d'))
     b.set_xlabel('Number of threads', fontsize=22)
-    b.set_ylabel('Execution time [s]', fontsize=22)
-    b.legend(title='Algorithm', prop={'size':22})
-    b.tick_params(labelsize=18)
+    b.set_ylabel('Speedup', fontsize=22)
+    b.legend(title='Algorithm', prop={'size':24}, loc='best')
+    b.tick_params(labelsize=22)
 
     plt.savefig('../output/test/' + GRAPH + '_GREEDYvsKS.png')
     plt.close(fig)
