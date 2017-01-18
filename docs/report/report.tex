@@ -49,7 +49,7 @@
 
 \begin{abstract}
 
-We implement and optimize two existing parallel algorithms that solve the problem of maximum cardinality matching in bipartite graphs: Parallel Pothen-Fan (PPF) and Parallel Tree Grafting (PTG). Our work is mainly focused on the analysis and possible optimizations of the PPF algorithm. We reason about the theoretical performance of PPF using the PRAM model and give a detailed description of the additional optimizations we implemented. We benchmark and test our implementations in a highly multi-threaded environment using a Xeon Phi multicore processor. The results confirm that our optimizations of the PPF are an improvement upon the original algorithm. Both our optimized PFF algorithm as well as our PTG implementation scale up to 240 threads. 
+We implement and optimize two existing parallel algorithms that solve the problem of maximum cardinality matching in bipartite graphs: Parallel Pothen-Fan (PPF) and Parallel Tree Grafting (PTG). Our work is mainly focused on the analysis and possible optimizations of the PPF algorithm. We reason about the theoretical performance of PPF using the PRAM model and give a detailed description of the additional optimizations we implemented. We benchmark and test our implementations in a highly multi-threaded environment using a Xeon Phi multicore processor. The results confirm that our optimizations of the PPF are an improvement upon the original algorithm. 
 
 \end{abstract}
 
@@ -281,7 +281,7 @@ We give a short overview of the algorithm we have implemented and on the optimiz
 
 \mypar{Parallel Tree Grafting} 
 Parallel Tree Grafting (PTG) takes a bipartite graph and an initial matching $M$ as input and returns a maximum matching by updating $M$.
-PTG is - like Pothen-Fan - a multi-source searching algorithm. It starts to search for augmenting paths from different unmatched vertices and constructs a forest of alternating (matched-unmatched) trees.\\
+PTG is - like Pothen-Fan - a multi-source searching algorithm. It starts to search for augmenting paths from different unmatched vertices and constructs a forest of alternating trees.\\
 The main difference to Pothen-Fan lies then in the reuse of already found trees. Pothen-Fan forgets about the trees it has previously found and starts again extending the augmenting paths with at most one vertex in every iteration. \\
 PTG however keeps track of augmenting trees which can still be extended (active trees) and then grafts other trees to the active trees to prolong the augmenting paths contained in them.\\
 For a more detailed explanation of the PTG algorithm including pseudocode, see \cite{Azad:2015}.\\
@@ -383,9 +383,12 @@ Finally, we look at how the initial matching impacts the performance of our PPF 
 
 \section{Conclusions}
 
-Super linear speedup because of caching effects\\
-PPF scales well on Xeon Phi\\
-Tree Grafting results from the paper could not be reproduced.
+We analyzed and implemented the PPF algorithm, building upon the the pseudocode provided in the original paper. We then designed and evaluated new optimizations for the PPF algorithm, which resulted in performance benefits over the original implementation. Our experimental results show that our approach using Test-and-Test-and-Set to claim a vertex outperforms the  Test-and-Set approach used in the original PPF algorithm by Azad et.\ al.\ \cite{Azad:2012}. Using a more clever way to update the \textit{visited} array further improved the runtime of the algorithm.\\
+
+The claim of the Tree Grafting paper \cite{Azad:2015} that PPF is not well suited for many thin cores was disproven by our experiments on the Xeon Phi multicore processor. Our optimized PPF implementation yields a super linear speedup compared to the sequential PF implementation and scales up to 240 threads. We have to mention however that the super linear speedup is also due to caching effects on the Xeon Phi. The sequential PF algorithm only runs on a single core which is very weak compared to the resources of all cores combined.\\
+
+While our implementation of the PTG algorithm also scales up to 240 threads, it is still an order of magnitude slower than our PPF implementation, independent of the number of threads used. We could thus not confirm that PTG is an improvement over PPF.
+
 %
 %Here you need to summarize what you did and why this is
 %important. {\em Do not take the abstract} and put it in the past
