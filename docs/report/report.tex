@@ -62,7 +62,7 @@ We implement and optimize two existing parallel algorithms that solve the proble
 Matching in bipartite graphs has several applications in computer science, for example the marriage problem or computing the block triangular 
 form (BTF) of a sparse matrix \cite{Pothen:1990}.\\
 
-Two recent publications by Azad et.\ al.\ are concerned with solving the bipartite maximum cardinality matching problem in parallel. 
+Two recent publications by Azad et\ al.\ are concerned with solving the bipartite maximum cardinality matching problem in parallel. 
 The first paper~\cite{Azad:2012} presents a parallel version of the Pothen-Algorithm (PPF) that achieves good performance 
 on architectures with few fat cores. In the second paper a novel Parallel Tree Grafting (PTG) algorithm is presented 
 that is designed to perform better on architectures with many thin cores. 
@@ -98,7 +98,7 @@ These however are not the focus of this report.
 
 The best known sequential algorithm for bipartite maximum cardinality matching was discovered by Hopcroft and Karp~\cite{HK:1973}
 and runs in $O(|E|\cdot \sqrt{|V|})$. Another algorithm which runs in $O(|E|\cdot|V|)$ was discovered by Pothen and Fan~\cite{Pothen:1990}.
-Although this algorithm asymptotically performs worse than Hopcroft-Karp, in practice it performs better when parallelized according to Azad et.\ al.~\cite{Azad:2012}.
+Although this algorithm asymptotically performs worse than Hopcroft-Karp, in practice it performs better when parallelized according to Azad et\ al.~\cite{Azad:2012}.
 
 The core idea of both algorithms is to find so called augmenting paths. An augmenting path is a path where the first 
 and last edge are unmatched and where the edges along the path alternate between matched and unmatched. 
@@ -118,9 +118,9 @@ give a brief theoretical analysis of PPF using the PRAM model. Furthermore we al
 
 \subsection{Parallel-Pothen-Fan}\label{sec:pf}
 
-\mypar{Implementation and Optimizations} Azad et.\ al.~\cite{Azad:2012} only give a very abstract description of their PPF implementation with no source code available. 
+\mypar{Implementation and Optimizations} Azad et\ al.~\cite{Azad:2012} only give a very abstract description of their PPF implementation with no source code available. 
 Coming up with an efficient PPF implementation proved to be challenging. 
-In this section we describe our PPF implementation with a focus on the practical techniques used to match the performance of Azad et.\ al.\\
+In this section we describe our PPF implementation with a focus on the practical techniques used to match the performance of Azad et\ al.\\
 
 PPF computes the maximum cardinality matching by finding and inverting disjoint augmenting paths in parallel through multiple depth-first-searches (DFS)
 that start from all unmatched vertices. A detailed explanation how PPF works can be found in \cite{Azad:2012}. 
@@ -145,7 +145,7 @@ By using this technique, we were able to reduce the number of store instructions
 
 Because all threads read and write the $visited$ array in parallel, read and store operations must be performed atomically to guarantee correctness. 
 This is a large bottleneck of the algorithm because threads have to wait for the store operations of other threads to complete. 
-In the original algorithm by Azad et.\ al.~\cite{Azad:2012}, Test-and-Set is used to set the flags in the $visited$ array. 
+In the original algorithm by Azad et\ al.~\cite{Azad:2012}, Test-and-Set is used to set the flags in the $visited$ array. 
 An equivalent implementation of this approach applied to our algorithm is given in \texttt{$CLAIM_{TAS}$} (see algorithm~\ref{alg:claim_tas}). 
 Using Test-and-Set is problematic because it adds an unnecessary overhead to each failed attempt of locking a vertex when there is no data race. 
 We solve this issue by using the Test-and-Test-and-Set approach to lock vertices (see \texttt{$CLAIM_{TTAS}$} in algorithm~\ref{alg:claim_tas}).
@@ -323,7 +323,6 @@ Let $M$ be the $m \times n$ adjacency matrix of an input graph.
 The corresponding bipartite graph $G = (V = X \cup Y, E)$ is defined as $X = \{x_1, \dots, x_m\}$, $Y = \{y_1, \dots, y_n\}$ and $\{x_i, y_j\} \in E \iff M_{ij} \neq 0$.\\
 
 
-\\
 \begin{table}
 \centering
 \begin{tabular}{ |l|l|l|l| }
@@ -420,7 +419,7 @@ This leads to a substantial difference in the speedup, as we can see in figure \
 
 \section{Conclusions}
 
-We analyzed and implemented the PPF algorithm, building upon the the pseudocode provided in the original paper. We then designed and evaluated new optimizations for the PPF algorithm, which resulted in performance benefits over the original implementation. Our experimental results show that our approach using Test-and-Test-and-Set to lock a vertex outperforms the  Test-and-Set approach used in the original PPF algorithm by Azad et.\ al.\ \cite{Azad:2012}. Using a more clever way to update the \textit{visited} array further improved the runtime of the algorithm.\\
+We analyzed and implemented the PPF algorithm, building upon the the pseudocode provided in the original paper. We then designed and evaluated new optimizations for the PPF algorithm, which resulted in performance benefits over the original implementation. Our experimental results show that our approach using Test-and-Test-and-Set to lock a vertex outperforms the  Test-and-Set approach used in the original PPF algorithm by Azad et\ al.\ \cite{Azad:2012}. Using a more clever way to update the \textit{visited} array further improved the runtime of the algorithm.\\
 
 The claim of the Tree Grafting paper \cite{Azad:2015} that PPF is not well suited for many thin cores was disproven by our experiments on the Xeon Phi multicore processor. Our optimized PPF implementation yields a super linear speedup compared to the sequential PF implementation and scales up to 240 threads. We have to mention however that the super linear speedup is also due to caching effects on the Xeon Phi. The sequential PF algorithm only runs on a single core which is very weak compared to the resources of all cores combined.\\
 
