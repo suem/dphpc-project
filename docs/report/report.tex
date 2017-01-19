@@ -318,9 +318,14 @@ We execute our benchmarks on an Intel Xeon Phi coprocessor (7120 Series) which i
 %For sorting you would talk about the input sizes. For a tool that performs NUMA optimization, you would specify the programs you ran.
 
 \mypar{Test Data}
-To test our algorithms, we use several real world graphs. The graphs and their attributes are listed in \ref{table:testdata}. 
+To test our algorithms, we use several real world graphs from the SuiteSparse Matrix Collection\footnote{\url{http://www.cise.ufl.edu/research/sparse/matrices}}.
+The graphs and their attributes are listed in table \ref{table:testdata}. 
+To convert regular graphs to bipartite graphs, we applied the same technique as described in \cite{Azad:2015}. 
+Let $M$ be the $m \times n$ adjacency matrix of an input graph. 
+The corresponding bipartite graph $G = (V = X \cup Y, E)$ is defined as $X = \{x_1, \dots, x_m\}$, $Y = \{y_1, \dots, y_n\}$ and $\{x_i, y_j\} \in E \iff M_{ij} \neq 0$.\\
+
+
 %TODO Describe how to bipartitify
-%TODO Reference graph source
 \\
 \begin{table}
 \centering
