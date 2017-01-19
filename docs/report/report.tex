@@ -273,10 +273,8 @@ In this case, only one thread will succeed per iteration and the other threads c
 Unsuccessful threads are indicated by the white nodes on the DAG on the right. 
 Therefore the depth of the DAG is the same as the work because there is no parallel work, resulting in an average parallelism of $O(1)$.\\
 
-\begin{figure}
-    \begin{center}
+\begin{figure}\centering
   \includegraphics[height=5cm, trim={2.5cm 8cm 4cm 1cm}, clip]{PRAM.pdf}
-  \end{center}
   \caption{DAG for PRAM analysis of PPF}
   \label{fig:pram}
 \end{figure}
@@ -311,7 +309,7 @@ In this section we explain the benchmarking process. We first describe the exper
 %Specify the platform (processor, frequency, maybe OS, maybe cache sizes)
 %as well as the compiler, version, and flags used. If your work is about performance, 
 %I strongly recommend that you play with optimization flags and consider also icc for additional potential speedup.
-We execute our benchmarks on an Intel Xeon Phi coprocessor (7120 Series) which is based on the Intel MIC architecture. The Xeon Phi has a total of 61 cores which run at a frequency of 1.24 GHz. Each core can run up to four threads, which gives us a total of 244 threads. The Xeon Phi coprocessor has a fully coherent L2 cache with a size of 30.5 MB. To compile our code we use the Intel icpc compiler with the following flags: -openmp, -std=c++11, -Wall, -O3, -mmic, -lrt, and -DNDEBUG.\\
+We execute our benchmarks on an Intel Xeon Phi coprocessor (7120 Series) which is based on the Intel MIC architecture. The Xeon Phi has a total of 61 cores which run at a frequency of 1.24 GHz. Each core can run up to four threads, which gives us a total of 244 threads. The Xeon Phi coprocessor has a fully coherent L2 cache with a size of 30.5 MB. To compile our code we use the Intel \texttt{icpc} compiler with the following flags: \texttt{-openmp, -std=c++11, -Wall, -O3, -mmic, -lrt, and -DNDEBUG}.\\
 % Xeon Phi (5110P), GCC, -O3, 60 simplified Intel CPU cores running at 1056 MHz and supports 4 threads  per core, resulting in a total of 240 threads. Each core has a 32kb L1 data cache, a 32kb L1 instruction cache and a private 512 kb L2 unified cache. \cite{Ramos:2013}
 
 %Then explain what kind of benchmarks you ran. The idea is to give enough information so the experiments are reproducible by somebody else on his or her code.
@@ -325,7 +323,6 @@ Let $M$ be the $m \times n$ adjacency matrix of an input graph.
 The corresponding bipartite graph $G = (V = X \cup Y, E)$ is defined as $X = \{x_1, \dots, x_m\}$, $Y = \{y_1, \dots, y_n\}$ and $\{x_i, y_j\} \in E \iff M_{ij} \neq 0$.\\
 
 
-%TODO Describe how to bipartitify
 \\
 \begin{table}
 \centering
@@ -345,17 +342,31 @@ Gnutella & 73'364 & 176'656 & $1.31\mathrm{e}{-4}$ \\ \hline
 We measure the execution times of the algorithms specified in section \ref{sec:pfopt} on different graphs and with different initial matchings. We compare the execution times of the different algorithms for three reasons: To verify the impact of our optimizations, to reproduce the results of \cite{Azad:2012} and \cite{Azad:2015}, and to observe the impact of different initial matchings on the execution times. As a baseline for the speedup we use the sequential Pothen-Fan algorithm executed on a single core of the Xeon Phi.\\
 
 \mypar{Verification}
-In order to verify the correctness of our implementations, we compare our results to a matching obtained with the \textit{Edmonds Maximum Cardinality Matching} algorithm \cite{BoostEdmonds} from the Boost Graph library.\\
+In order to verify the correctness of our implementations, we compare our results to the size of a matching obtained with the \textit{Edmonds Maximum Cardinality Matching} algorithm \cite{BoostEdmonds} from the Boost Graph library.\\
 
-\mypar{Results}
-\begin{figure}
+
+\begin{figure}\centering
+	\includegraphics[width=5cm]{../../plot/output/report/coPaperAzadPlot.png}
+    \caption{Runtimes of PPF on coPaperDBLP graph. Plot taken from original paper \cite{Azad:2012}.}
+	\label{fig:azadCopaper}
+\end{figure}
+
+
+\begin{figure}\centering
 	\includegraphics[width=8.3cm]{../../plot/output/report/coPaperDBLP_PPFTASvsPPFTTAS.png}
 	\caption{Execution time of the PPF implementation from Azad et al. compared with the execution time of the optimized implementation introduced in this report. Both implementations use the Karp-Sipser heuristic for the initial matching.}
 	\label{fig:tasvsttas}
 \end{figure}
-First, we compare the PPF implementation from Azad et al. with our optimized implementation. Figure \ref{fig:tasvsttas} shows the runtime of both implementations on the coPaperDBLP graph. Initially, the runtime of both implementations is similar. However, the more threads we use, the better our implementation performs compared with the implementation of Azad et al. The reason for this is that with a higher number of threads working on the graph, the contention on the $visited$ array is higher and thus the  implementation of Azad et al., which uses TAS as opposed to TTAS in our implementation, does invalidate a cache-line with each attempt to lock a vertex.\\
 
-\begin{figure}
+
+\mypar{Results} First, we compare the PPF implementation from Azad et al. with our optimized implementation. 
+Figure \ref{fig:azadCopaper} shows the runtime of the original PPF implementation on the coPaperDBLP graph. We ran our implementation on the same graph, once with Test-and-Set
+and once with Test-and-Test-and-Set. 
+
+
+Figure \ref{fig:tasvsttas} shows the runtime of both implementations on the coPaperDBLP graph. Initially, the runtime of both implementations is similar. However, the more threads we use, the better our implementation performs compared with the implementation of Azad et al. The reason for this is that with a higher number of threads working on the graph, the contention on the $visited$ array is higher and thus the  implementation of Azad et al., which uses TAS as opposed to TTAS in our implementation, does invalidate a cache-line with each attempt to lock a vertex.\\
+
+\begin{figure}\centering
 	\includegraphics[width=8.3cm]{../../plot/output/report/coPaperDBLP_TGvsPPFTTAS.png}
 	\caption{Execution time of our PTG implementation compared with our PPF implementation. Both implementations use the Karp-Sipser heuristic for the initial matching.}
 	\label{fig:tgvsppf}
