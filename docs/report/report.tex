@@ -384,7 +384,12 @@ Next, we compare our implementation of the PTG algorithm with our implementation
 \end{figure}
 %TODO Insert matching sizes
 
-Finally, we look at how the initial matching impacts the performance of our PPF implementation. Figure \ref{fig:ksvsgreedy} shows the execution times of our PPF implementation using both the Greedy and the Karp-Sipser initial matching, as well as the execution times of the sequential PF using both strategies for the initial matching. For PPF, the impact of the initial matching on the execution time is very small. For the sequential version however, the difference is much bigger. This leads to a substantial difference in the speedup, as we can see in figure \ref{fig:ksvsgreedy_s}. 
+Finally, we look at how the initial matching impacts the performance of our PPF implementation. 
+Figure \ref{fig:ksvsgreedy} shows the execution times of our PPF implementation using both the Greedy (91\% optimal) and the Karp-Sipser (99\% optimal) initial matching,
+as well as the corresponding execution times for sequential PF. 
+The quality of the initial matching has a large impact on the sequential version of the algorithm. 
+For PPF however, the difference vanishes with an increasing number of threads. 
+This leads to a substantial difference in the speedup, as we can see in figure \ref{fig:ksvsgreedy_s}. 
 
 \begin{figure}
 	\includegraphics[width=8.3cm]{../../plot/output/report/wikipedia_GREEDYvsKS.png}
