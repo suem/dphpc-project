@@ -302,7 +302,9 @@ The source code of our PTG implementation is available online\footnote{\url{http
 
 \section{Experimental Results}\label{sec:exp}
 
-In this section we explain the benchmarking process. We first describe the experimental setup on which we perform our benchmarks on. Then we explain the input data we use. We then proceed to describe which test cases we benchmark. Finally, we discuss the results from our benchmarks.\\
+In this section we explain the benchmarking process. We first describe the experimental setup on which we performed our benchmarks on. 
+Then we explain the input data we use. We then proceed to describe the test cases we benchmarked. Finally, we discuss the results from our benchmarks.
+The raw data of our measurements is available online\footnote{\url{https://github.com/suem/dphpc-project/tree/master/plot/data}} for further reference.\\
 %Here you evaluate your work using experiments. You start again with a
 %very short summary of the section. The typical structure follows.
 
@@ -310,14 +312,14 @@ In this section we explain the benchmarking process. We first describe the exper
 %Specify the platform (processor, frequency, maybe OS, maybe cache sizes)
 %as well as the compiler, version, and flags used. If your work is about performance, 
 %I strongly recommend that you play with optimization flags and consider also icc for additional potential speedup.
-We execute our benchmarks on an Intel Xeon Phi coprocessor (7120 Series) which is based on the Intel MIC architecture. The Xeon Phi has a total of 61 cores which run at a frequency of 1.24 GHz. Each core can run up to four threads, which gives us a total of 244 threads. The Xeon Phi coprocessor has a fully coherent L2 cache with a size of 30.5 MB. To compile our code we use the Intel \texttt{icpc} compiler with the following flags: \texttt{-openmp, -std=c++11, -Wall, -O3, -mmic, -lrt}.\\
+We executed our benchmarks on an Intel Xeon Phi coprocessor (7120 Series) which is based on the Intel MIC architecture. The Xeon Phi has a total of 61 cores which run at a frequency of 1.24 GHz. Each core can run up to four threads, which gives us a total of 244 threads. The Xeon Phi coprocessor has a fully coherent L2 cache with a size of 30.5 MB. To compile our code we use the Intel \texttt{icpc} compiler with the following flags: \texttt{-openmp -O3 -mmic -lrt}.\\
 % Xeon Phi (5110P), GCC, -O3, 60 simplified Intel CPU cores running at 1056 MHz and supports 4 threads  per core, resulting in a total of 240 threads. Each core has a 32kb L1 data cache, a 32kb L1 instruction cache and a private 512 kb L2 unified cache. \cite{Ramos:2013}
 
 %Then explain what kind of benchmarks you ran. The idea is to give enough information so the experiments are reproducible by somebody else on his or her code.
 %For sorting you would talk about the input sizes. For a tool that performs NUMA optimization, you would specify the programs you ran.
 
 \mypar{Test Data}
-To test our algorithms, we use several real world graphs from the SuiteSparse Matrix Collection\footnote{\url{http://www.cise.ufl.edu/research/sparse/matrices}}.
+To test our algorithms, we used several real world graphs from the SuiteSparse Matrix Collection\footnote{\url{http://www.cise.ufl.edu/research/sparse/matrices}}.
 The graphs and their attributes are listed in table \ref{table:testdata}. 
 To convert regular graphs to bipartite graphs, we applied the same technique as described in \cite{Azad:2015}. 
 Let $M$ be the $m \times n$ adjacency matrix of an input graph. 
@@ -340,57 +342,60 @@ Gnutella & 73'364 & 176'656 & $1.31\mathrm{e}{-4}$ \\ \hline
 \end{table}
 
 \mypar{Benchmarks}
-We measure the execution times of the algorithms specified in section \ref{sec:pfopt} on different graphs and with different initial matchings. We compare the execution times of the different algorithms for three reasons: To verify the impact of our optimizations, to reproduce the results of \cite{Azad:2012} and \cite{Azad:2015}, and to observe the impact of different initial matchings on the execution times. As a baseline for the speedup we use the sequential Pothen-Fan algorithm executed on a single core of the Xeon Phi.\\
+We measured the execution times of the algorithms specified in section \ref{sec:pfopt} on different graphs and with different initial matchings. We compare the execution times of the different algorithms for three reasons: To verify the impact of our optimizations, to reproduce the results of \cite{Azad:2012} and \cite{Azad:2015} and to observe the impact of different initial matchings on the execution times. As a baseline for the speedup we use the sequential Pothen-Fan algorithm executed on a single core of the Xeon Phi.\\
 
 \mypar{Verification}
-In order to verify the correctness of our implementations, we compare our results to the size of a matching obtained with the \textit{Edmonds Maximum Cardinality Matching} algorithm \cite{BoostEdmonds} from the Boost Graph library.\\
+In order to verify the correctness of our implementations, we compare our results to the size of a matching obtained with the Edmonds Maximum Cardinality Matching algorithm \cite{BoostEdmonds} from the Boost Graph Library.\\
 
 
 \begin{figure}\centering
 	\includegraphics[width=5cm]{../../plot/output/report/coPaperAzadPlot.png}
-    \caption{Runtimes of PPF on coPaperDBLP graph. Plot taken from original paper \cite{Azad:2012}.}
+    \caption{Runtimes of PPF on coPaperDBLP graph. Plot taken from paper \cite{Azad:2012}.}
 	\label{fig:azadCopaper}
 \end{figure}
 
 
 \begin{figure}\centering
 	\includegraphics[width=8.3cm]{../../plot/output/report/coPaperDBLP_PPFTASvsPPFTTAS.png}
-	\caption{Execution time of the PPF implementation from Azad et al. compared with the execution time of the optimized implementation introduced in this report. Both implementations use the Karp-Sipser heuristic for the initial matching.}
+    \caption{Execution time of our PPF implementation on coPaperDBLP graph using Test-and-Set (TAS) and Test-and-Test-and-Set (TTAS). Karp-Sipser heuristic was used for the initial matching.}
 	\label{fig:tasvsttas}
 \end{figure}
 
 
-\mypar{Results} First, we compare the PPF implementation from Azad et al. with our optimized implementation. 
+\mypar{Results} First, we compare the PPF implementation from Azad et al.~\cite{Azad:2012} with our optimized implementation. 
 Figure~\ref{fig:azadCopaper} shows the runtime of the original PPF implementation on the coPaperDBLP graph. 
 We ran our implementation on the same graph, once with Test-and-Set and once with Test-and-Test-and-Set (see figure \ref{fig:tasvsttas}). 
-Even though the two experiments were conducted on different architectures, we can nevertheless observer that the achieved runtimes are in the same area. 
+Even though the two experiments were conducted on different architectures, we can nevertheless observe that the achieved runtimes are in the same area. 
 This supports our claim that we were able to match the performance achieved in \cite{Azad:2012}. 
 We were even able to beat the original in terms of absolute runtime.
-Furthermore, as figure \ref{fig:tasvsttas} demonstrates, we can see that our proposed improvement to PPF using Test-and-Test-and-Set performs 
-better as the number of cores increases. The reason for this is that with a higher number of threads working on the graph, 
+Furthermore, as figure \ref{fig:tasvsttas} demonstrates, our proposed improvement to PPF using Test-and-Test-and-Set performs 
+better than Test-and-Set as the number of cores increases. The reason for this is that with a higher number of threads working on the graph, 
 the contention on the $visited$ array is higher and thus \texttt{$CLAIM_{TAS}$} invalidates a cache-line with each unsuccessful attempt to lock a vertex.\\
  
 \begin{figure}\centering
 	\includegraphics[width=8.3cm]{../../plot/output/report/coPaperDBLP_TGvsPPFTTAS.png}
-	\caption{Execution time of our PTG implementation compared with our PPF implementation. Both implementations use the Karp-Sipser heuristic for the initial matching.}
+	\caption{Execution time of our PTG implementation compared to our PPF implementation. Both implementations use the Karp-Sipser heuristic for the initial matching.}
 	\label{fig:tgvsppf}
 \end{figure}
 
-Next, we compare our implementation of the PTG algorithm with our implementation of the PPF algorithm on the coPaperDBLP graph (figure \ref{fig:tgvsppf}). As we can see, even though the PTG algorithm scales up to 240 threads, it is still outperformed by the PPF algorithm. As a consequence of that, we cannot confirm the claim of Azad et al. that the PTG algorithm is better suited for an architecture with many thin cores than the PPF algorithm. A possible reason for this would be that our PTG implementation is not optimal.\\
+Next, we compare our implementation of PTG against PPF on the coPaperDBLP graph (figure \ref{fig:tgvsppf}). As we can see, even though the PTG algorithm scales up to 240 threads, it is still outperformed by the PPF algorithm. As a consequence of that, we cannot confirm the claim of Azad et al. that the PTG algorithm is better suited for an architecture with many thin cores than the PPF algorithm~\cite{Azad:2015}. A possible explanation for this could be that our PTG implementation is not optimal.\\
 
 \begin{figure}\centering
 	\includegraphics[width=8.3cm]{../../plot/output/report/wikipedia_PFvsPPFTTAS.png}
-	\caption{Execution times of our PF and PPF implementations using both the Karp-Sipser and the Greedy initial matching.}
+	\caption{Execution times of our PF and PPF implementations using the Karp-Sipser and the Greedy initial matching.}
 	\label{fig:ksvsgreedy}
 \end{figure}
 %TODO Insert matching sizes
 
-Finally, we look at how the initial matching impacts the performance of our PPF implementation. 
-Figure \ref{fig:ksvsgreedy} shows the execution times of our PPF implementation using both the Greedy (91\% optimal) and the Karp-Sipser (99\% optimal) initial matching,
+Finally, we analyze how the initial matching impacts the performance of our PPF implementation. 
+Figure \ref{fig:ksvsgreedy} shows the execution times of our PPF implementation on the Wi\-ki\-pe\-dia graph using both the Greedy (91\% optimal) and the Karp-Sipser (99\% optimal) initial matching,
 as well as the corresponding execution times for sequential PF. 
-The quality of the initial matching has a large impact on the sequential version of the algorithm. 
+The quality of the initial matching has a substantial impact on the sequential version of the algorithm. 
 For PPF however, the difference vanishes with an increasing number of threads. 
-This leads to a substantial difference in the speedup, as we can see in figure \ref{fig:ksvsgreedy_s}. 
+Figure \ref{fig:ksvsgreedy_s} shows the difference in speedup. 
+Graphs with bad initial matchings contain many augmenting paths. These can be found more efficiently by PPF with increased parallelism.
+This shows that PPF benefits from increased parallelism in situations where no good initial matching can be found. 
+
 
 \begin{figure}
 	\includegraphics[width=8.3cm]{../../plot/output/report/wikipedia_GREEDYvsKS.png}
