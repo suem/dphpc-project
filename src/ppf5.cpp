@@ -1,4 +1,3 @@
-
 // this is just for measurements: nothing new is accomplised here
 
 #include <iostream>

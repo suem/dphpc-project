@@ -1,6 +1,5 @@
-//
-// Created by suem on 10/27/16.
-//
+// Unsuccessful attempt at optimizing PPF by trying to incease the work distribution 
+
 #include <iostream>
 #include <stack>
 #include <omp.h>

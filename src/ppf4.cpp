@@ -1,6 +1,4 @@
-// Parallel Pothen fan with reduced working set and atomic swap for visited array, no need to clear visited array
-// Matching for left vertices is updated at the end and not during the algorithm
-// cache locality by storing the 'iteration' value and the matching next to each other
+//Experiment: cache locality by storing the 'iteration' value and the matching next to each other, did not work out
 
 
 #include <iostream>

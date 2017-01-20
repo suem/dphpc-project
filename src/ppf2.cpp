@@ -1,5 +1,5 @@
-// Parallel Pothen Fan with reduced working set.
-// Matching for left vertices is updated at the end and not during the algorithm
+// PPF implementation based on the Azad. et. al. paper with Test-and-Set
+// only updates the right side of the matching during the DFS.
 
 
 #include <iostream>

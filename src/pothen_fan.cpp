@@ -1,5 +1,4 @@
-//
-// Created by suem on 10/27/16.
+// NOTE: this was the first attempt of implementing Pothen-Fan is is only here for historical reference. See ppf3 for the currently best implementation
 //
 #include <iostream>
 #include <stack>

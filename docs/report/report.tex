@@ -53,7 +53,7 @@
 
 \begin{abstract}
 
-We implement and optimize two existing parallel algorithms that solve the problem of maximum cardinality matching in bipartite graphs: Parallel Pothen-Fan (PPF) and Parallel Tree Grafting (PTG). Our work is mainly focused on the analysis and possible optimizations of the PPF algorithm. We reason about the theoretical performance of PPF using the PRAM model and give a detailed description of the additional optimizations we implemented. We benchmark and test our implementations in a highly multi-threaded environment using a Xeon Phi multicore processor. The results confirm that our optimizations for PPF improve the original algorithm. 
+We implement and optimize two existing parallel algorithms that solve the problem of maximum cardinality matching in bipartite graphs: Parallel Pothen Fan (PPF) and Parallel Tree Grafting (PTG). Our work is focused mainly on the analysis and possible optimizations of the PPF algorithm. We reason about the theoretical performance of PPF using the PRAM model and give a detailed description of the additional optimizations we implemented. We benchmark and test our implementations in a highly multi-threaded environment using a Xeon Phi multicore processor. The results confirm that our optimizations for PPF improve the original algorithm. 
 
 \end{abstract}
 
@@ -63,8 +63,8 @@ Matching in bipartite graphs has several applications in computer science, for e
 form (BTF) of a sparse matrix \cite{Pothen:1990}.\\
 
 Two recent publications by Azad et.\ al.\ are concerned with solving the bipartite maximum cardinality matching problem in parallel. 
-The first paper~\cite{Azad:2012} presents a parallel version of the Pothen-Algorithm (PPF) that achieves good performance 
-on architectures with few fat cores. In the second paper a novel Parallel Tree Grafting (PTG) algorithm is presented 
+The first paper~\cite{Azad:2012} presents a parallel version of the Pothen Fan algorithm (PPF) that achieves good performance 
+on architectures with few fat cores. In the second paper~\cite{Azad:2015} a novel Parallel Tree Grafting (PTG) algorithm is presented 
 that is designed to perform better on architectures with many thin cores. 
 The authors of said paper also claim that PPF is not suited for architectures of this kind.\\
 
@@ -88,7 +88,7 @@ By doing so, we achieved superlinear speedup for PPF on Xeon Phi.
 Given a bipartite graph $G = (V = X \cup Y, E)$.
 A matching $M[\cdot]: |V| \rightarrow |V| \cup \{v_{null}\}$ is a mapping that assigns each vertex $v$ a unique mate $M[v]$ s.t. 
 $\forall v \in V.\ M[v] \neq v_{null} \implies v = M[M[v]] \wedge \{v, M[v]\} \in E$.
-Each vertex can have at most one mate. A vertex $v$ is called matched iff. $M[v] \neq v_{null}$. An edge is matched if its vertices are matched. 
+Each vertex can have at most one mate. A vertex $v$ is called matched iff $M[v] \neq v_{null}$. An edge is matched if its vertices are matched. 
 We call a matching a maximum cardinality matching if it maximizes the number of edges expressed by $M$. See~\cite{intro_alg} for a detailed introduction.
 
 \mypar{Augmenting Path based Algorithms}
@@ -98,13 +98,13 @@ These however are not the focus of this report.
 
 The best known sequential algorithm for bipartite maximum cardinality matching was discovered by Hopcroft and Karp~\cite{HK:1973}
 and runs in $O(|E|\cdot \sqrt{|V|})$. Another algorithm which runs in $O(|E|\cdot|V|)$ was discovered by Pothen and Fan~\cite{Pothen:1990}.
-Although this algorithm asymptotically performs worse than Hopcroft-Karp, in practice it performs better when parallelized according to Azad et.\ al.~\cite{Azad:2012}.
+Although this algorithm performs worse asymptotically than Hopcroft-Karp, in practice it performs better when parallelized according to Azad et.\ al.~\cite{Azad:2012}.
 
 The core idea of both algorithms is to find so called augmenting paths. An augmenting path is a path where the first 
 and last edge are unmatched and where the edges along the path alternate between matched and unmatched. 
 An augmenting path can be inverted by adding every unmatched edge to the matching and removing every matched edge from the matching. 
 This will increase the size of the matching by one. 
-Augmenting path based algorithms try to find and invert such paths. If there is no more augmenting path in a graph then the matching is maximal.
+Augmenting path based algorithms try to find and invert such paths. If there are no more augmenting paths in a graph then the matching is maximal.
 
 \mypar{Initial Matching}
 Augmenting path based algorithms benefit from starting with an initial matching. 
@@ -120,7 +120,7 @@ give a brief theoretical analysis of PPF using the PRAM model. Furthermore we al
 
 \mypar{Implementation and Optimizations} Azad et.\ al.~\cite{Azad:2012} only give a very abstract description of their PPF implementation with no source code available. 
 Coming up with an efficient PPF implementation proved to be challenging. 
-In this section we describe our PPF implementation with a focus on the practical techniques used to match the performance of Azad et.\ al.\\
+In this section we describe our PPF implementation with a focus on the techniques used to match the performance of Azad et.\ al.\\
 
 PPF computes the maximum cardinality matching by finding and inverting disjoint augmenting paths in parallel through multiple depth-first-searches (DFS)
 that start from all unmatched vertices. A detailed explanation how PPF works can be found in \cite{Azad:2012}. 
@@ -129,7 +129,7 @@ Functionally, our algorithm description is equivalent to then one given by~\cite
 but goes into more detail and describes more optimizations than the original.\\
 
 The main loop of \texttt{PPF} iteratively performs multiple DFS in parallel to find augmenting paths. 
-When a path is found, it is inverted to increase the matching.
+When a path is found, it is inverted to increase the matching by one.
 The description for this DFS is given in the recursive algorithm \texttt{FIND\_AND\_AUGMENT} (see algorithm~\ref{alg:fa}). 
 Our DFS implementation finds a path and then inverts the matching while returning from the recursion. 
 In practice, we use a stack based implementation of the recursive algorithm to avoid overflowing the stack as suggested by~\cite{Azad:2012}. 
@@ -148,18 +148,18 @@ This is a large bottleneck of the algorithm because threads have to wait for the
 In the original algorithm by Azad et.\ al.~\cite{Azad:2012}, Test-and-Set is used to set the flags in the $visited$ array. 
 An equivalent implementation of this approach applied to our algorithm is given in \texttt{$CLAIM_{TAS}$} (see algorithm~\ref{alg:claim_tas}). 
 Using Test-and-Set is problematic because it adds an unnecessary overhead to each failed attempt of locking a vertex when there is no data race. 
-We solve this issue by using the Test-and-Test-and-Set approach to lock vertices (see \texttt{$CLAIM_{TTAS}$} in algorithm~\ref{alg:claim_tas}).
+We solve this issue by using the Test-and-Test-and-Set approach to lock vertices (see \texttt{$CLAIM_{TTAS}$} in algorithm~\ref{alg:claim_ttas}).
 Before using an atomic operation to lock a vertex, we first try a regular memory load. If the vertex is already locked we can omit the atomic operation. 
 This has the benefit of increased caching possibilities and reduced memory traffic. 
 We experimentally verified that PPF performs better with Test-and-Test-and-Set than with Test-and-Set in section \ref{sec:exp}.
 
-The source code of our PPF implementation is available online\footnote{\url{https://github.com/suem/dphpc-project}} for further details.\\
+The source code of our PPF implementation is available online\footnote{\url{https://github.com/suem/dphpc-project/blob/master/src/ppf3.cpp}} for further reference.\\
 
 \begin{algorithm}
     \caption{Parallel Pothen Fan}
     \label{alg:ppf}
     \begin{algorithmic}[1]
-        \Procedure{PPF}{$G=(V=X+Y,E), M$}
+        \Procedure{PPF}{$G=(V=X \cup Y,E), M$}
 
         \LineComment{Initialization}
         \State $lookahead[x] \gets \text{first neighbor of x}$ \Comment{$x \in X$}
@@ -262,11 +262,11 @@ This has to be performed for all $|V|$ vertices. Note that PPF might perform use
 if it is blocked by another thread and has to abort the DFS. 
 The PTG algorithm described in section \ref{sec:tg} attempts to mitigate this problem.\\
 
-Figure~\ref{fig:pram} illustrates the two program DAGs of PPF for the best case scenario (left) and the worst case (right).
+Figure~\ref{fig:pram} illustrates the two program DAGs of PPF for the best case scenario (left) and the worst case scenario (right).
 
-In the best case scenario, the input graph only consists of non overlapping augmenting paths, which can then all be found in parallel without conflicts. 
+In the best case scenario, the input graph only consists of non-overlapping augmenting paths, which can then all be found in parallel without conflicts. 
 This is illustrated by the vertical gray node paths in the DAG.
-Therefore the maximal depth of the DAG is $|E|$, matching the length of a DFS. Hence PPF as an average parallelism of $O(|V|)$ in the best case.
+Therefore the maximal depth of the DAG is $|E|$, matching the length of a DFS. Hence PPF has an average parallelism of $O(|V|)$ in the best case.
 
 In the worst case scenario, the input graph consists of augmenting paths that always overlap. 
 In this case, only one thread will succeed per iteration and the other threads cannot perform any work. 
@@ -275,28 +275,29 @@ Therefore the depth of the DAG is the same as the work because there is no paral
 
 \begin{figure}\centering
   \includegraphics[height=5cm, trim={2.5cm 8cm 4cm 1cm}, clip]{PRAM.pdf}
-  \caption{DAG for PRAM analysis of PPF}
+  \caption{DAG for PRAM analysis of PPF. Worst case scenario on the right, best case scenario on the left.}
   \label{fig:pram}
 \end{figure}
 
-The average parallelism of PPF lies between $O(1)$ and $O(n)$ depending on the input graph. 
+The average parallelism of PPF lies between $O(1)$ and $O(|V|)$ depending on the input graph. 
 In section \ref{sec:exp} we show that for real-world input data PPF achieves a speedup that is close to the optimal average parallelism.
 
 \subsection{Tree Grafting}\label{sec:tg}
 
-The second algorithm we examined that solves the problem of maximum matching on bipartite graphs is the Tree Grafting algorithm, as described in \cite{Azad:2015}. One of the paper's claims is that Tree Grafting performs better than Pothen-Fan on architectures with many thin cores, which the Xeon Phi essentially is. \\
+The second algorithm we examined that solves the problem of maximum matching on bipartite graphs is the Tree Grafting algorithm, as described in \cite{Azad:2015}. One of the paper's claims is that Tree Grafting performs better than PPF on architectures with many thin cores such as the Xeon Phi. \\
 We give a short overview of the algorithm we have implemented and on the optimizations we did. \\
 
 \mypar{Parallel Tree Grafting} 
-Parallel Tree Grafting (PTG) takes a bipartite graph and an initial matching $M$ as input and returns a maximum matching by updating $M$.
-PTG is - like Pothen-Fan - a multi-source searching algorithm. It starts to search for augmenting paths from different unmatched vertices and constructs a forest of alternating trees.\\
-The main difference between Pothen-Fan is the reuse of already found trees. Pothen-Fan forgets about the trees it previously found but could not use and has to reconstruct them in in every new iteration.\\
+The Parallel Tree Grafting algorithm (PTG) takes a bipartite graph and an initial matching $M$ as input and returns a maximum matching by updating $M$.
+PTG is - like PPF - a multi-source searching algorithm. It starts to search for augmenting paths from different unmatched vertices and constructs a forest of alternating trees.\\
+The main difference between PPF is the reuse of already found trees. PPF forgets about the trees it previously found but could not use and has to reconstruct them in every new iteration.\\
 PTG however keeps track of augmenting trees which can still be extended (active trees) and then grafts other trees to the active trees to prolong the augmenting paths contained in them.\\
 For a more detailed explanation of the PTG algorithm including pseudocode, see \cite{Azad:2015}.\\
 
 \mypar{Optimizations}
 Our implementation of the PTG algorithm follows the implementation described in the paper very closely. To build the augmenting paths, we have used the same optimizations as already described in our optimized version of PPF. To store the pointers to the root, leaf and other nodes the PTG algorithm utilizes, we have implemented our own version of a non-blocking queue as a data structure. \\
-The source code of our PTG implementation is available online\footnote{\url{https://github.com/suem/dphpc-project}} for further details.
+
+The source code of our PTG implementation is available online\footnote{\url{https://github.com/suem/dphpc-project/blob/master/src/tree_grafting.cpp}} for further reference.
 
 
 \section{Experimental Results}\label{sec:exp}
@@ -305,11 +306,11 @@ In this section we explain the benchmarking process. We first describe the exper
 %Here you evaluate your work using experiments. You start again with a
 %very short summary of the section. The typical structure follows.
 
-\mypar{Experimental setup} 
+\mypar{Experimental Setup} 
 %Specify the platform (processor, frequency, maybe OS, maybe cache sizes)
 %as well as the compiler, version, and flags used. If your work is about performance, 
 %I strongly recommend that you play with optimization flags and consider also icc for additional potential speedup.
-We execute our benchmarks on an Intel Xeon Phi coprocessor (7120 Series) which is based on the Intel MIC architecture. The Xeon Phi has a total of 61 cores which run at a frequency of 1.24 GHz. Each core can run up to four threads, which gives us a total of 244 threads. The Xeon Phi coprocessor has a fully coherent L2 cache with a size of 30.5 MB. To compile our code we use the Intel \texttt{icpc} compiler with the following flags: \texttt{-openmp, -std=c++11, -Wall, -O3, -mmic, -lrt, and -DNDEBUG}.\\
+We execute our benchmarks on an Intel Xeon Phi coprocessor (7120 Series) which is based on the Intel MIC architecture. The Xeon Phi has a total of 61 cores which run at a frequency of 1.24 GHz. Each core can run up to four threads, which gives us a total of 244 threads. The Xeon Phi coprocessor has a fully coherent L2 cache with a size of 30.5 MB. To compile our code we use the Intel \texttt{icpc} compiler with the following flags: \texttt{-openmp, -std=c++11, -Wall, -O3, -mmic, -lrt}.\\
 % Xeon Phi (5110P), GCC, -O3, 60 simplified Intel CPU cores running at 1056 MHz and supports 4 threads  per core, resulting in a total of 240 threads. Each core has a 32kb L1 data cache, a 32kb L1 instruction cache and a private 512 kb L2 unified cache. \cite{Ramos:2013}
 
 %Then explain what kind of benchmarks you ran. The idea is to give enough information so the experiments are reproducible by somebody else on his or her code.
@@ -420,9 +421,9 @@ This leads to a substantial difference in the speedup, as we can see in figure \
 
 \section{Conclusions}
 
-We analyzed and implemented the PPF algorithm, building upon the the pseudocode provided in the original paper. We then designed and evaluated new optimizations for the PPF algorithm, which resulted in performance benefits over the original implementation. Our experimental results show that our approach using Test-and-Test-and-Set to lock a vertex outperforms the  Test-and-Set approach used in the original PPF algorithm by Azad et.\ al.\ \cite{Azad:2012}. Using a more clever way to update the \textit{visited} array further improved the runtime of the algorithm.\\
+We analyzed and implemented the PPF algorithm, building upon the pseudocode provided in the original paper~\cite{Azad:2012}. We then designed and evaluated new optimizations for the PPF algorithm, which resulted in performance benefits over the original implementation. Our experimental results show that our approach using Test-and-Test-and-Set to lock a vertex outperforms the  Test-and-Set approach used in the original PPF algorithm by Azad et.\ al.\ \cite{Azad:2012}. Using a more clever way to update the \textit{visited} array further improved the runtime of the algorithm.\\
 
-The claim of the Tree Grafting paper \cite{Azad:2015} that PPF is not well suited for many thin cores was disproven by our experiments on the Xeon Phi multicore processor. Our optimized PPF implementation yields a super linear speedup compared to the sequential PF implementation and scales up to 240 threads. We have to mention however that the super linear speedup is also due to caching effects on the Xeon Phi. The sequential PF algorithm only runs on a single core which is very weak compared to the resources of all cores combined.\\
+The claim of Azad et.\ al. \cite{Azad:2015} that PPF is not well suited for architectures with many thin cores could not be verified by our experiments on the Xeon Phi multicore processor. Our optimized PPF implementation yields a superlinear speedup compared to the sequential PF implementation and scales up to 240 threads. We have to mention however that the superlinear speedup is also due to caching effects on the Xeon Phi. The sequential PF algorithm only runs on a single core which is very weak compared to the resources of all cores combined.\\
 
 While our implementation of the PTG algorithm also scales up to 240 threads, it is still an order of magnitude slower than our PPF implementation, independent of the number of threads used. We could thus not confirm that PTG is an improvement over PPF.
 

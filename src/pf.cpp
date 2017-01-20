@@ -1,3 +1,5 @@
+// Sequential version of Pothen-Fan
+
 #include <iostream>
 #include <stack>
 #include <omp.h>

@@ -1,5 +1,4 @@
-// Parallel Pothen fan with reduced working set and atomic swap for visited array, no need to clear visited array
-// Matching for left vertices is updated at the end and not during the algorithm
+// PPF implementation based on the Azad. et. al. paper with Test-and-test-and-Set
 
 
 #include <iostream>

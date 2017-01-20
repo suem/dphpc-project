@@ -1,5 +1,4 @@
-// TODO: Don't use, currently not correct. use parallel_pothen_fan
-// Parallel Pothen Fan: Initial implementation
+// PPF implementation based on the Azad. et. al. paper with Test-and-Set
 
 
 #include <iostream>
