@@ -4,30 +4,5 @@
 
 ## Parallel Maximum Cardinality Matching on Bipartite Graphs
 
-Intro goes here
-
-### Baseline, Hoftcrop-Karp (Boost implementation)
-
-Source: https://en.wikipedia.org/wiki/Hopcroft%E2%80%93Karp_algorithm
-
-<img src="/docs/media/img/boost_logo.png" alt="Boost Logo" width="250">
-Source: http://www.boost.org/
-
-
-### Alternative Algorithms
-
-#### Parallel Pothen-Fan
-
-### Architecture
-
-<img src="/docs/media/img/xeon_phi_sticker.png" alt="Xeon Phi Sticker" width="250">
-Source: http://www.intel.com/content/www/us/en/processors/xeon/xeon-phi-detail.html
-
-<img src="/docs/media/img/openmp_logo.gif" alt="OpenMP Logo" width="250">
-Source: http://openmp.org/wp/
-
-
-### Our Solution
-
-**On going**
+We implement and optimize two existing parallel algorithms that solve the problem of maximum cardinality matching in bipartite graphs: Parallel Pothen Fan (PPF) and Parallel Tree Grafting (PTG). Our work is focused mainly on the analysis and possible optimizations of the PPF algorithm. We reason about the theoretical performance of PPF using the PRAM model and give a detailed description of the additional optimizations we implemented. We benchmark and test our implementations in a highly multi-threaded environment using a Xeon Phi multicore processor. The results confirm that our optimizations for PPF improve the original algorithm. 
 

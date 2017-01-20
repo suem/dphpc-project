@@ -89,7 +89,7 @@ Given a bipartite graph $G = (V = X \cup Y, E)$.
 A matching $M[\cdot]: |V| \rightarrow |V| \cup \{v_{null}\}$ is a mapping that assigns each vertex $v$ a unique mate $M[v]$ s.t. 
 $\forall v \in V.\ M[v] \neq v_{null} \implies v = M[M[v]] \wedge \{v, M[v]\} \in E$.
 Each vertex can have at most one mate. A vertex $v$ is called matched iff $M[v] \neq v_{null}$. An edge is matched if its vertices are matched. 
-We call a matching a maximum cardinality matching if it maximizes the number of edges expressed by $M$. See~\cite{intro_alg} for a detailed introduction.
+We call a matching a maximum cardinality matching if it maximizes the number of edges expressed by $M$. See~\cite{intro_alg} for a detailed introduction.\\
 
 \mypar{Augmenting Path based Algorithms}
 The algorithms presented in this report are based on augmenting paths. 
@@ -104,7 +104,7 @@ The core idea of both algorithms is to find so called augmenting paths. An augme
 and last edge are unmatched and where the edges along the path alternate between matched and unmatched. 
 An augmenting path can be inverted by adding every unmatched edge to the matching and removing every matched edge from the matching. 
 This will increase the size of the matching by one. 
-Augmenting path based algorithms try to find and invert such paths. If there are no more augmenting paths in a graph then the matching is maximal.
+Augmenting path based algorithms try to find and invert such paths. If there are no more augmenting paths in a graph then the matching is maximal.\\
 
 \mypar{Initial Matching}
 Augmenting path based algorithms benefit from starting with an initial matching. 
@@ -263,11 +263,9 @@ if it is blocked by another thread and has to abort the DFS.
 The PTG algorithm described in section \ref{sec:tg} attempts to mitigate this problem.\\
 
 Figure~\ref{fig:pram} illustrates the two program DAGs of PPF for the best case scenario (left) and the worst case scenario (right).
-
 In the best case scenario, the input graph only consists of non-overlapping augmenting paths, which can then all be found in parallel without conflicts. 
 This is illustrated by the vertical gray node paths in the DAG.
 Therefore the maximal depth of the DAG is $|E|$, matching the length of a DFS. Hence PPF has an average parallelism of $O(|V|)$ in the best case.
-
 In the worst case scenario, the input graph consists of augmenting paths that always overlap. 
 In this case, only one thread will succeed per iteration and the other threads cannot perform any work. 
 Unsuccessful threads are indicated by the white nodes on the DAG on the right. 
